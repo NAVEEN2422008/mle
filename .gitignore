@@ -1,0 +1,4 @@
+# Never commit credentials
+PRADAN.cred
+*.cred
+.env

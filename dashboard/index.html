@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Aditya FlareCast — Live Solar Observatory Cockpit</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☀️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #060913;
+  --bg-gradient: radial-gradient(circle at 50% 0%, #10192e 0%, #060913 75%);
+  --panel: rgba(14, 22, 39, 0.75);
+  --panel-border: rgba(45, 68, 105, 0.4);
+  --panel-hover: rgba(22, 35, 61, 0.85);
+  --cyan: #00e5ff;
+  --cyan-glow: rgba(0, 229, 255, 0.35);
+  --orange: #ff9100;
+  --orange-glow: rgba(255, 145, 0, 0.35);
+  --green: #00e676;
+  --green-glow: rgba(0, 230, 118, 0.35);
+  --amber: #ffd600;
+  --red: #ff1744;
+  --red-glow: rgba(255, 23, 68, 0.5);
+  --text-main: #f0f4fc;
+  --text-dim: #7a8fae;
+  --text-subtle: #4c5d79;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg-gradient);
+  background-color: var(--bg);
+  color: var(--text-main);
+  font-family: 'Outfit', -apple-system, sans-serif;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* Header */
+header {
+  height: 56px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: rgba(10, 16, 29, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--panel-border);
+  z-index: 100;
+}
+
+.logo-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.logo-icon {
+  font-size: 24px;
+  filter: drop-shadow(0 0 10px rgba(255, 214, 0, 0.6));
+}
+.logo-text {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  background: linear-gradient(135deg, #fff 30%, #a5c7ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.mission-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(0, 229, 255, 0.12);
+  color: var(--cyan);
+  border: 1px solid rgba(0, 229, 255, 0.3);
+  letter-spacing: 0.5px;
+}
+
+.header-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: 20px;
+}
+.status-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: rgba(15, 25, 45, 0.8);
+  border: 1px solid var(--panel-border);
+}
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+  animation: pulse-ring 1.8s infinite cubic-bezier(0.4, 0, 0.6, 1);
+}
+.pulse-dot.off {
+  background: var(--red);
+  box-shadow: 0 0 8px var(--red);
+  animation: none;
+}
+@keyframes pulse-ring {
+  0% { transform: scale(0.9); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 1; filter: drop-shadow(0 0 6px var(--green)); }
+  100% { transform: scale(0.9); opacity: 0.8; }
+}
+
+.controls-group {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.btn-toggle {
+  background: rgba(22, 35, 60, 0.8);
+  border: 1px solid var(--panel-border);
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+.btn-toggle:hover, .btn-toggle.active {
+  color: var(--text-main);
+  background: rgba(0, 229, 255, 0.15);
+  border-color: var(--cyan);
+}
+.speed-select {
+  background: rgba(22, 35, 60, 0.8);
+  border: 1px solid var(--panel-border);
+  color: var(--cyan);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+  outline: none;
+  cursor: pointer;
+}
+
+/* Alert Banner */
+#alertbar {
+  margin: 10px 14px 0 14px;
+  padding: 10px 20px;
+  background: rgba(14, 22, 39, 0.85);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+#alertbar.active {
+  background: rgba(255, 23, 68, 0.15);
+  border-color: var(--red);
+  box-shadow: 0 0 24px var(--red-glow) inset, 0 0 16px rgba(255, 23, 68, 0.3);
+  animation: alert-flash 1s infinite alternate ease-in-out;
+}
+@keyframes alert-flash {
+  from { border-color: rgba(255, 23, 68, 0.5); }
+  to { border-color: rgba(255, 23, 68, 1); }
+}
+.alert-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+}
+.alert-icon { font-size: 18px; }
+.alert-source {
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim);
+}
+
+/* Main Grid Layout */
+main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  grid-template-rows: 1.3fr 0.9fr 1.1fr;
+  gap: 12px;
+  padding: 12px 14px;
+  min-height: 0;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(14px);
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+}
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.panel-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.panel-legend {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.legend-line {
+  width: 14px;
+  height: 3px;
+  border-radius: 2px;
+}
+.legend-cyan { background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
+.legend-orange { background: var(--orange); box-shadow: 0 0 6px var(--orange); }
+.legend-green { background: var(--green); box-shadow: 0 0 6px var(--green); }
+
+/* Canvas Chart Containers */
+.chart-container {
+  flex: 1;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Sidebar HUD Panel */
+.hud-panel {
+  grid-column: 2/3;
+  grid-row: 1/3;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Circular Radial Gauge */
+.gauge-card {
+  background: rgba(18, 28, 48, 0.6);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+.radial-svg {
+  width: 160px;
+  height: 160px;
+  transform: rotate(-90deg);
+}
+.radial-bg {
+  fill: none;
+  stroke: rgba(30, 45, 75, 0.8);
+  stroke-width: 12;
+}
+.radial-val {
+  fill: none;
+  stroke: var(--green);
+  stroke-width: 12;
+  stroke-linecap: round;
+  stroke-dasharray: 408;
+  stroke-dashoffset: 408;
+  transition: stroke-dashoffset 0.4s ease, stroke 0.4s ease;
+  filter: drop-shadow(0 0 6px var(--green-glow));
+}
+.gauge-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.gauge-number {
+  font-size: 38px;
+  font-weight: 900;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: -1px;
+}
+.gauge-sub {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* State Badges */
+.nowcast-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.nowcast-badge {
+  padding: 10px;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  background: rgba(15, 25, 45, 0.8);
+  border: 1px solid var(--panel-border);
+  transition: all 0.3s ease;
+}
+.nowcast-badge.QUIET {
+  color: var(--green);
+  border-color: rgba(0, 230, 118, 0.3);
+  background: rgba(0, 230, 118, 0.08);
+}
+.nowcast-badge.ACTIVE {
+  color: var(--red);
+  border-color: var(--red);
+  background: rgba(255, 23, 68, 0.15);
+  box-shadow: 0 0 16px var(--red-glow);
+  animation: pulse-ring 1s infinite ease-in-out;
+}
+
+/* HUD Telemetry Key-Value Grid */
+.telemetry-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.tele-card {
+  background: rgba(15, 25, 45, 0.6);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.tele-label {
+  font-size: 9px;
+  color: var(--text-dim);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.tele-value {
+  font-size: 14px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text-main);
+}
+.tele-value.cyan { color: var(--cyan); }
+.tele-value.orange { color: var(--orange); }
+
+/* Catalogue Table Panel */
+.catalogue-panel {
+  grid-column: 1/3;
+  grid-row: 3/4;
+}
+.table-scroll {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  margin-top: 4px;
+}
+.table-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.table-scroll::-webkit-scrollbar-thumb {
+  background: rgba(45, 68, 105, 0.5);
+  border-radius: 3px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+}
+th {
+  position: sticky;
+  top: 0;
+  background: #0d1525;
+  color: var(--text-dim);
+  text-align: left;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--panel-border);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 9px;
+  letter-spacing: 0.8px;
+  z-index: 10;
+}
+td {
+  padding: 6px 10px;
+  border-bottom: 1px solid rgba(45, 68, 105, 0.2);
+  color: var(--text-main);
+}
+tr:hover td {
+  background: rgba(0, 229, 255, 0.04);
+}
+
+.class-tag {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-weight: 800;
+  font-size: 10px;
+}
+.class-X { background: rgba(255, 23, 68, 0.25); color: #ff5252; border: 1px solid #ff1744; }
+.class-M { background: rgba(255, 145, 0, 0.25); color: #ffab40; border: 1px solid #ff9100; }
+.class-C { background: rgba(255, 214, 0, 0.2); color: #ffd740; border: 1px solid #ffd600; }
+.class-B { background: rgba(0, 230, 118, 0.15); color: #69f0ae; border: 1px solid #00e676; }
+
+.btn-export {
+  background: rgba(0, 229, 255, 0.12);
+  border: 1px solid rgba(0, 229, 255, 0.35);
+  color: var(--cyan);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+.btn-export:hover {
+  background: rgba(0, 229, 255, 0.25);
+}
+
+/* Footer */
+footer {
+  height: 24px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--text-subtle);
+  background: rgba(8, 13, 23, 0.95);
+  border-top: 1px solid var(--panel-border);
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-wrap">
+    <span class="logo-icon">☀️</span>
+    <span class="logo-text">ADITYA FLARECAST</span>
+    <span class="mission-badge">ADITYA-L1 SOLEXS & HEL1OS</span>
+  </div>
+
+  <div class="header-status">
+    <div class="status-pill">
+      <div id="pulse" class="pulse-dot"></div>
+      <span id="conn_text">CONNECTING</span>
+    </div>
+    <div class="status-pill" style="font-family: 'JetBrains Mono', monospace;">
+      <span style="color:var(--text-dim);">TIME (UTC):</span>
+      <span id="utc_clock">--:--:--</span>
+    </div>
+  </div>
+
+<div class="controls-group">
+     <button id="btn_goes" class="btn-toggle active" onclick="switchSource('goes')">LIVE GOES-XRS</button>
+     <button id="btn_synth" class="btn-toggle" onclick="switchSource('synth')">SYNTHETIC INJECTION</button>
+     <label style="font-size:11px;color:var(--text-dim);margin-left:8px;font-weight:600;">SPEED:</label>
+     <select id="speed_sel" class="speed-select" onchange="changeSpeed(this.value)">
+       <option value="1">1x (Realtime)</option>
+       <option value="10">10x</option>
+       <option value="60" selected>60x (Fast Replay)</option>
+       <option value="120">120x</option>
+       <option value="300">300x (Ultra)</option>
+     </select>
+   </div>
+   <div class="model-status-pill">
+     <span style="color:var(--text-dim);">MODEL:</span>
+     <span id="model_status" style="color:var(--cyan);">LightGBM v0.1.0</span>
+   </div>
+   <div class="anomaly-pill">
+     <span style="color:var(--text-dim);">ANOMALY:</span>
+     <span id="anomaly_score" style="color:var(--green);">0.000</span>
+   </div>
+   <div class="confidence-pill">
+     <span style="color:var(--text-dim);">CONF:</span>
+     <span id="model_confidence" style="color:var(--green);">0%</span>
+   </div>
+ </header>
+
+<div id="alertbar">
+  <div class="alert-title">
+    <span id="alert_icon" class="alert-icon">🛡️</span>
+    <span id="alert_text">SYSTEM NOMINAL — MONITORING SOLAR X-RAY EMISSIONS</span>
+  </div>
+  <div class="alert-source" id="source_tag">SOURCE: INITIALIZING...</div>
+</div>
+
+<main>
+  <!-- Pane 1: Primary Dual X-Ray Light Curves -->
+  <div class="panel" style="grid-column:1/2; grid-row:1/2;">
+    <div class="panel-header">
+      <div class="panel-title">
+        <span>⚡ Primary Dual-Band Light Curves</span>
+      </div>
+      <div class="panel-legend">
+        <div class="legend-item"><div class="legend-line legend-cyan"></div><span>SoLEXS Soft (2-22 keV)</span></div>
+        <div class="legend-item"><div class="legend-line legend-orange"></div><span>HEL1OS Hard (10-150 keV)</span></div>
+      </div>
+    </div>
+    <div class="chart-container">
+      <canvas id="main_chart"></canvas>
+    </div>
+  </div>
+
+  <!-- Pane 2: Neupert Effect Diagnostics Pane -->
+  <div class="panel" style="grid-column:1/2; grid-row:2/3;">
+    <div class="panel-header">
+      <div class="panel-title">
+        <span>🔬 Neupert Effect Diagnostic (HXR vs d(SXR)/dt)</span>
+      </div>
+      <div class="panel-legend">
+        <div class="legend-item"><div class="legend-line legend-orange"></div><span>HXR Counts</span></div>
+        <div class="legend-item"><div class="legend-line legend-green"></div><span>d(SXR)/dt Slope</span></div>
+      </div>
+    </div>
+    <div class="chart-container">
+      <canvas id="neupert_chart"></canvas>
+    </div>
+  </div>
+
+  <!-- HUD Telemetry & Gauge Sidebar -->
+  <div class="panel hud-panel">
+    <div class="panel-header">
+      <div class="panel-title"><span>📡 Real-Time HUD Cockpit</span></div>
+    </div>
+
+    <!-- Forecast Probability Radial Gauge -->
+    <div class="gauge-card">
+      <svg class="radial-svg" viewBox="0 0 160 160">
+        <circle class="radial-bg" cx="80" cy="80" r="65"/>
+        <circle id="gauge_val" class="radial-val" cx="80" cy="80" r="65"/>
+      </svg>
+      <div class="gauge-overlay">
+        <div id="gauge_pct" class="gauge-number">0%</div>
+        <div class="gauge-sub">FLARE FORECAST (15M)</div>
+      </div>
+    </div>
+
+    <!-- Nowcast State Alert Box -->
+    <div class="nowcast-box">
+      <div style="font-size:10px;font-weight:700;color:var(--text-dim);text-transform:uppercase;">Nowcast Detector State</div>
+      <div id="nowcast_state" class="nowcast-badge QUIET">QUIET</div>
+    </div>
+
+    <!-- Telemetry Metric Cards -->
+    <div class="telemetry-grid">
+      <div class="tele-card">
+        <div class="tele-label">Soft Counts (SoLEXS)</div>
+        <div id="val_soft" class="tele-value cyan">0</div>
+      </div>
+      <div class="tele-card">
+        <div class="tele-label">Hard Counts (HEL1OS)</div>
+        <div id="val_hard" class="tele-value orange">0</div>
+      </div>
+      <div class="tele-card">
+        <div class="tele-label">Neupert Correlation (ρ)</div>
+        <div id="val_rho" class="tele-value">0.000</div>
+      </div>
+      <div class="tele-card">
+        <div class="tele-label">HXR Precursor Lead</div>
+        <div id="val_lead" class="tele-value" style="color:var(--green)">NO</div>
+      </div>
+      <div class="tele-card">
+        <div class="tele-label">CUSUM Baseline (S)</div>
+        <div id="val_base" class="tele-value">0.0</div>
+      </div>
+      <div class="tele-card">
+        <div class="tele-label">SXR Rate of Rise</div>
+        <div id="val_dsxr" class="tele-value">0.00</div>
+      </div>
+    </div>
+
+    <!-- Multi-Horizon Deep Attention Card -->
+    <div class="tele-card" style="margin-top:2px;">
+      <div class="tele-label" style="color:var(--cyan)">Deep Temporal Attention Forecasts</div>
+      <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:11px;font-family:'JetBrains Mono',monospace;">
+        <span>15m: <b id="val_p15" style="color:var(--green)">0%</b></span>
+        <span>30m: <b id="val_p30" style="color:var(--amber)">0%</b></span>
+        <span>60m: <b id="val_p60" style="color:var(--text-dim)">0%</b></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:10px;color:var(--text-dim);">
+        <span>Est. Class: <b id="val_pred_cls" style="color:var(--text-main)">B/A</b></span>
+        <span>Est. Lead: <b id="val_est_lead" style="color:var(--cyan)">-- min</b></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Master Flare Event Catalogue Table -->
+  <div class="panel catalogue-panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        <span>📋 Master Solar Flare Catalogue (Live Stream Detections)</span>
+      </div>
+      <button class="btn-export" onclick="exportCSV()">📥 EXPORT CSV</button>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Event #</th>
+            <th>Onset Time (UTC)</th>
+            <th>Peak Time (UTC)</th>
+            <th>Peak Soft Counts</th>
+            <th>GOES Flare Class</th>
+            <th>Neupert Correlation</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="cat_body"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <span>Aditya FlareCast v2.0 · O(1) CUSUM + Poisson-FOCuS Detectors · ISRO PRADAN & NOAA GOES Integrated</span>
+  <span>Telemetry Latency: ~5.0s L1 Light-Travel Time Adjusted</span>
+</footer>
+
+<script>
+const MAX_PTS = 600;
+const streamData = [];
+let eventCount = 0;
+const catRecords = [];
+
+// Setup Canvas 2D
+const cvMain = document.getElementById('main_chart'), ctxMain = cvMain.getContext('2d');
+const cvNeup = document.getElementById('neupert_chart'), ctxNeup = cvNeup.getContext('2d');
+
+function handleResize() {
+  const dpr = window.devicePixelRatio || 1;
+  const rMain = cvMain.parentElement.getBoundingClientRect();
+  cvMain.width = rMain.width * dpr;
+  cvMain.height = rMain.height * dpr;
+
+  const rNeup = cvNeup.parentElement.getBoundingClientRect();
+  cvNeup.width = rNeup.width * dpr;
+  cvNeup.height = rNeup.height * dpr;
+}
+window.addEventListener('resize', handleResize);
+handleResize();
+
+function renderMainChart() {
+  const W = cvMain.width, H = cvMain.height;
+  const padL = 60 * devicePixelRatio, padR = 20 * devicePixelRatio, padB = 30 * devicePixelRatio, padT = 15 * devicePixelRatio;
+  ctxMain.clearRect(0, 0, W, H);
+
+  if (streamData.length < 2) return;
+
+  const logSoft = streamData.map(d => Math.log10(Math.max(d.soft, 1)));
+  const logHard = streamData.map(d => Math.log10(Math.max(d.hard, 1)));
+  const allLogs = logSoft.concat(logHard);
+
+  let minVal = Math.floor(Math.min(...allLogs) - 0.2);
+  let maxVal = Math.ceil(Math.max(...allLogs) + 0.2);
+  if (maxVal - minVal < 2) maxVal = minVal + 2;
+
+  const getX = i => padL + (W - padL - padR) * (i / (MAX_PTS - 1));
+  const getY = v => H - padB - (H - padB - padT) * ((v - minVal) / (maxVal - minVal + 1e-9));
+
+  // Grid Lines & Labels
+  ctxMain.lineWidth = 1;
+  ctxMain.strokeStyle = 'rgba(45, 68, 105, 0.25)';
+  ctxMain.fillStyle = '#617594';
+  ctxMain.font = `${10 * devicePixelRatio}px 'JetBrains Mono', monospace`;
+
+  // GOES class reference levels (in scaled counts): B=100 (10^2), C=1000 (10^3), M=10000 (10^4), X=100000 (10^5)
+  const classLevels = [
+    { log: 1, label: 'A-class' },
+    { log: 2, label: 'B-class' },
+    { log: 3, label: 'C-class (Moderate)' },
+    { log: 4, label: 'M-class (Major)' },
+    { log: 5, label: 'X-class (Extreme)' },
+  ];
+
+  for (let g = minVal; g <= maxVal; g++) {
+    const y = getY(g);
+    ctxMain.beginPath();
+    ctxMain.moveTo(padL, y);
+    ctxMain.lineTo(W - padR, y);
+    ctxMain.stroke();
+    
+    // Find class label
+    const cls = classLevels.find(c => c.log === g);
+    if (cls) {
+      ctxMain.fillStyle = g >= 4 ? '#ff5252' : g >= 3 ? '#ffd740' : '#88a0c7';
+      ctxMain.fillText(`${cls.label} (10^${g})`, 8 * devicePixelRatio, y + 4 * devicePixelRatio);
+      ctxMain.fillStyle = '#617594';
+    } else {
+      ctxMain.fillText(`10^${g}`, 8 * devicePixelRatio, y + 4 * devicePixelRatio);
+    }
+  }
+
+  // Draw Soft X-Ray Line
+  const offset = MAX_PTS - streamData.length;
+  drawGlowLine(ctxMain, logSoft, '#00e5ff', 'rgba(0, 229, 255, 0.35)', offset, getX, getY);
+  // Draw Hard X-Ray Line
+  drawGlowLine(ctxMain, logHard, '#ff9100', 'rgba(255, 145, 0, 0.35)', offset, getX, getY);
+}
+
+function renderNeupertChart() {
+  const W = cvNeup.width, H = cvNeup.height;
+  const padL = 60 * devicePixelRatio, padR = 20 * devicePixelRatio, padB = 30 * devicePixelRatio, padT = 15 * devicePixelRatio;
+  ctxNeup.clearRect(0, 0, W, H);
+
+  if (streamData.length < 2) return;
+
+  const hxr = streamData.map(d => d.hard);
+  const dsxr = streamData.map(d => Math.max(d.dsxr_dt || 0, 0));
+
+  let maxH = Math.max(...hxr, 100);
+  let maxD = Math.max(...dsxr, 10);
+
+  const getX = i => padL + (W - padL - padR) * (i / (MAX_PTS - 1));
+  const getY_H = v => H - padB - (H - padB - padT) * (v / (maxH + 1e-9));
+  const getY_D = v => H - padB - (H - padB - padT) * (v / (maxD + 1e-9));
+
+  // Grid
+  ctxNeup.lineWidth = 1;
+  ctxNeup.strokeStyle = 'rgba(45, 68, 105, 0.25)';
+  ctxNeup.beginPath();
+  ctxNeup.moveTo(padL, H - padB);
+  ctxNeup.lineTo(W - padR, H - padB);
+  ctxNeup.stroke();
+
+  const offset = MAX_PTS - streamData.length;
+  // Draw HXR curve
+  drawGlowLine(ctxNeup, hxr, '#ff9100', 'rgba(255, 145, 0, 0.25)', offset, getX, getY_H);
+  // Draw d(SXR)/dt curve
+  drawGlowLine(ctxNeup, dsxr, '#00e676', 'rgba(0, 230, 118, 0.25)', offset, getX, getY_D);
+}
+
+function drawGlowLine(ctx, arr, color, glowColor, offset, getX, getY) {
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2 * devicePixelRatio;
+  ctx.shadowColor = glowColor;
+  ctx.shadowBlur = 8 * devicePixelRatio;
+
+  ctx.beginPath();
+  arr.forEach((v, i) => {
+    const x = getX(i + offset);
+    const y = getY(v);
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+  ctx.restore();
+}
+
+function animLoop() {
+  renderMainChart();
+  renderNeupertChart();
+  requestAnimationFrame(animLoop);
+}
+requestAnimationFrame(animLoop);
+
+// Gauge Update
+function setGauge(prob) {
+  const circle = document.getElementById('gauge_val');
+  const pct = document.getElementById('gauge_pct');
+  const maxCirc = 2 * Math.PI * 65; // ~408.4
+
+  const val = Math.max(0, Math.min(prob, 1));
+  const offset = maxCirc * (1 - val);
+  circle.style.strokeDashoffset = offset;
+
+  pct.textContent = `${Math.round(val * 100)}%`;
+
+  if (val >= 0.7) {
+    circle.style.stroke = 'var(--red)';
+    circle.style.filter = 'drop-shadow(0 0 10px var(--red-glow))';
+  } else if (val >= 0.4) {
+    circle.style.stroke = 'var(--amber)';
+    circle.style.filter = 'drop-shadow(0 0 8px rgba(255, 214, 0, 0.4))';
+  } else {
+    circle.style.stroke = 'var(--green)';
+    circle.style.filter = 'drop-shadow(0 0 8px var(--green-glow))';
+  }
+}
+
+// Server-Sent Events Hook
+let es = null;
+function initSSE() {
+  if (es) es.close();
+  es = new EventSource('/api/stream');
+
+  es.onopen = () => {
+    document.getElementById('pulse').className = 'pulse-dot';
+    document.getElementById('conn_text').textContent = 'LIVE FEED';
+  };
+
+  es.onerror = () => {
+    document.getElementById('pulse').className = 'pulse-dot off';
+    document.getElementById('conn_text').textContent = 'RECONNECTING';
+  };
+
+  es.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+    if (msg.type === 'sample') {
+      streamData.push(msg);
+      if (streamData.length > MAX_PTS) streamData.shift();
+
+      // Update telemetry
+      document.getElementById('utc_clock').textContent = msg.ts ? msg.ts.split(' ')[1] : '--:--:--';
+      document.getElementById('val_soft').textContent = Math.round(msg.soft).toLocaleString();
+      document.getElementById('val_hard').textContent = Math.round(msg.hard).toLocaleString();
+      document.getElementById('val_base').textContent = msg.base_s;
+      document.getElementById('val_dsxr').textContent = (msg.dsxr_dt || 0).toFixed(1);
+      document.getElementById('val_rho').textContent = msg.neupert?.neupert_corr?.toFixed(3) ?? '0.000';
+
+      const leadFlag = msg.neupert?.hxr_leads;
+      const leadEl = document.getElementById('val_lead');
+      leadEl.textContent = leadFlag ? 'YES (LEAD)' : 'NO';
+      leadEl.style.color = leadFlag ? 'var(--cyan)' : 'var(--text-dim)';
+
+      // State & Alerts
+      const isFlaring = ['ONSET', 'INCREASING', 'DECAYING', 'REPEAK', 'SUSTAINED'].includes(msg.state);
+      const nowEl = document.getElementById('nowcast_state');
+      nowEl.textContent = isFlaring ? msg.state : 'QUIET';
+      nowEl.className = `nowcast-badge ${isFlaring ? 'ACTIVE' : 'QUIET'}`;
+
+      const bar = document.getElementById('alertbar');
+      bar.classList.toggle('active', isFlaring);
+      if (isFlaring) {
+        document.getElementById('alert_icon').textContent = '⚠️';
+        document.getElementById('alert_text').textContent = `SOLAR FLARE ACTIVE — DETECTION PHASE: ${msg.state}`;
+      } else {
+        document.getElementById('alert_icon').textContent = '🛡️';
+        document.getElementById('alert_text').textContent = 'SYSTEM NOMINAL — MONITORING SOLAR X-RAY EMISSIONS';
+      }
+
+      // Multi-Horizon predictions
+      if (msg.multi_horizon) {
+        const mh = msg.multi_horizon;
+        document.getElementById('val_p15').textContent = `${Math.round(mh.prob_15m * 100)}%`;
+        document.getElementById('val_p30').textContent = `${Math.round(mh.prob_30m * 100)}%`;
+        document.getElementById('val_p60').textContent = `${Math.round(mh.prob_60m * 100)}%`;
+        document.getElementById('val_pred_cls').textContent = mh.predicted_class;
+        document.getElementById('val_est_lead').textContent = `${mh.estimated_lead_time_min} min`;
+      }
+
+      // Real-time anomaly highlighting
+      const anomalyScore = msg.anomaly_score || 0;
+      const anomalyEl = document.getElementById('anomaly_score');
+      if (anomalyEl) {
+        anomalyEl.textContent = anomalyScore.toFixed(3);
+        anomalyEl.style.color = anomalyScore > 0.7 ? 'var(--red)' : anomalyScore > 0.4 ? 'var(--amber)' : 'var(--green)';
+      }
+
+      // Model confidence indicator
+      const confidence = msg.confidence || 0;
+      const confEl = document.getElementById('model_confidence');
+      if (confEl) {
+        confEl.textContent = `${Math.round(confidence * 100)}%`;
+        confEl.style.color = confidence > 0.8 ? 'var(--green)' : confidence > 0.5 ? 'var(--amber)' : 'var(--red)';
+      }
+
+      setGauge(msg.prob);
+      document.getElementById('source_tag').textContent = `SOURCE: ${msg.source}`;
+    }
+    else if (msg.type === 'catalogue') {
+      appendCatalogueRow(msg.row);
+    }
+    else if (msg.type === 'model_status') {
+      // Update model status panel
+      const modelStatus = document.getElementById('model_status');
+      if (modelStatus && msg.model) {
+        modelStatus.textContent = `${msg.model.version} | ${msg.model.status} | Latency: ${msg.model.latency_ms}ms`;
+      }
+    }
+  };
+}
+
+function appendCatalogueRow(r) {
+  eventCount++;
+  catRecords.unshift(r);
+  const tbody = document.getElementById('cat_body');
+  const tr = document.createElement('tr');
+
+  const cls = r.goes_like_class || 'B/A';
+  let clsTag = 'class-B';
+  if (cls.includes('X')) clsTag = 'class-X';
+  else if (cls.includes('M')) clsTag = 'class-M';
+  else if (cls.includes('C')) clsTag = 'class-C';
+
+  tr.innerHTML = `
+    <td>#${eventCount}</td>
+    <td>${r.start}</td>
+    <td>${r.peak}</td>
+    <td>${Number(r.peak_counts).toLocaleString()}</td>
+    <td><span class="class-tag ${clsTag}">${cls}</span></td>
+    <td style="color:${r.neupert_corr > 0.3 ? 'var(--cyan)' : 'var(--text-dim)'}">${r.neupert_corr}</td>
+    <td style="color:var(--green)">VERIFIED</td>
+  `;
+  tbody.prepend(tr);
+}
+
+function switchSource(mode) {
+  fetch(`/api/source?mode=${mode}`).then(() => {
+    document.getElementById('btn_goes').classList.toggle('active', mode === 'goes');
+    document.getElementById('btn_synth').classList.toggle('active', mode === 'synth');
+  });
+}
+
+function changeSpeed(sp) {
+  fetch(`/api/speed?speed=${sp}`);
+}
+
+function exportCSV() {
+  if (!catRecords.length) {
+    alert("No catalogue events recorded yet.");
+    return;
+  }
+  let csv = "event_num,start,peak,peak_counts,class,neupert_corr\n";
+  catRecords.forEach((r, idx) => {
+    csv += `${idx + 1},"${r.start}","${r.peak}",${r.peak_counts},"${r.goes_like_class}",${r.neupert_corr}\n`;
+  });
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `aditya_flare_catalogue_${Date.now()}.csv`;
+  a.click();
+}
+
+// Initial start
+initSSE();
+</script>
+</body>
+</html>

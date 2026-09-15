@@ -279,8 +279,9 @@ def main():
             opt_gt.step()
             tot_loss += loss.item()
 
-        alpha, beta = out["alpha"].item(), out["beta"].item()
-        print(f"    Graph Transformer Epoch {ep:02d}/{args.epochs:02d} | Loss: {tot_loss / max(len(train_loader), 1):.6f} | Neupert alpha={alpha:.3f}, beta={beta:.4f}", flush=True)
+        alpha_val = float(st_gt.learned_alpha.item())
+        beta_val = float(st_gt.learned_beta.item())
+        print(f"    Graph Transformer Epoch {ep:02d}/{args.epochs:02d} | Loss: {tot_loss / max(len(train_loader), 1):.6f} | Neupert alpha={alpha_val:.3f}, beta={beta_val:.4f}", flush=True)
 
     # Save Improved Checkpoints
     torch.save(cnn_lstm.state_dict(), ckpt_cnn)
@@ -315,10 +316,10 @@ def main():
     clim_pred = clim.predict_proba(len(y_t))
 
     def get_best(y, p):
-        best = None
+        best = {"tss": 0.0, "hss": 0.0, "pod": 0.0, "far": 1.0, "pr_auc": 0.0}
         for th in np.arange(0.05, 0.95, 0.05):
             ev = evaluate_forecast(y, p, threshold=float(th))
-            if best is None or ev["tss"] > best["tss"]:
+            if ev["tss"] >= best["tss"]:
                 best = ev
         return best
 

@@ -307,7 +307,7 @@ class MasterCatalogue:
             """, (
                 str(e.start_time), str(e.start_time), str(e.peak_time), str(e.end_time),
                 float(e.peak_flux_solexs), float(e.peak_flux_hel1os),
-                str(e.goes_class), float(e.confidence)
+                e.goes_class, float(e.confidence)
             ))
         conn.commit()
         conn.close()

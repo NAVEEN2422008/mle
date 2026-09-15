@@ -8,7 +8,7 @@ Both are causal (use only information available at prediction time).
 """
 from __future__ import annotations
 
-from typing import Sequence
+from typing import Sequence, Union
 
 import numpy as np
 
@@ -19,7 +19,7 @@ class ClimatologyBase:
     def __init__(self) -> None:
         self.base_rate = 0.0
 
-    def fit(self, y_train: Sequence[int]) -> "ClimatologyBase":
+    def fit(self, y_train: Union[Sequence[int], np.ndarray]) -> "ClimatologyBase":
         self.base_rate = float(np.mean(y_train)) if len(y_train) else 0.0
         return self
 
@@ -40,7 +40,7 @@ class PersistenceBase:
         self.p_max = p_max
         self.tau_s = tau_s
 
-    def predict_proba(self, seconds_since_last_flare: Sequence[float]) -> np.ndarray:
+    def predict_proba(self, seconds_since_last_flare: Union[Sequence[float], np.ndarray]) -> np.ndarray:
         ages = np.asarray(seconds_since_last_flare, dtype=float)
         never = ~np.isfinite(ages) | (ages < 0)
         p = self.p_max * np.exp(-ages / self.tau_s)
@@ -49,10 +49,10 @@ class PersistenceBase:
 
 
 def compare_to_baselines(
-    y_true: Sequence[int],
-    model_probs: Sequence[float],
-    climatology: Sequence[float],
-    persistence: Sequence[float],
+    y_true: Union[Sequence[int], np.ndarray],
+    model_probs: Union[Sequence[float], np.ndarray],
+    climatology: Union[Sequence[float], np.ndarray],
+    persistence: Union[Sequence[float], np.ndarray],
     threshold: float = 0.5,
 ) -> dict:
     """Evaluate model vs both baselines at a common threshold."""

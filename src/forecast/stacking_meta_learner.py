@@ -101,7 +101,7 @@ class MetaLearnerStackingEngine:
 
     @staticmethod
     def apply_hysteresis_filter(
-        probabilities: Sequence[float],
+        probabilities: Union[Sequence[float], np.ndarray],
         threshold: float = 0.35,
         k: int = 2,
         m: int = 3,
@@ -134,23 +134,46 @@ class MetaLearnerStackingEngine:
         """
         Executes full calibration sweep and evaluates operational space-weather skill metrics.
         """
-        y_true = np.asarray(y_true, dtype=int)
+        return self.evaluate_meta_learner(
+            meta_features_test=meta_features_test,
+            y_test=y_true,
+            k_hysteresis=k_hysteresis,
+            m_hysteresis=m_hysteresis,
+        )
+
+    def evaluate_meta_learner(
+        self,
+        meta_features_test: np.ndarray,
+        y_test: np.ndarray,
+        thresholds: Optional[np.ndarray] = None,
+        k_hysteresis: int = 2,
+        m_hysteresis: int = 3,
+    ) -> MetaLearnerEvaluationReport:
+        """
+        Comprehensive operational evaluation of the stacking meta-learner.
+        Sweeps decision thresholds to find optimal TSS and computes false alarm suppression
+        metrics via temporal hysteresis filtering.
+        """
+        if thresholds is None:
+            thresholds = np.linspace(0.05, 0.95, 91)
+
         probs = self.predict_proba(meta_features_test)
-        
+        y_true = np.asarray(y_test, dtype=int)
+
         best_tss = -1.0
         best_th = 0.35
         best_cm = None
-        
-        for th in np.linspace(0.05, 0.95, 91):
-            tp = int(np.sum((y_true == 1) & (probs >= th)))
-            fp = int(np.sum((y_true == 0) & (probs >= th)))
-            fn = int(np.sum((y_true == 1) & (probs < th)))
-            tn = int(np.sum((y_true == 0) & (probs < th)))
-            
+
+        for th in thresholds:
+            preds = (probs >= th).astype(int)
+            tp = int(np.sum((y_true == 1) & (preds == 1)))
+            fp = int(np.sum((y_true == 0) & (preds == 1)))
+            fn = int(np.sum((y_true == 1) & (preds == 0)))
+            tn = int(np.sum((y_true == 0) & (preds == 0)))
             cm = ConfusionMatrix(tp=tp, fp=fp, fn=fn, tn=tn)
-            if cm.tss > best_tss and tp > 0:
+            if cm.tss > best_tss:
                 best_tss = cm.tss
-                best_th = th
+                best_th = float(th)
                 best_cm = cm
 
         self.optimal_threshold = float(best_th)
@@ -178,7 +201,7 @@ class MetaLearnerStackingEngine:
             far=float(best_cm.far if best_cm else 1.0),
             bss=float(brier_skill_score(y_true, probs)),
             pr_auc=float(pr_auc(y_true, probs)),
-            raw_false_alarms=int(best_cm.fp if best_cm else 0),
-            hysteresis_false_alarms=int(fp_h),
+            raw_false_alarms=best_cm.fp if best_cm else 0,
+            hysteresis_false_alarms=fp_h,
             hysteresis_tss=float(cm_h.tss),
         )

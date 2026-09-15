@@ -137,7 +137,7 @@ def train_with_cv(
             continue
         model = model_factory()
         model.fit(X[valid_pos][tr_v], y[tr_v])
-        prob = model.predict_proba(X[valid_pos][te_v])[:, 1]
+        prob = np.asarray(model.predict_proba(X[valid_pos][te_v]))[:, 1]
         oof_prob[te_v] = prob
         best = max(
             (evaluate_forecast(y[te_v], prob, th) for th in thresholds),

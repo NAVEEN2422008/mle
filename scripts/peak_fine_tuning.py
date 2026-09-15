@@ -232,13 +232,13 @@ def train_peak_models(epochs: int = 15, batch_size: int = 64, lr: float = 0.001)
         def __len__(self):
             return len(self.l15)
 
-        def __getitem__(self, idx):
+        def __getitem__(self, index: int):
             return {
-                "feat": self.feat[idx],
-                "graph": self.graph[idx],
-                "l15": self.l15[idx],
-                "l30": self.l30[idx],
-                "l60": self.l60[idx],
+                "feat": self.feat[index],
+                "graph": self.graph[index],
+                "l15": self.l15[index],
+                "l30": self.l30[index],
+                "l60": self.l60[index],
             }
 
     train_ds = PeakSolarDataset(X_feat[:split_idx], X_graph[:split_idx], Y_15[:split_idx], Y_30[:split_idx], Y_60[:split_idx])
@@ -286,7 +286,8 @@ def train_peak_models(epochs: int = 15, batch_size: int = 64, lr: float = 0.001)
 
         scheduler_gt.step()
         avg_loss = tot_loss / len(train_loader)
-        alpha, beta = out["alpha"].item(), out["beta"].item()
+        alpha = float(st_gt.learned_alpha.item())
+        beta = float(st_gt.learned_beta.item())
         print(f"  Epoch {ep:02d}/{epochs:02d} | Train Loss: {avg_loss:.5f} | PINN Heating α={alpha:.4f}, Cooling β={beta:.4f} | LR: {scheduler_gt.get_last_lr()[0]:.2e}")
 
     # Model 2: CNNLSTMSolarForecaster

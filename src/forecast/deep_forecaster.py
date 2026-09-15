@@ -14,21 +14,12 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple, Union, Sequence
 
 import numpy as np
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.utils.data import Dataset, DataLoader
 
-# Optional PyTorch import with graceful fallback
-try:
-    import torch
-    import torch.nn as nn
-    import torch.nn.functional as F
-    from torch.utils.data import Dataset, DataLoader
-    HAS_TORCH = True
-except ImportError:
-    HAS_TORCH = False
-    torch = None
-    nn = None
-    F = None
-    Dataset = object
-    DataLoader = None
+HAS_TORCH = True
 
 
 @dataclass
@@ -57,183 +48,182 @@ class MultiHorizonForecast:
 # 1. PyTorch Implementation: AdityaSolarTransformer & Physics Loss
 # ==============================================================================
 
-if HAS_TORCH:
-    class CrossModalAttentionBlock(nn.Module):
-        """Bidirectional Cross-Attention fusing thermal SXR dynamics and non-thermal HXR signatures."""
-        def __init__(self, d_model: int, nhead: int = 4, dropout: float = 0.1):
-            super().__init__()
-            self.cross_attn_sxr_to_hxr = nn.MultiheadAttention(d_model, nhead, dropout=dropout, batch_first=True)
-            self.cross_attn_hxr_to_sxr = nn.MultiheadAttention(d_model, nhead, dropout=dropout, batch_first=True)
-            self.norm_sxr = nn.LayerNorm(d_model)
-            self.norm_hxr = nn.LayerNorm(d_model)
-            self.ffn = nn.Sequential(
-                nn.Linear(d_model * 2, d_model * 4),
-                nn.GELU(),
-                nn.Dropout(dropout),
-                nn.Linear(d_model * 4, d_model * 2)
-            )
-            self.norm_out = nn.LayerNorm(d_model * 2)
+class CrossModalAttentionBlock(nn.Module):
+    """Bidirectional Cross-Attention fusing thermal SXR dynamics and non-thermal HXR signatures."""
+    def __init__(self, d_model: int, nhead: int = 4, dropout: float = 0.1):
+        super().__init__()
+        self.cross_attn_sxr_to_hxr = nn.MultiheadAttention(d_model, nhead, dropout=dropout, batch_first=True)
+        self.cross_attn_hxr_to_sxr = nn.MultiheadAttention(d_model, nhead, dropout=dropout, batch_first=True)
+        self.norm_sxr = nn.LayerNorm(d_model)
+        self.norm_hxr = nn.LayerNorm(d_model)
+        self.ffn = nn.Sequential(
+            nn.Linear(d_model * 2, d_model * 4),
+            nn.GELU(),
+            nn.Dropout(dropout),
+            nn.Linear(d_model * 4, d_model * 2)
+        )
+        self.norm_out = nn.LayerNorm(d_model * 2)
 
-        def forward(self, sxr_feat: torch.Tensor, hxr_feat: torch.Tensor) -> torch.Tensor:
-            # SXR queries attend to HXR keys/values, and vice-versa
-            attn_sxr, _ = self.cross_attn_sxr_to_hxr(query=sxr_feat, key=hxr_feat, value=hxr_feat)
-            attn_hxr, _ = self.cross_attn_hxr_to_sxr(query=hxr_feat, key=sxr_feat, value=sxr_feat)
-            
-            sxr_fused = self.norm_sxr(sxr_feat + attn_sxr)
-            hxr_fused = self.norm_hxr(hxr_feat + attn_hxr)
-            
-            combined = torch.cat([sxr_fused, hxr_fused], dim=-1)  # [B, L, 2 * d_model]
-            out = self.norm_out(combined + self.ffn(combined))
-            return out
-
-
-    class AdityaSolarTransformer(nn.Module):
-        """
-        Physics-Informed Dual-Stream Transformer for Aditya-L1 SoLEXS & HEL1OS Flare Forecasting.
-        Combines SXR thermal continuum with HXR non-thermal electron beam features and enforces
-        Neupert energy conservation constraints: dSXR/dt = alpha * HXR - beta * SXR.
-        """
-        def __init__(
-            self,
-            in_channels_sxr: int = 4,
-            in_channels_hxr: int = 4,
-            d_model: int = 64,
-            nhead: int = 4,
-            num_layers: int = 3,
-            dropout: float = 0.1,
-            max_seq_len: int = 1000,
-        ):
-            super().__init__()
-            self.d_model = d_model
-
-            # 1. 1D Convolutional Patching Tokenizers
-            self.sxr_embed = nn.Sequential(
-                nn.Conv1d(in_channels_sxr, d_model, kernel_size=5, stride=1, padding=2),
-                nn.BatchNorm1d(d_model),
-                nn.GELU()
-            )
-            self.hxr_embed = nn.Sequential(
-                nn.Conv1d(in_channels_hxr, d_model, kernel_size=5, stride=1, padding=2),
-                nn.BatchNorm1d(d_model),
-                nn.GELU()
-            )
-
-            # 2. Learnable Positional Encoding
-            self.pos_encoder = nn.Parameter(torch.randn(1, max_seq_len, d_model) * 0.02)
-
-            # 3. Temporal Self-Attention Transformer Encoders
-            encoder_layer_sxr = nn.TransformerEncoderLayer(
-                d_model=d_model, nhead=nhead, dim_feedforward=d_model*4,
-                dropout=dropout, batch_first=True, activation="gelu"
-            )
-            self.transformer_sxr = nn.TransformerEncoder(encoder_layer_sxr, num_layers=num_layers)
-
-            encoder_layer_hxr = nn.TransformerEncoderLayer(
-                d_model=d_model, nhead=nhead, dim_feedforward=d_model*4,
-                dropout=dropout, batch_first=True, activation="gelu"
-            )
-            self.transformer_hxr = nn.TransformerEncoder(encoder_layer_hxr, num_layers=num_layers)
-
-            # 4. Bidirectional Cross-Modal Fusion
-            self.cross_modal = CrossModalAttentionBlock(d_model=d_model, nhead=nhead, dropout=dropout)
-
-            # 5. Multi-Horizon Forecasting Heads (15m, 30m, 60m logits)
-            self.head_15m = nn.Sequential(nn.Linear(d_model * 2, 64), nn.GELU(), nn.Linear(64, 1))
-            self.head_30m = nn.Sequential(nn.Linear(d_model * 2, 64), nn.GELU(), nn.Linear(64, 1))
-            self.head_60m = nn.Sequential(nn.Linear(d_model * 2, 64), nn.GELU(), nn.Linear(64, 1))
-            self.head_mag = nn.Sequential(nn.Linear(d_model * 2, 64), nn.GELU(), nn.Linear(64, 1))
-
-            # 6. Learnable Neupert Physics Parameters
-            # dSXR/dt = alpha * HXR - beta * SXR
-            self.log_alpha = nn.Parameter(torch.tensor([0.0]))  # alpha = exp(log_alpha) > 0
-            self.log_beta = nn.Parameter(torch.tensor([-2.3])) # beta = exp(log_beta) > 0 (decay rate)
-
-        def forward(self, sxr: torch.Tensor, hxr: torch.Tensor) -> Dict[str, torch.Tensor]:
-            B, L, _ = sxr.shape
-
-            # Tokenize [B, L, C] -> [B, C, L] -> Conv1D -> [B, L, d_model]
-            sxr_tokens = self.sxr_embed(sxr.transpose(1, 2)).transpose(1, 2) + self.pos_encoder[:, :L, :]
-            hxr_tokens = self.hxr_embed(hxr.transpose(1, 2)).transpose(1, 2) + self.pos_encoder[:, :L, :]
-
-            # Self-Attention
-            sxr_latents = self.transformer_sxr(sxr_tokens)
-            hxr_latents = self.transformer_hxr(hxr_tokens)
-
-            # Cross-Modal Attention Fusion
-            fused_latents = self.cross_modal(sxr_latents, hxr_latents)  # [B, L, 2 * d_model]
-
-            # Temporal Pooling (Last step + Global mean)
-            pooled = 0.5 * fused_latents[:, -1, :] + 0.5 * torch.mean(fused_latents, dim=1)
-
-            logits_15 = self.head_15m(pooled).squeeze(-1)
-            logits_30 = self.head_30m(pooled).squeeze(-1)
-            logits_60 = self.head_60m(pooled).squeeze(-1)
-            pred_mag = F.relu(self.head_mag(pooled).squeeze(-1))
-
-            return {
-                "logits_15m": logits_15,
-                "logits_30m": logits_30,
-                "logits_60m": logits_60,
-                "pred_mag": pred_mag,
-                "fused_latents": fused_latents,
-            }
-
-        def get_physics_parameters(self) -> Tuple[torch.Tensor, torch.Tensor]:
-            alpha = torch.exp(self.log_alpha)
-            beta = torch.exp(self.log_beta)
-            return alpha, beta
+    def forward(self, sxr_feat: torch.Tensor, hxr_feat: torch.Tensor) -> torch.Tensor:
+        # SXR queries attend to HXR keys/values, and vice-versa
+        attn_sxr, _ = self.cross_attn_sxr_to_hxr(query=sxr_feat, key=hxr_feat, value=hxr_feat)
+        attn_hxr, _ = self.cross_attn_hxr_to_sxr(query=hxr_feat, key=sxr_feat, value=sxr_feat)
+        
+        sxr_fused = self.norm_sxr(sxr_feat + attn_sxr)
+        hxr_fused = self.norm_hxr(hxr_feat + attn_hxr)
+        
+        combined = torch.cat([sxr_fused, hxr_fused], dim=-1)  # [B, L, 2 * d_model]
+        out = self.norm_out(combined + self.ffn(combined))
+        return out
 
 
-    class BinaryFocalLoss(nn.Module):
-        """Asymmetric Focal Loss designed for rare space weather event detection."""
-        def __init__(self, alpha: float = 0.85, gamma: float = 2.5):
-            super().__init__()
-            self.alpha = alpha
-            self.gamma = gamma
+class AdityaSolarTransformer(nn.Module):
+    """
+    Physics-Informed Dual-Stream Transformer for Aditya-L1 SoLEXS & HEL1OS Flare Forecasting.
+    Combines SXR thermal continuum with HXR non-thermal electron beam features and enforces
+    Neupert energy conservation constraints: dSXR/dt = alpha * HXR - beta * SXR.
+    """
+    def __init__(
+        self,
+        in_channels_sxr: int = 4,
+        in_channels_hxr: int = 4,
+        d_model: int = 64,
+        nhead: int = 4,
+        num_layers: int = 3,
+        dropout: float = 0.1,
+        max_seq_len: int = 1000,
+    ):
+        super().__init__()
+        self.d_model = d_model
 
-        def forward(self, logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
-            bce_loss = F.binary_cross_entropy_with_logits(logits, targets, reduction="none")
-            probs = torch.sigmoid(logits)
-            p_t = targets * probs + (1 - targets) * (1 - probs)
-            alpha_factor = targets * self.alpha + (1 - targets) * (1 - self.alpha)
-            modulating_factor = torch.pow((1.0 - p_t), self.gamma)
-            return (alpha_factor * modulating_factor * bce_loss).mean()
+        # 1. 1D Convolutional Patching Tokenizers
+        self.sxr_embed = nn.Sequential(
+            nn.Conv1d(in_channels_sxr, d_model, kernel_size=5, stride=1, padding=2),
+            nn.BatchNorm1d(d_model),
+            nn.GELU()
+        )
+        self.hxr_embed = nn.Sequential(
+            nn.Conv1d(in_channels_hxr, d_model, kernel_size=5, stride=1, padding=2),
+            nn.BatchNorm1d(d_model),
+            nn.GELU()
+        )
+
+        # 2. Learnable Positional Encoding
+        self.pos_encoder = nn.Parameter(torch.randn(1, max_seq_len, d_model) * 0.02)
+
+        # 3. Temporal Self-Attention Transformer Encoders
+        encoder_layer_sxr = nn.TransformerEncoderLayer(
+            d_model=d_model, nhead=nhead, dim_feedforward=d_model*4,
+            dropout=dropout, batch_first=True, activation="gelu"
+        )
+        self.transformer_sxr = nn.TransformerEncoder(encoder_layer_sxr, num_layers=num_layers)
+
+        encoder_layer_hxr = nn.TransformerEncoderLayer(
+            d_model=d_model, nhead=nhead, dim_feedforward=d_model*4,
+            dropout=dropout, batch_first=True, activation="gelu"
+        )
+        self.transformer_hxr = nn.TransformerEncoder(encoder_layer_hxr, num_layers=num_layers)
+
+        # 4. Bidirectional Cross-Modal Fusion
+        self.cross_modal = CrossModalAttentionBlock(d_model=d_model, nhead=nhead, dropout=dropout)
+
+        # 5. Multi-Horizon Forecasting Heads (15m, 30m, 60m logits)
+        self.head_15m = nn.Sequential(nn.Linear(d_model * 2, 64), nn.GELU(), nn.Linear(64, 1))
+        self.head_30m = nn.Sequential(nn.Linear(d_model * 2, 64), nn.GELU(), nn.Linear(64, 1))
+        self.head_60m = nn.Sequential(nn.Linear(d_model * 2, 64), nn.GELU(), nn.Linear(64, 1))
+        self.head_mag = nn.Sequential(nn.Linear(d_model * 2, 64), nn.GELU(), nn.Linear(64, 1))
+
+        # 6. Learnable Neupert Physics Parameters
+        # dSXR/dt = alpha * HXR - beta * SXR
+        self.log_alpha = nn.Parameter(torch.tensor([0.0]))  # alpha = exp(log_alpha) > 0
+        self.log_beta = nn.Parameter(torch.tensor([-2.3])) # beta = exp(log_beta) > 0 (decay rate)
+
+    def forward(self, sxr: torch.Tensor, hxr: torch.Tensor) -> Dict[str, torch.Tensor]:
+        B, L, _ = sxr.shape
+
+        # Tokenize [B, L, C] -> [B, C, L] -> Conv1D -> [B, L, d_model]
+        sxr_tokens = self.sxr_embed(sxr.transpose(1, 2)).transpose(1, 2) + self.pos_encoder[:, :L, :]
+        hxr_tokens = self.hxr_embed(hxr.transpose(1, 2)).transpose(1, 2) + self.pos_encoder[:, :L, :]
+
+        # Self-Attention
+        sxr_latents = self.transformer_sxr(sxr_tokens)
+        hxr_latents = self.transformer_hxr(hxr_tokens)
+
+        # Cross-Modal Attention Fusion
+        fused_latents = self.cross_modal(sxr_latents, hxr_latents)  # [B, L, 2 * d_model]
+
+        # Temporal Pooling (Last step + Global mean)
+        pooled = 0.5 * fused_latents[:, -1, :] + 0.5 * torch.mean(fused_latents, dim=1)
+
+        logits_15 = self.head_15m(pooled).squeeze(-1)
+        logits_30 = self.head_30m(pooled).squeeze(-1)
+        logits_60 = self.head_60m(pooled).squeeze(-1)
+        pred_mag = F.relu(self.head_mag(pooled).squeeze(-1))
+
+        return {
+            "logits_15m": logits_15,
+            "logits_30m": logits_30,
+            "logits_60m": logits_60,
+            "pred_mag": pred_mag,
+            "fused_latents": fused_latents,
+        }
+
+    def get_physics_parameters(self) -> Tuple[torch.Tensor, torch.Tensor]:
+        alpha = torch.exp(self.log_alpha)
+        beta = torch.exp(self.log_beta)
+        return alpha, beta
 
 
-    class SolarFlareWindowDataset(Dataset):
-        """Sliding multi-modal time-series dataset for training AdityaSolarTransformer."""
-        def __init__(
-            self,
-            features_sxr: np.ndarray,
-            features_hxr: np.ndarray,
-            dsxr_dt: np.ndarray,
-            labels_15m: np.ndarray,
-            labels_30m: np.ndarray,
-            labels_60m: np.ndarray,
-            window_len: int = 60,
-        ):
-            self.sxr = torch.tensor(features_sxr, dtype=torch.float32)
-            self.hxr = torch.tensor(features_hxr, dtype=torch.float32)
-            self.dsxr_dt = torch.tensor(dsxr_dt, dtype=torch.float32)
-            self.labels_15m = torch.tensor(labels_15m, dtype=torch.float32)
-            self.labels_30m = torch.tensor(labels_30m, dtype=torch.float32)
-            self.labels_60m = torch.tensor(labels_60m, dtype=torch.float32)
-            self.window_len = window_len
-            self.length = max(0, len(self.sxr) - window_len)
+class BinaryFocalLoss(nn.Module):
+    """Asymmetric Focal Loss designed for rare space weather event detection."""
+    def __init__(self, alpha: float = 0.85, gamma: float = 2.5):
+        super().__init__()
+        self.alpha = alpha
+        self.gamma = gamma
 
-        def __len__(self) -> int:
-            return self.length
+    def forward(self, logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
+        bce_loss = F.binary_cross_entropy_with_logits(logits, targets, reduction="none")
+        probs = torch.sigmoid(logits)
+        p_t = targets * probs + (1 - targets) * (1 - probs)
+        alpha_factor = targets * self.alpha + (1 - targets) * (1 - self.alpha)
+        modulating_factor = torch.pow((1.0 - p_t), self.gamma)
+        return (alpha_factor * modulating_factor * bce_loss).mean()
 
-        def __getitem__(self, idx: int) -> Dict[str, torch.Tensor]:
-            end = idx + self.window_len
-            return {
-                "sxr": self.sxr[idx:end],
-                "hxr": self.hxr[idx:end],
-                "dsxr_dt": self.dsxr_dt[idx:end],
-                "label_15m": self.labels_15m[end - 1],
-                "label_30m": self.labels_30m[end - 1],
-                "label_60m": self.labels_60m[end - 1],
-            }
+
+class SolarFlareWindowDataset(Dataset):
+    """Sliding multi-modal time-series dataset for training AdityaSolarTransformer."""
+    def __init__(
+        self,
+        features_sxr: np.ndarray,
+        features_hxr: np.ndarray,
+        dsxr_dt: np.ndarray,
+        labels_15m: np.ndarray,
+        labels_30m: np.ndarray,
+        labels_60m: np.ndarray,
+        window_len: int = 60,
+    ):
+        self.sxr = torch.tensor(features_sxr, dtype=torch.float32)
+        self.hxr = torch.tensor(features_hxr, dtype=torch.float32)
+        self.dsxr_dt = torch.tensor(dsxr_dt, dtype=torch.float32)
+        self.labels_15m = torch.tensor(labels_15m, dtype=torch.float32)
+        self.labels_30m = torch.tensor(labels_30m, dtype=torch.float32)
+        self.labels_60m = torch.tensor(labels_60m, dtype=torch.float32)
+        self.window_len = window_len
+        self.length = max(0, len(self.sxr) - window_len)
+
+    def __len__(self) -> int:
+        return self.length
+
+    def __getitem__(self, idx: int) -> Dict[str, torch.Tensor]:
+        end = idx + self.window_len
+        return {
+            "sxr": self.sxr[idx:end],
+            "hxr": self.hxr[idx:end],
+            "dsxr_dt": self.dsxr_dt[idx:end],
+            "label_15m": self.labels_15m[end - 1],
+            "label_30m": self.labels_30m[end - 1],
+            "label_60m": self.labels_60m[end - 1],
+        }
 
 
 # ==============================================================================

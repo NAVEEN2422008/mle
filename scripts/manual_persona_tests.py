@@ -90,7 +90,7 @@ def run_all_manual_persona_tests():
     # QA-2: Telemetry Outage Gap-Limit Preservation
     gap_s = pd.Series([10.0]*5 + [np.nan]*40 + [10.0]*5)
     interpolated = interpolate_pchip_series(gap_s, max_gap_steps=20)
-    qa2_pass = interpolated.iloc[10:30].isna().all()
+    qa2_pass = bool(interpolated.iloc[10:30].isna().all())
     log_test(
         2, "QA Engineer 2", "Telemetry Loss Outage Boundary Preservation", qa2_pass, 10.0 if qa2_pass else 0.0,
         f"Gaps >20 steps preserved as NaN: {qa2_pass}",

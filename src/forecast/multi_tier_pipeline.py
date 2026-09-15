@@ -104,13 +104,16 @@ class MultiTierFlareForecastPipeline:
         """Outputs predicted probabilities for Tier 1 and Tier 2 models."""
         X_scaled = self.scaler.transform(X_test)
         
+        p_log = np.asarray(self.tier1_logistic.predict_proba(X_scaled))
+        p_rf = np.asarray(self.tier1_rf.predict_proba(X_test))
         preds = {
-            "tier1_logistic": self.tier1_logistic.predict_proba(X_scaled)[:, 1],
-            "tier1_rf": self.tier1_rf.predict_proba(X_test)[:, 1],
+            "tier1_logistic": p_log[:, 1],
+            "tier1_rf": p_rf[:, 1],
         }
         
         if self.tier2_lgbm is not None:
-            preds["tier2_lgbm"] = self.tier2_lgbm.predict_proba(X_test)[:, 1]
+            p_lgbm = np.asarray(self.tier2_lgbm.predict_proba(X_test))
+            preds["tier2_lgbm"] = p_lgbm[:, 1]
             
         return preds
 

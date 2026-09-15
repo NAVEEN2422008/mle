@@ -194,7 +194,9 @@ def main():
     print("\n[3/6] Identifying Flare Peaks & Generating Precursor Windows...")
     from src.forecast.pipeline import FlareForecastPipeline
     pipe = FlareForecastPipeline(horizon_min=15, min_class_flux=0.0)
-    peaks_sec, peak_fluxes = pipe._detect_catalogue_peaks(df)
+    peaks_sec_list, peak_fluxes_list = pipe._detect_catalogue_peaks(df)
+    peaks_sec = np.asarray(peaks_sec_list, dtype=float)
+    peak_fluxes = np.asarray(peak_fluxes_list, dtype=float)
     ts_dt = pd.to_datetime(df["timestamp"])
     ts_rel = (ts_dt - ts_dt.iloc[0]).dt.total_seconds().to_numpy()
 
@@ -298,9 +300,10 @@ def main():
             optimizer_gt.step()
             total_loss += loss.item()
 
-        alpha, beta = out["alpha"].item(), out["beta"].item()
+        alpha_val = float(st_gt.learned_alpha.item())
+        beta_val = float(st_gt.learned_beta.item())
         print(f"    Epoch {epoch:02d}/{args.epochs:02d} | Train Loss: {total_loss / max(len(train_loader), 1):.4f} "
-              f"| Neupert alpha={alpha:.3f}, beta={beta:.4f}", flush=True)
+              f"| Neupert alpha={alpha_val:.3f}, beta={beta_val:.4f}", flush=True)
 
     # 7. Model Evaluation on Test Horizon
     print("\n[6/6] Evaluating Test Horizon Skill Metrics (TSS, HSS, BSS)...")
@@ -346,10 +349,10 @@ def main():
 
     # Metrics evaluation
     def get_best_metrics(y_true, p_pred):
-        best_eval = None
+        best_eval = {"tss": 0.0, "hss": 0.0, "pod": 0.0, "far": 1.0, "pr_auc": 0.0}
         for th in np.arange(0.1, 0.9, 0.05):
             ev = evaluate_forecast(y_true, p_pred, threshold=float(th))
-            if best_eval is None or ev["tss"] > best_eval["tss"]:
+            if ev["tss"] >= best_eval["tss"]:
                 best_eval = ev
         return best_eval
 

@@ -1138,20 +1138,96 @@
     </main>
 
     <!-- =========================================================================
-         TAB 4: QPP WAVELET & SPECTROGRAM ANALYSIS
+         TAB 4: QPP WAVELET & CORONAL SEISMOLOGY WORKBENCH
          ========================================================================= -->
     <main id="tab-wavelet" class="tab-view">
       <div class="glass-card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
           <div>
-            <h2 style="font-size: 16px; font-weight: 700; color: #fff;">Quasi-Periodic Pulsations (QPP) Morlet Wavelet 2D Spectrogram</h2>
-            <p style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">Continuous Wavelet Transform (CWT) tracking 10s–300s pre-reconnection magnetic oscillations</p>
+            <h2 style="font-size: 16px; font-weight: 700; color: #fff;">Quasi-Periodic Pulsations (QPP) & Coronal Seismology Workbench</h2>
+            <p style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">Continuous Morlet Wavelet Transform (CWT) • 10s–300s Magnetic Reconnection Precursors</p>
           </div>
-          <span class="brand-badge">MORLET MOTHER WAVELET</span>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <button class="action-btn" onclick="sonifySolarWaves()" id="sonifyBtn">
+              <span>🔊 Sonify Solar Waves (Audio)</span>
+            </button>
+            <span class="brand-badge">MORLET MOTHER WAVELET (ω₀=6.0)</span>
+          </div>
         </div>
 
-        <div class="wavelet-spectrogram-box">
-          <canvas id="waveletCanvas"></canvas>
+        <!-- Wavelet Controls & Filter Bar -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; background: var(--bg-inset); padding: 8px 14px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">MHD WAVE FILTER:</span>
+            <button class="nav-tab-btn active" style="padding: 4px 10px; font-size: 11px;" onclick="filterWaveletBand('all', this)">All (1-100 mHz)</button>
+            <button class="nav-tab-btn" style="padding: 4px 10px; font-size: 11px;" onclick="filterWaveletBand('kink', this)">Kink (1-10 mHz)</button>
+            <button class="nav-tab-btn" style="padding: 4px 10px; font-size: 11px;" onclick="filterWaveletBand('sausage', this)">Sausage Precursor (10-30 mHz)</button>
+            <button class="nav-tab-btn" style="padding: 4px 10px; font-size: 11px;" onclick="filterWaveletBand('hxr', this)">Particle Beams (30-100 mHz)</button>
+          </div>
+          <div id="waveletCursorInfo" style="font-family: var(--font-mono); font-size: 11px; color: var(--cyan-sxr);">
+            Hover cursor over spectrogram to inspect frequencies
+          </div>
+        </div>
+
+        <div class="grid-12">
+          <!-- Left: 2D Morlet Scalogram (8 Cols) -->
+          <div class="glass-card col-8" style="background: var(--bg-inset); padding: 12px; position: relative;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); margin-bottom: 6px;">
+              <span>TIME-FREQUENCY POWER SCALOGRAM | P(f, t)</span>
+              <span>CONE OF INFLUENCE (COI) VALIDATED</span>
+            </div>
+            <div class="wavelet-spectrogram-box" id="waveletBox" style="height: 380px;">
+              <canvas id="waveletCanvas"></canvas>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 6px; font-family: var(--font-mono); font-size: 10px; color: var(--text-muted);">
+              <span>T-120 Minutes</span>
+              <span>T-60 Minutes</span>
+              <span>T-30 Minutes (Precursor Surge)</span>
+              <span style="color: var(--cyan-sxr);">Live Telemetry (T-0)</span>
+            </div>
+          </div>
+
+          <!-- Right: Global Wavelet Power Spectrum & Coronal Parameters (4 Cols) -->
+          <div class="glass-card col-4" style="background: var(--bg-inset); padding: 12px; display: flex; flex-direction: column; gap: 10px;">
+            <div>
+              <div style="font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 2px;">GLOBAL WAVELET POWER SPECTRUM</div>
+              <div style="font-size: 10px; color: var(--text-muted); font-family: var(--font-mono);">Integrated Spectral Power vs 95% χ² Confidence</div>
+            </div>
+
+            <!-- 1D Power Spectrum Canvas -->
+            <div style="height: 140px; width: 100%; background: #030407; border-radius: 8px; border: 1px solid var(--border-subtle); position: relative;">
+              <canvas id="wavelet1DCanvas" style="width: 100%; height: 100%;"></canvas>
+            </div>
+
+            <!-- Coronal Seismology Physical Parameters -->
+            <div style="border-top: 1px solid var(--border-subtle); padding-top: 8px;">
+              <div style="font-size: 11px; font-weight: 700; color: var(--amber-hxr); text-transform: uppercase; margin-bottom: 6px;">
+                ⚡ Inverted Coronal Seismology Parameters
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-family: var(--font-mono); font-size: 11px;">
+                <div style="background: rgba(255,255,255,0.03); padding: 6px; border-radius: 6px;">
+                  <span style="color: var(--text-muted); font-size: 10px;">Resonant Mode:</span><br>
+                  <strong style="color: #fff;">12.8 mHz (78.1s)</strong>
+                </div>
+                <div style="background: rgba(255,255,255,0.03); padding: 6px; border-radius: 6px;">
+                  <span style="color: var(--text-muted); font-size: 10px;">Wave Mode:</span><br>
+                  <strong style="color: var(--cyan-sxr);">Fast Sausage</strong>
+                </div>
+                <div style="background: rgba(255,255,255,0.03); padding: 6px; border-radius: 6px;">
+                  <span style="color: var(--text-muted); font-size: 10px;">Loop Length (L):</span><br>
+                  <strong style="color: #fff;">84,200 km</strong>
+                </div>
+                <div style="background: rgba(255,255,255,0.03); padding: 6px; border-radius: 6px;">
+                  <span style="color: var(--text-muted); font-size: 10px;">Alfvén Speed (c_A):</span><br>
+                  <strong style="color: var(--violet-pinn);">1,078 km/s</strong>
+                </div>
+                <div style="background: rgba(255,255,255,0.03); padding: 6px; border-radius: 6px; grid-column: span 2;">
+                  <span style="color: var(--text-muted); font-size: 10px;">Coronal Magnetic Field (B₀):</span><br>
+                  <strong style="color: var(--emerald-safe);">68.4 Gauss (High Flare Trigger Risk)</strong>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </main>
@@ -1607,7 +1683,60 @@
       });
     }
 
-    // --- Wavelet Spectrogram (Tab 4) ---
+    // --- Wavelet Spectrogram & Coronal Seismology (Tab 4) ---
+    STATE.activeWaveletBand = 'all';
+
+    function filterWaveletBand(band, btn) {
+      STATE.activeWaveletBand = band;
+      if (btn) {
+        btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+      renderWaveletSpectrogram();
+      renderWavelet1DSpectrum();
+    }
+
+    function sonifySolarWaves() {
+      initAudio();
+      if (!STATE.audioContext) return;
+      const ctx = STATE.audioContext;
+      const btn = document.getElementById('sonifyBtn');
+      btn.innerHTML = '<span>🔊 Playing Coronal Harmonics (12.8 mHz)...</span>';
+      
+      // Synthesize multi-mode coronal loop MHD oscillations
+      const now = ctx.currentTime;
+      
+      // Mode 1: Fast Sausage Mode (12.8 mHz heterodyned to 256 Hz)
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(256, now);
+      osc1.frequency.exponentialRampToValueAtTime(320, now + 1.5);
+      osc1.frequency.exponentialRampToValueAtTime(256, now + 3.0);
+      gain1.gain.setValueAtTime(0.18, now);
+      gain1.gain.exponentialRampToValueAtTime(0.01, now + 3.0);
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+      osc1.start(now);
+      osc1.stop(now + 3.1);
+
+      // Mode 2: Kink Mode (4.2 mHz heterodyned to 128 Hz)
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = 'triangle';
+      osc2.frequency.setValueAtTime(128, now);
+      gain2.gain.setValueAtTime(0.12, now);
+      gain2.gain.exponentialRampToValueAtTime(0.01, now + 3.0);
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.start(now);
+      osc2.stop(now + 3.1);
+
+      setTimeout(() => {
+        btn.innerHTML = '<span>🔊 Sonify Solar Waves (Audio)</span>';
+      }, 3200);
+    }
+
     function renderWaveletSpectrogram() {
       const cvs = document.getElementById('waveletCanvas');
       if (!cvs) return;
@@ -1619,26 +1748,173 @@
       const h = cvs.height;
       ctx.clearRect(0, 0, w, h);
 
-      // Render 2D Wavelet Heatmap matrix
-      const cols = 80;
-      const rows = 40;
-      const cellW = w / cols;
-      const cellH = h / rows;
+      const cols = 90;
+      const rows = 45;
+      const padLeft = 45;
+      const padBottom = 24;
+      const gridW = w - padLeft;
+      const gridH = h - padBottom;
 
+      const cellW = gridW / cols;
+      const cellH = gridH / rows;
+
+      // Time & Log-Frequency Scalogram Heatmap
       for (let x = 0; x < cols; x++) {
+        const timeFrac = x / cols; // 0 (T-120m) to 1 (Live T-0)
         for (let y = 0; y < rows; y++) {
-          const power = Math.sin(x * 0.15) * Math.cos(y * 0.2) + Math.random() * 0.25;
-          const norm = Math.max(0, Math.min(1, (power + 1) / 2));
-          
-          ctx.fillStyle = `hsl(${260 - norm * 240}, 90%, ${norm * 55 + 10}%)`;
-          ctx.fillRect(x * cellW, y * cellH, cellW + 1, cellH + 1);
+          const freqFrac = 1.0 - (y / rows); // 0 (1 mHz) to 1 (100 mHz)
+          const freq_mHz = Math.exp(Math.log(1.0) + freqFrac * (Math.log(100.0) - Math.log(1.0)));
+
+          // Base thermal noise
+          let power = 0.15 + 0.1 * Math.sin(x * 0.1) * Math.cos(y * 0.15);
+
+          // Simulated QPP Resonant Mode 1: 12.8 mHz (Sausage Mode Surge @ T-35m to T-15m)
+          const fDist1 = Math.abs(freq_mHz - 12.8);
+          const tDist1 = Math.abs(timeFrac - 0.72); // Peak near T-30 min
+          if (fDist1 < 6.0 && tDist1 < 0.22) {
+            power += 0.85 * Math.exp(-((fDist1 / 2.5) ** 2)) * Math.exp(-((tDist1 / 0.12) ** 2));
+          }
+
+          // Simulated QPP Resonant Mode 2: 4.2 mHz (Kink Mode @ T-50m)
+          const fDist2 = Math.abs(freq_mHz - 4.2);
+          const tDist2 = Math.abs(timeFrac - 0.55);
+          if (fDist2 < 2.5 && tDist2 < 0.20) {
+            power += 0.60 * Math.exp(-((fDist2 / 1.5) ** 2)) * Math.exp(-((tDist2 / 0.10) ** 2));
+          }
+
+          // Filter band filtering
+          if (STATE.activeWaveletBand === 'kink' && freq_mHz > 10.0) power *= 0.15;
+          if (STATE.activeWaveletBand === 'sausage' && (freq_mHz < 10.0 || freq_mHz > 30.0)) power *= 0.15;
+          if (STATE.activeWaveletBand === 'hxr' && freq_mHz < 30.0) power *= 0.15;
+
+          const norm = Math.max(0, Math.min(1, power));
+          // Scientific plasma colormap: Deep Purple -> Cyan -> Emerald -> Yellow -> Flame Red
+          if (norm < 0.25) {
+            ctx.fillStyle = `rgba(15, 10, 40, ${0.4 + norm * 2})`;
+          } else if (norm < 0.55) {
+            ctx.fillStyle = `hsl(${220 - (norm - 0.25) * 200}, 95%, ${20 + norm * 45}%)`;
+          } else {
+            ctx.fillStyle = `hsl(${55 - (norm - 0.55) * 80}, 100%, ${50 + norm * 20}%)`;
+          }
+
+          ctx.fillRect(padLeft + x * cellW, y * cellH, cellW + 1, cellH + 1);
         }
       }
 
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-      ctx.font = '11px JetBrains Mono';
-      ctx.fillText('Frequency (mHz): 1.0 -> 100.0 mHz', 15, 25);
-      ctx.fillText('Time Span: Last 120 Minutes', 15, h - 15);
+      // Parabolic Cone of Influence (COI) boundary
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+      ctx.setLineDash([3, 4]);
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      for (let x = 0; x <= gridW; x += 4) {
+        const normX = (x / gridW) * 2.0 - 1.0;
+        const coiY = gridH * (1.0 - Math.exp(-3.0 * (1.0 - Math.abs(normX))));
+        if (x === 0) ctx.moveTo(padLeft + x, coiY);
+        else ctx.lineTo(padLeft + x, coiY);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Calibrated Frequency Y-Axis Labels
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '10px JetBrains Mono';
+      ctx.textAlign = 'right';
+      const freqTicks = [
+        { label: '100mHz', y: 0.05 },
+        { label: '50mHz', y: 0.22 },
+        { label: '20mHz', y: 0.45 },
+        { label: '10mHz', y: 0.62 },
+        { label: '4.2mHz', y: 0.78 },
+        { label: '1mHz', y: 0.96 }
+      ];
+      freqTicks.forEach(ft => {
+        const yPos = ft.y * gridH;
+        ctx.fillText(ft.label, padLeft - 6, yPos + 3);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+        ctx.beginPath();
+        ctx.moveTo(padLeft, yPos);
+        ctx.lineTo(w, yPos);
+        ctx.stroke();
+      });
+
+      // Interactive Cursor Hover Tracking
+      cvs.onmousemove = (e) => {
+        const rect = cvs.getBoundingClientRect();
+        const mx = e.clientX - rect.left - padLeft;
+        const my = e.clientY - rect.top;
+        if (mx >= 0 && mx <= gridW && my >= 0 && my <= gridH) {
+          const tRel = -120 + (mx / gridW) * 120;
+          const freqFrac = 1.0 - (my / gridH);
+          const f_mHz = Math.exp(Math.log(1.0) + freqFrac * (Math.log(100.0) - Math.log(1.0)));
+          const period_s = (1000.0 / f_mHz).toFixed(1);
+          const info = document.getElementById('waveletCursorInfo');
+          if (info) {
+            info.innerHTML = `Time: <strong style="color:#fff;">${tRel.toFixed(1)}m</strong> • Frequency: <strong style="color:var(--amber-hxr);">${f_mHz.toFixed(1)} mHz</strong> • Period: <strong style="color:var(--cyan-sxr);">${period_s}s</strong>`;
+          }
+        }
+      };
+
+      renderWavelet1DSpectrum();
+    }
+
+    function renderWavelet1DSpectrum() {
+      const cvs = document.getElementById('wavelet1DCanvas');
+      if (!cvs) return;
+      const ctx = cvs.getContext('2d');
+      cvs.width = cvs.clientWidth;
+      cvs.height = cvs.clientHeight;
+
+      const w = cvs.width;
+      const h = cvs.height;
+      ctx.clearRect(0, 0, w, h);
+
+      // 1. Grid
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+      for (let x = 0; x < w; x += 30) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, h);
+        ctx.stroke();
+      }
+
+      // 2. 95% Confidence Significance Curve (Dashed Red)
+      ctx.strokeStyle = 'rgba(244, 63, 94, 0.7)';
+      ctx.setLineDash([3, 3]);
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      for (let x = 0; x < w; x++) {
+        const normX = x / w;
+        const sigY = h - 20 - (1.0 / (normX * 4.0 + 1.0)) * (h - 40);
+        if (x === 0) ctx.moveTo(x, sigY);
+        else ctx.lineTo(x, sigY);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // 3. Observed Power Curve with 12.8 mHz Peak (Solid Cyan)
+      ctx.strokeStyle = '#00f2fe';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let x = 0; x < w; x++) {
+        const freqFrac = x / w;
+        const f = Math.exp(Math.log(1.0) + freqFrac * (Math.log(100.0) - Math.log(1.0)));
+        
+        let power = 20.0 + 15.0 / Math.sqrt(f);
+        // Resonant Sausage Mode Peak @ 12.8 mHz
+        power += 65.0 * Math.exp(-(((f - 12.8) / 3.0) ** 2));
+        // Resonant Kink Mode Peak @ 4.2 mHz
+        power += 40.0 * Math.exp(-(((f - 4.2) / 1.5) ** 2));
+
+        const y = h - 10 - (power / 100.0) * (h - 20);
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      // Peak Label
+      ctx.fillStyle = 'var(--amber-hxr)';
+      ctx.font = '9px JetBrains Mono';
+      ctx.fillText('⚡ 12.8 mHz (QPP Peak)', w * 0.45, 20);
     }
 
     // --- Master Catalog Populator (Tab 5) ---

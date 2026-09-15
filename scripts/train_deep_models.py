@@ -116,22 +116,21 @@ def build_precursor_labels(
     peaks = np.asarray(detected_peaks, dtype=float)
     fluxes = np.asarray(peak_fluxes, dtype=float)
 
-    for i, t in enumerate(timestamps_sec):
+    if len(peaks) > 0:
         for h in horizons_min:
             h_sec = h * 60.0
-            in_window = (peaks > t) & (peaks <= t + h_sec)
-            if np.any(in_window):
-                labels[h][i] = 1.0
-                if target_mag[i] == 0:
-                    target_mag[i] = float(np.max(fluxes[in_window]))
+            for p, flux in zip(peaks, fluxes):
+                idx_start = int(np.searchsorted(timestamps_sec, p - h_sec, side="right"))
+                idx_end = int(np.searchsorted(timestamps_sec, p, side="right"))
+                if idx_start < idx_end:
+                    labels[h][idx_start:idx_end] = 1.0
+                    target_mag[idx_start:idx_end] = np.maximum(target_mag[idx_start:idx_end], flux)
 
-    # Mask in-flare windows [-10min, +15min] around peaks to avoid contamination
-    mask = np.zeros(n, dtype=bool)
-    for p in peaks:
-        mask |= (timestamps_sec >= p - 600.0) & (timestamps_sec <= p + 900.0)
-
-    for h in horizons_min:
-        labels[h][mask] = -1.0
+        for p in peaks:
+            idx_start = int(np.searchsorted(timestamps_sec, p - 600.0, side="left"))
+            idx_end = int(np.searchsorted(timestamps_sec, p + 900.0, side="right"))
+            for h in horizons_min:
+                labels[h][idx_start:idx_end] = -1.0
 
     return labels[15], labels[30], labels[60], target_mag
 
@@ -176,16 +175,25 @@ def main():
     else:
         slx_df = arbitrate_sdd_rows(slx_df)
         hld_c = collapse_bands(hld_df)
-        df = pd.DataFrame({
-            "timestamp": slx_df["timestamp"],
-            "soft": slx_df["counts"].to_numpy(),
-            "hard": hld_c.set_index("timestamp")["counts"]
-                     .reindex(pd.DatetimeIndex(slx_df["timestamp"]))
-                     .ffill(limit=60).bfill(limit=60).fillna(0.0)
-                     .to_numpy(),
+        
+        merged = pd.merge_asof(
+            slx_df.sort_values("timestamp"),
+            hld_c[["timestamp", "counts"]].rename(columns={"counts": "hard"}).sort_values("timestamp"),
+            on="timestamp",
+            direction="nearest",
+            tolerance=pd.Timedelta("30s")
+        )
+        merged["hard"] = merged["hard"].fillna(0.0)
+        
+        df_raw = pd.DataFrame({
+            "timestamp": pd.to_datetime(merged["timestamp"]),
+            "soft": merged["counts"].to_numpy(),
+            "hard": merged["hard"].to_numpy(),
         })
+        df_raw["dt_min"] = df_raw["timestamp"].dt.floor("1min")
+        df = df_raw.groupby("dt_min", as_index=False).agg({"soft": "mean", "hard": "mean"}).rename(columns={"dt_min": "timestamp"})
 
-    print(f"  * Aligned Telemetry Samples: {len(df):,} rows")
+    print(f"  * Aligned Telemetry Samples (1-min cadence): {len(df):,} rows")
     print(f"  * Time Range: {df['timestamp'].min()} -> {df['timestamp'].max()}")
 
     # 2. Extract Features & Construct Graphs
@@ -229,14 +237,26 @@ def main():
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False)
 
+    # 4. Clean out old model checkpoints before training new ones
+    for old_chk in out_dir.glob("*.pt"):
+        try:
+            old_chk.unlink()
+            print(f"  * Deleted old checkpoint: {old_chk.name}")
+        except Exception:
+            pass
+
     # 5. Model 1: Train Multi-Scale CNN-LSTM
     print("\n[4/6] Training Architecture 1: Multi-Scale CNN-LSTM Forecaster...")
     cnn_lstm = CNNLSTMSolarForecaster(in_channels=8, conv_channels=64, lstm_hidden=64).to(device)
     optimizer_cnn = torch.optim.AdamW(cnn_lstm.parameters(), lr=args.lr, weight_decay=1e-4)
+    scheduler_cnn = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_cnn, T_max=args.epochs, eta_min=1e-5)
     focal_loss_fn = BinaryFocalLoss(alpha=0.85, gamma=2.5)
 
-    cnn_lstm.train()
+    best_loss_cnn = float("inf")
+    best_cnn_state = None
+
     for epoch in range(1, args.epochs + 1):
+        cnn_lstm.train()
         total_loss = 0.0
         for batch in train_loader:
             x_seq = batch["feat_seq"].to(device)
@@ -261,16 +281,28 @@ def main():
             optimizer_cnn.step()
             total_loss += loss.item()
 
-        print(f"    Epoch {epoch:02d}/{args.epochs:02d} | Train Loss: {total_loss / max(len(train_loader), 1):.4f}", flush=True)
+        scheduler_cnn.step()
+        avg_loss = total_loss / max(len(train_loader), 1)
+        if avg_loss < best_loss_cnn:
+            best_loss_cnn = avg_loss
+            best_cnn_state = {k: v.cpu().clone() for k, v in cnn_lstm.state_dict().items()}
+        print(f"    Epoch {epoch:02d}/{args.epochs:02d} | Train Loss: {avg_loss:.4f} | LR: {scheduler_cnn.get_last_lr()[0]:.6f}", flush=True)
+
+    if best_cnn_state:
+        cnn_lstm.load_state_dict({k: v.to(device) for k, v in best_cnn_state.items()})
 
     # 6. Model 2: Train Spatio-Temporal Graph Transformer with PINN Neupert Regularizer
     print("\n[5/6] Training Architecture 2: Spatio-Temporal Graph Transformer (PINN)...", flush=True)
     st_gt = SpatioTemporalGraphTransformer(num_nodes=5, in_features_per_node=2, d_model=64).to(device)
     optimizer_gt = torch.optim.AdamW(st_gt.parameters(), lr=args.lr * 0.8, weight_decay=1e-4)
+    scheduler_gt = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_gt, T_max=args.epochs, eta_min=1e-5)
     pinn_loss_fn = NeupertPhysicsLoss()
 
-    st_gt.train()
+    best_loss_gt = float("inf")
+    best_gt_state = None
+
     for epoch in range(1, args.epochs + 1):
+        st_gt.train()
         total_loss = 0.0
         for batch in train_loader:
             g_seq = batch["graph_seq"].to(device)
@@ -302,10 +334,19 @@ def main():
             optimizer_gt.step()
             total_loss += loss.item()
 
+        scheduler_gt.step()
+        avg_loss = total_loss / max(len(train_loader), 1)
+        if avg_loss < best_loss_gt:
+            best_loss_gt = avg_loss
+            best_gt_state = {k: v.cpu().clone() for k, v in st_gt.state_dict().items()}
+
         alpha_val = float(st_gt.learned_alpha.item())
         beta_val = float(st_gt.learned_beta.item())
-        print(f"    Epoch {epoch:02d}/{args.epochs:02d} | Train Loss: {total_loss / max(len(train_loader), 1):.4f} "
-              f"| Neupert alpha={alpha_val:.3f}, beta={beta_val:.4f}", flush=True)
+        print(f"    Epoch {epoch:02d}/{args.epochs:02d} | Train Loss: {avg_loss:.4f} "
+              f"| Neupert alpha={alpha_val:.3f}, beta={beta_val:.4f} | LR: {scheduler_gt.get_last_lr()[0]:.6f}", flush=True)
+
+    if best_gt_state:
+        st_gt.load_state_dict({k: v.to(device) for k, v in best_gt_state.items()})
 
     # 7. Model Evaluation on Test Horizon
     print("\n[6/6] Evaluating Test Horizon Skill Metrics (TSS, HSS, BSS)...")

@@ -1343,7 +1343,7 @@
           </div>
 
           <div class="sun-sidebar">
-            <div class="ar-card active" onclick="selectActiveRegion('3664')">
+            <div class="ar-card active" onclick="selectActiveRegion(this, '3664')">
               <div class="ar-card-header">
                 <span class="ar-title">NOAA AR3664 (Super-Region)</span>
                 <span class="ar-badge">βγδ Super-Complex</span>
@@ -1351,7 +1351,7 @@
               <p class="ar-desc">Area: 2150 µHem | Highly sheared multipolar magnetic cluster responsible for historic G5 geomagnetic storms and extreme X-class solar superflares.</p>
             </div>
 
-            <div class="ar-card" onclick="selectActiveRegion('3663')">
+            <div class="ar-card" onclick="selectActiveRegion(this, '3663')">
               <div class="ar-card-header">
                 <span class="ar-title">NOAA AR3663</span>
                 <span class="ar-badge" style="color: var(--accent-cyan);">βγ Complex Dipole</span>
@@ -1359,7 +1359,7 @@
               <p class="ar-desc">Area: 780 µHem | Moderately active dipole configuration producing recurrent M-class eruptions with localized radio absorption.</p>
             </div>
 
-            <div class="ar-card" onclick="selectActiveRegion('3697')">
+            <div class="ar-card" onclick="selectActiveRegion(this, '3697')">
               <div class="ar-card-header">
                 <span class="ar-title">NOAA AR3697</span>
                 <span class="ar-badge" style="color: var(--accent-emerald);">α Unipolar Spot</span>
@@ -1367,7 +1367,7 @@
               <p class="ar-desc">Area: 320 µHem | Stable unipolar spot configuration nearing the western solar limb with low flare eruption potential.</p>
             </div>
 
-            <div class="ar-card" onclick="selectActiveRegion('3700')">
+            <div class="ar-card" onclick="selectActiveRegion(this, '3700')">
               <div class="ar-card-header">
                 <span class="ar-title">NOAA AR3700</span>
                 <span class="ar-badge" style="color: var(--accent-violet);">β Emerging Region</span>
@@ -1397,7 +1397,7 @@
 
           <div class="pinn-formula-box">
             ∂E/∂t = ∇·(κ₀ T^(5/2) ∇T) - n_e n_H Λ(T) + Q_reconn(B, j)<br>
-            Residual Error: L_PINN = 0.00342 (Physics Validated & Conserved)
+            Residual Error: <span id="pinn-loss-val" style="font-weight: 700; color: #fff;">0.00342</span> (Physics Validated & Conserved)
           </div>
 
           <div class="slider-row">
@@ -2050,9 +2050,9 @@
       renderOscilloscope();
     }
 
-    function selectActiveRegion(id) {
+    function selectActiveRegion(el, id) {
       document.querySelectorAll('.ar-card').forEach(c => c.classList.remove('active'));
-      if (event) event.currentTarget.classList.add('active');
+      if (el) el.classList.add('active');
     }
 
     function updatePINN() {
@@ -2062,7 +2062,8 @@
       document.getElementById('beta-display').innerText = beta.toFixed(2);
 
       const res = (Math.abs(kappa * 0.8 - beta * 0.7) * 0.004 + 0.0018).toFixed(5);
-      document.getElementById('pinn-loss-val').innerText = res;
+      const el = document.getElementById('pinn-loss-val');
+      if (el) el.innerText = res;
     }
 
     let isGoesFeed = true;
@@ -2110,13 +2111,25 @@
             if (sxrData.length > MAX_BUFFER) sxrData.shift();
             if (hxrData.length > MAX_BUFFER) hxrData.shift();
 
-            document.getElementById('metric-sxr').innerHTML = `${sxr.toFixed(1)} <span class="metric-unit">nW/m²</span>`;
-            document.getElementById('metric-hxr').innerHTML = `${hxr.toFixed(1)} <span class="metric-unit">cnt/s</span>`;
+            const sxrEl = document.getElementById('metric-sxr');
+            const hxrEl = document.getElementById('metric-hxr');
+            if (sxrEl) sxrEl.innerHTML = `${sxr.toFixed(1)} <span class="metric-unit">nW/m²</span>`;
+            if (hxrEl) hxrEl.innerHTML = `${hxr.toFixed(1)} <span class="metric-unit">cnt/s</span>`;
             renderOscilloscope();
           }
         } catch (err) {}
       };
     }
+
+    // Keyboard Shortcuts (1-5 to switch tabs)
+    window.addEventListener('keydown', (e) => {
+      if (e.key === '1') switchTab('cockpit');
+      if (e.key === '2') switchTab('sun');
+      if (e.key === '3') switchTab('pinn');
+      if (e.key === '4') switchTab('qpp');
+      if (e.key === '5') switchTab('events');
+      if (e.key === 'Escape') closeAboutModal();
+    });
 
     window.onload = () => {
       resizeOscilloscope();

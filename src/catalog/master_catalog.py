@@ -259,19 +259,58 @@ class MasterCatalogue:
         rows = [
             {
                 "event_id": e.event_id,
-                "start": e.start_time,
-                "peak": e.peak_time,
-                "end": e.end_time,
+                "detection_timestamp": e.start_time,
+                "start_time": e.start_time,
+                "peak_time": e.peak_time,
+                "end_time": e.end_time,
                 "duration_s": e.duration_s,
-                "peak_solexs": e.peak_flux_solexs,
-                "peak_hel1os": e.peak_flux_hel1os,
-                "goes_class": e.goes_class,
-                "confidence": round(e.confidence, 3),
+                "solexs_peak_flux": e.peak_flux_solexs,
+                "hel1os_peak_flux": e.peak_flux_hel1os,
+                "estimated_class": e.goes_class,
+                "confidence_score": round(e.confidence, 3),
                 "neupert_verified": e.neupert_verified,
             }
             for e in self.all_events
         ]
         return pd.DataFrame(rows)
+
+    def export_sqlite(self, db_path: str = "data/master_flare_catalog.db") -> str:
+        """Export master flare catalog to SQLite matching the hackathon schema."""
+        import sqlite3
+        from pathlib import Path
+        
+        p = Path(db_path)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS master_flare_catalog (
+                flare_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                detection_timestamp TIMESTAMP,
+                start_time TIMESTAMP,
+                peak_time TIMESTAMP,
+                end_time TIMESTAMP,
+                solexs_peak_flux REAL,
+                hel1os_peak_flux REAL,
+                estimated_class VARCHAR(10),
+                confidence_score REAL
+            )
+        """)
+        for e in self.all_events:
+            cursor.execute("""
+                INSERT INTO master_flare_catalog (
+                    detection_timestamp, start_time, peak_time, end_time,
+                    solexs_peak_flux, hel1os_peak_flux, estimated_class, confidence_score
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                str(e.start_time), str(e.start_time), str(e.peak_time), str(e.end_time),
+                float(e.peak_flux_solexs), float(e.peak_flux_hel1os),
+                str(e.goes_class), float(e.confidence)
+            ))
+        conn.commit()
+        conn.close()
+        return str(p.resolve())
 
 
 def arbitrate_sdd(counts_sdd1: float, counts_sdd2: float, sat_cps: float = 1e5) -> Tuple[str, float]:

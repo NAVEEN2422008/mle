@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Solar Flare Early Warning System | Aditya-L1 Space Weather Operations Cockpit</title>
+  <title>Solar Flare Early Warning System | Aditya-L1 & NOAA Space Weather Cockpit</title>
   
   <!-- Premium Modern Typography (Inter & JetBrains Mono) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -102,32 +102,32 @@
 
     /* Header Nav */
     header.bento-card {
-      padding: 12px 18px;
+      padding: 14px 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 14px;
     }
 
     .brand-group {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
     }
 
     .logo-badge {
-      width: 36px;
-      height: 36px;
+      width: 40px;
+      height: 40px;
       border-radius: var(--radius-md);
-      background: linear-gradient(135deg, #1e1e24 0%, #111115 100%);
+      background: linear-gradient(135deg, #24242c 0%, #111116 100%);
       border: 1px solid var(--border-medium);
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 700;
       color: var(--accent-orange);
-      font-size: 14px;
+      font-size: 15px;
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
     }
 
@@ -137,7 +137,7 @@
     }
 
     .brand-title h1 {
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 600;
       letter-spacing: -0.01em;
       color: var(--text-primary);
@@ -153,7 +153,7 @@
       background: rgba(16, 185, 129, 0.12);
       color: var(--accent-emerald);
       border: 1px solid rgba(16, 185, 129, 0.25);
-      padding: 1px 6px;
+      padding: 2px 7px;
       border-radius: 4px;
       display: inline-flex;
       align-items: center;
@@ -170,8 +170,8 @@
     }
 
     .brand-title p {
-      font-size: 11px;
-      color: var(--text-muted);
+      font-size: 11.5px;
+      color: var(--text-secondary);
       margin-top: 1px;
     }
 
@@ -247,6 +247,12 @@
       border-color: rgba(56, 189, 248, 0.3);
     }
 
+    .ctrl-btn.highlight {
+      background: rgba(167, 139, 250, 0.12);
+      color: var(--accent-violet);
+      border-color: rgba(167, 139, 250, 0.3);
+    }
+
     .utc-clock {
       font-family: var(--font-mono);
       font-size: 11px;
@@ -254,6 +260,87 @@
       padding-left: 6px;
       border-left: 1px solid var(--border-subtle);
       font-variant-numeric: tabular-nums;
+    }
+
+    /* PROJECT EXPLAINER BANNER (Clear Visual Pipeline) */
+    .explainer-card {
+      background: linear-gradient(180deg, #121218 0%, #0e0e13 100%);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 14px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .explainer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+    }
+
+    .explainer-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .explainer-badge {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: var(--accent-cyan);
+      background: rgba(56, 189, 248, 0.1);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+    }
+
+    .pipeline-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .pipeline-step {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: var(--transition-fast);
+    }
+
+    .pipeline-step:hover {
+      border-color: var(--border-medium);
+      background: var(--bg-card-hover);
+    }
+
+    .step-num {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      color: var(--accent-cyan);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .step-title {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .step-desc {
+      font-size: 11px;
+      color: var(--text-secondary);
+      line-height: 1.35;
     }
 
     /* BENTO GRID LAYOUTS */
@@ -354,7 +441,7 @@
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-md);
       padding: 8px 12px;
-      min-width: 105px;
+      min-width: 110px;
       display: flex;
       flex-direction: column;
       gap: 4px;
@@ -365,6 +452,8 @@
       color: var(--text-muted);
       font-family: var(--font-mono);
       font-weight: 500;
+      display: flex;
+      justify-content: space-between;
     }
 
     .horizon-box .h-val {
@@ -395,17 +484,24 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
 
     .card-title {
-      font-size: 12px;
+      font-size: 12.5px;
       font-weight: 600;
       color: var(--text-primary);
       letter-spacing: -0.01em;
       display: flex;
       align-items: center;
       gap: 8px;
+    }
+
+    .card-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      font-weight: 400;
     }
 
     .card-title span.indicator {
@@ -447,7 +543,7 @@
       font-size: 11px;
       color: var(--text-muted);
       font-weight: 500;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -473,9 +569,9 @@
 
     .metric-sub {
       font-size: 10px;
-      color: var(--text-dim);
+      color: var(--text-secondary);
       margin-top: 4px;
-      font-family: var(--font-mono);
+      line-height: 1.3;
     }
 
     /* Canvas Chart Container */
@@ -565,7 +661,7 @@
     }
 
     .sun-sidebar {
-      width: 320px;
+      width: 340px;
       display: flex;
       flex-direction: column;
       gap: 10px;
@@ -575,7 +671,7 @@
       background: var(--bg-subtle);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-md);
-      padding: 10px 12px;
+      padding: 12px 14px;
       cursor: pointer;
       transition: var(--transition-fast);
     }
@@ -738,6 +834,65 @@
       border: 1px solid rgba(56, 189, 248, 0.3);
     }
 
+    /* MODAL (About System & Mission Details) */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-content {
+      background: #121217;
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-xl);
+      max-width: 680px;
+      width: 100%;
+      padding: 24px;
+      box-shadow: var(--shadow-elevated);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .modal-body {
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
     /* Content Visibility by Tab */
     .tab-view {
       display: none;
@@ -768,6 +923,7 @@
 
     @media (max-width: 1024px) {
       .col-8, .col-6, .col-4, .col-3 { grid-column: span 12; }
+      .pipeline-grid { grid-template-columns: repeat(2, 1fr); }
       .solar-disk-container { flex-direction: column; }
       .sun-sidebar { width: 100%; }
       .forecast-horizons { flex-wrap: wrap; }
@@ -784,31 +940,32 @@
         <div class="logo-badge">L1</div>
         <div class="brand-title">
           <h1>
-            Helios Ops Cockpit
+            Solar Flare Early Warning System
             <span class="status-tag">LIVE TELEMETRY</span>
           </h1>
-          <p>Aditya-L1 XSM & NOAA GOES-18 Multi-Horizon Solar Flare Early Warning System</p>
+          <p>Aditya-L1 XSM & NOAA GOES-18 Multi-Horizon Space Weather Cockpit</p>
         </div>
       </div>
 
       <!-- Segmented Tab Navigation -->
       <div class="tab-group">
         <button class="tab-btn active" id="tab-btn-cockpit" onclick="switchTab('cockpit')">
-          <span>Overview</span>
+          <span>1. Cockpit</span>
         </button>
         <button class="tab-btn" id="tab-btn-sun" onclick="switchTab('sun')">
-          <span>Heliophysics 3D</span>
+          <span>2. Solar Disk 3D</span>
         </button>
         <button class="tab-btn" id="tab-btn-pinn" onclick="switchTab('pinn')">
-          <span>PINN Diagnostics</span>
+          <span>3. Physics AI (PINN)</span>
         </button>
         <button class="tab-btn" id="tab-btn-events" onclick="switchTab('events')">
-          <span>Event Catalogue</span>
+          <span>4. Flare History</span>
         </button>
       </div>
 
       <!-- Live Controls -->
       <div class="header-actions">
+        <button class="ctrl-btn highlight" onclick="openAboutModal()">ℹ About Project</button>
         <button class="ctrl-btn" onclick="simulateQuiet()">Quiet Sun</button>
         <button class="ctrl-btn" onclick="simulateFlare('M')">M-Flare</button>
         <button class="ctrl-btn" onclick="simulateFlare('X')">X-Flare</button>
@@ -816,6 +973,43 @@
         <span class="utc-clock" id="utc-clock">--:--:-- UTC</span>
       </div>
     </header>
+
+    <!-- PROJECT EXPLAINER BANNER (Clear Visual Pipeline) -->
+    <div class="explainer-card">
+      <div class="explainer-header">
+        <div class="explainer-title">
+          <span>⚡ How This System Forecasts Solar Flares Before Eruption</span>
+          <span class="explainer-badge">PHYSICS-INFORMED AI PIPELINE</span>
+        </div>
+        <span style="font-size: 11px; color: var(--text-muted);">Aditya-L1 Halo Orbit L1 Station</span>
+      </div>
+
+      <div class="pipeline-grid">
+        <div class="pipeline-step">
+          <span class="step-num">STEP 01 • INGESTION</span>
+          <span class="step-title">Dual-Satellite Telemetry</span>
+          <p class="step-desc">Streams Hard X-Rays (1–30 keV) from <strong>ISRO Aditya-L1 XSM</strong> and Soft X-Rays (0.1–0.8 nm) from <strong>NOAA GOES-18</strong>.</p>
+        </div>
+
+        <div class="pipeline-step">
+          <span class="step-num">STEP 02 • PHYSICS</span>
+          <span class="step-title">Neupert Correlation</span>
+          <p class="step-desc">Calculates non-thermal electron beam heating where hard X-ray bursts precede thermal soft X-ray flare peaks.</p>
+        </div>
+
+        <div class="pipeline-step">
+          <span class="step-num">STEP 03 • DEEP AI</span>
+          <span class="step-title">ST-Graph Transformer</span>
+          <p class="step-desc">Ensemble of 30-feature Spatio-Temporal Graph Transformer & CNN-LSTM models trained on RTX 5060 GPU.</p>
+        </div>
+
+        <div class="pipeline-step">
+          <span class="step-num">STEP 04 • WARNING</span>
+          <span class="step-title">15–60m Early Warning</span>
+          <p class="step-desc">Delivers real-time probabilistic alerts for M- and X-class flares to protect GNSS, satellites, and terrestrial power grids.</p>
+        </div>
+      </div>
+    </div>
 
     <!-- =========================================================================
          TAB 1: COCKPIT OVERVIEW (Default)
@@ -828,15 +1022,18 @@
           <div class="hero-meta">
             <div class="flare-pill pill-quiet" id="flare-pill">B4.2</div>
             <div class="hero-details">
-              <h2 id="hero-status">Nominal Quiescent Emission</h2>
-              <p id="hero-desc">Spatio-Temporal Graph Transformer & CNN-LSTM neural ensemble monitor stable baseline flux across NOAA AR3664 & active limb regions.</p>
+              <h2 id="hero-status">Nominal Quiescent Emission • No Immediate Threat</h2>
+              <p id="hero-desc">Background coronal irradiance is within normal levels. Dual-satellite telemetry detects no magnetic reconnection precursor signatures in active solar regions.</p>
             </div>
           </div>
 
           <!-- Forecast Horizons -->
           <div class="forecast-horizons">
             <div class="horizon-box">
-              <span class="h-title">T + 15 MIN</span>
+              <span class="h-title">
+                <span>T + 15 MIN</span>
+                <span style="color: var(--accent-cyan);">P(Flare)</span>
+              </span>
               <span class="h-val" id="h15-val">4.2%</span>
               <div class="h-bar-bg">
                 <div class="h-bar-fill" id="h15-bar" style="width: 4.2%;"></div>
@@ -844,7 +1041,10 @@
             </div>
 
             <div class="horizon-box">
-              <span class="h-title">T + 30 MIN</span>
+              <span class="h-title">
+                <span>T + 30 MIN</span>
+                <span style="color: var(--accent-cyan);">P(Flare)</span>
+              </span>
               <span class="h-val" id="h30-val">7.8%</span>
               <div class="h-bar-bg">
                 <div class="h-bar-fill" id="h30-bar" style="width: 7.8%;"></div>
@@ -852,7 +1052,10 @@
             </div>
 
             <div class="horizon-box">
-              <span class="h-title">T + 60 MIN</span>
+              <span class="h-title">
+                <span>T + 60 MIN</span>
+                <span style="color: var(--accent-cyan);">P(Flare)</span>
+              </span>
               <span class="h-val" id="h60-val">12.5%</span>
               <div class="h-bar-bg">
                 <div class="h-bar-fill" id="h60-bar" style="width: 12.5%;"></div>
@@ -864,9 +1067,12 @@
         <!-- Real-Time Telemetry Oscilloscope (Col 8) -->
         <div class="bento-card col-8">
           <div class="card-header">
-            <div class="card-title">
-              <span class="indicator" style="background: var(--accent-cyan);"></span>
-              Live X-Ray Irradiance Stream (GOES-18 0.1–0.8 nm & Aditya-L1 XSM)
+            <div>
+              <div class="card-title">
+                <span class="indicator" style="background: var(--accent-cyan);"></span>
+                Live Solar X-Ray Irradiance Oscilloscope
+              </div>
+              <div class="card-subtitle">Real-time Soft X-Ray flux (cyan) & Hard X-Ray electron acceleration rate (amber)</div>
             </div>
             <div class="card-tools">
               <button class="ctrl-btn active" id="scale-btn" onclick="toggleScale()">Scale: Log</button>
@@ -880,15 +1086,11 @@
             <div class="chart-overlay">
               <div class="chart-legend-item">
                 <span class="legend-dot" style="background: var(--accent-cyan);"></span>
-                <span>Soft X-Ray (0.1–0.8 nm)</span>
+                <span>Soft X-Ray (0.1–0.8 nm GOES)</span>
               </div>
               <div class="chart-legend-item">
                 <span class="legend-dot" style="background: var(--accent-amber);"></span>
-                <span>Hard X-Ray (1–30 keV)</span>
-              </div>
-              <div class="chart-legend-item">
-                <span class="legend-dot" style="background: #52525b;"></span>
-                <span>Neupert Precursor</span>
+                <span>Hard X-Ray (1–30 keV Aditya-L1)</span>
               </div>
             </div>
             <div class="chart-crosshair-info" id="crosshair-val">T: Live | SXR: 420.5 nW/m²</div>
@@ -898,56 +1100,59 @@
         <!-- Sensor Diagnostics & Solar Metrics (Col 4) -->
         <div class="bento-card col-4">
           <div class="card-header">
-            <div class="card-title">
-              <span class="indicator" style="background: var(--accent-emerald);"></span>
-              Spacecraft & Solar Telemetry
+            <div>
+              <div class="card-title">
+                <span class="indicator" style="background: var(--accent-emerald);"></span>
+                Real-Time Physical Indicators
+              </div>
+              <div class="card-subtitle">Live measurements streamed from L1 halo orbit</div>
             </div>
-            <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-dim);">L1 HALO ORBIT</span>
+            <span style="font-family: var(--font-mono); font-size: 10px; color: var(--text-dim);">L1 HALO</span>
           </div>
 
           <div class="metric-grid">
             <div class="metric-cell">
               <div class="metric-label">
-                <span>SXR Flux</span>
+                <span>Soft X-Ray (SXR)</span>
                 <span style="color: var(--accent-cyan);">●</span>
               </div>
               <div class="metric-val" id="metric-sxr">
                 420.5 <span class="metric-unit">nW/m²</span>
               </div>
-              <div class="metric-sub">GOES-18 Primary</div>
+              <div class="metric-sub">Thermal plasma emission</div>
             </div>
 
             <div class="metric-cell">
               <div class="metric-label">
-                <span>HXR Rate</span>
+                <span>Hard X-Ray (HXR)</span>
                 <span style="color: var(--accent-amber);">●</span>
               </div>
               <div class="metric-val" id="metric-hxr">
                 118.2 <span class="metric-unit">cnt/s</span>
               </div>
-              <div class="metric-sub">Aditya-L1 XSM</div>
+              <div class="metric-sub">Aditya-L1 non-thermal beams</div>
             </div>
 
             <div class="metric-cell">
               <div class="metric-label">
-                <span>Coronal Temp</span>
+                <span>Coronal Temperature</span>
                 <span>Te</span>
               </div>
               <div class="metric-val" id="metric-temp">
                 2.45 <span class="metric-unit">MK</span>
               </div>
-              <div class="metric-sub">Isothermal Approx</div>
+              <div class="metric-sub">Million Kelvin plasma</div>
             </div>
 
             <div class="metric-cell">
               <div class="metric-label">
-                <span>Neupert Corr</span>
+                <span>Neupert Correlation</span>
                 <span>r_xy</span>
               </div>
               <div class="metric-val" style="color: var(--accent-emerald);" id="metric-corr">
                 +0.965
               </div>
-              <div class="metric-sub">Coupled Physics</div>
+              <div class="metric-sub">Physics-verified coupling</div>
             </div>
           </div>
         </div>
@@ -961,9 +1166,12 @@
     <div id="view-sun" class="tab-view">
       <div class="bento-card">
         <div class="card-header">
-          <div class="card-title">
-            <span class="indicator" style="background: var(--accent-amber);"></span>
-            Solar Photosphere & Active Magnetogram Synthesis (Drag to Rotate)
+          <div>
+            <div class="card-title">
+              <span class="indicator" style="background: var(--accent-amber);"></span>
+              Solar Photosphere & Active Magnetogram Synthesis
+            </div>
+            <div class="card-subtitle">Drag to rotate the 3D Sun disk. Click active regions on the right to inspect magnetic complexity.</div>
           </div>
           <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-muted);">HMI / SDO SYNOPTIC OVERLAY</span>
         </div>
@@ -976,10 +1184,10 @@
           <div class="sun-sidebar">
             <div class="ar-card active" onclick="selectActiveRegion('3664')">
               <div class="ar-card-header">
-                <span class="ar-title">NOAA AR3664</span>
+                <span class="ar-title">NOAA AR3664 (Super-Region)</span>
                 <span class="ar-badge">βγδ Class</span>
               </div>
-              <p class="ar-desc">Complex multipolar magnetic cluster with high magnetic shear and coronal loop reconnection potential.</p>
+              <p class="ar-desc">Highly sheared multipolar magnetic cluster responsible for historic G5 geomagnetic storms and extreme X-class solar superflares.</p>
             </div>
 
             <div class="ar-card" onclick="selectActiveRegion('3663')">
@@ -987,7 +1195,7 @@
                 <span class="ar-title">NOAA AR3663</span>
                 <span class="ar-badge" style="color: var(--accent-cyan);">βγ Class</span>
               </div>
-              <p class="ar-desc">Moderately active dipole configuration producing sporadic C-class microflares.</p>
+              <p class="ar-desc">Moderately active dipole configuration producing recurrent M-class eruptions with localized radio absorption.</p>
             </div>
 
             <div class="ar-card" onclick="selectActiveRegion('3697')">
@@ -995,7 +1203,7 @@
                 <span class="ar-title">NOAA AR3697</span>
                 <span class="ar-badge" style="color: var(--accent-emerald);">α Class</span>
               </div>
-              <p class="ar-desc">Stable unipolar spot near western limb with decayed magnetic flux.</p>
+              <p class="ar-desc">Stable unipolar spot configuration nearing the western solar limb with low flare eruption potential.</p>
             </div>
           </div>
         </div>
@@ -1009,15 +1217,18 @@
       <div class="bento-grid">
         <div class="bento-card col-6">
           <div class="card-header">
-            <div class="card-title">
-              <span class="indicator" style="background: var(--accent-violet);"></span>
-              MHD Thermal Conduction & Radiative Loss Conservation
+            <div>
+              <div class="card-title">
+                <span class="indicator" style="background: var(--accent-violet);"></span>
+                MHD Physics Loss & Conservation Equations
+              </div>
+              <div class="card-subtitle">Enforces plasma energy balance so the AI model never violates fundamental physics</div>
             </div>
           </div>
 
           <div class="pinn-formula-box">
             ∂E/∂t = ∇·(κ₀ T^(5/2) ∇T) - n_e n_H Λ(T) + Q_reconn(B, j)<br>
-            Residual Error: L_PINN = 0.00342 (Physics Validated)
+            Residual Error: L_PINN = 0.00342 (Thermodynamically Conserved)
           </div>
 
           <div class="slider-row">
@@ -1030,7 +1241,7 @@
 
           <div class="slider-row">
             <div class="slider-labels">
-              <span>Optically-Thin Radiative Loss Rate (β)</span>
+              <span>Optically-Thin Radiative Cooling Rate (β)</span>
               <span class="val" id="beta-display">1.00</span>
             </div>
             <input type="range" min="0.2" max="3.0" step="0.1" value="1.0" id="beta-slider" oninput="updatePINN()" />
@@ -1039,9 +1250,12 @@
 
         <div class="bento-card col-6">
           <div class="card-header">
-            <div class="card-title">
-              <span class="indicator" style="background: var(--accent-emerald);"></span>
-              Model Architecture & Loss Breakdown
+            <div>
+              <div class="card-title">
+                <span class="indicator" style="background: var(--accent-emerald);"></span>
+                Deep Learning Model Diagnostics
+              </div>
+              <div class="card-subtitle">Evaluated on real PRADAN Level-1 telemetry</div>
             </div>
           </div>
 
@@ -1049,22 +1263,22 @@
             <div class="metric-cell">
               <div class="metric-label">Data Loss (MSE)</div>
               <div class="metric-val">0.0018</div>
-              <div class="metric-sub">Flux Reconstruction</div>
+              <div class="metric-sub">Flux reconstruction precision</div>
             </div>
             <div class="metric-cell">
-              <div class="metric-label">MHD Physics Loss</div>
+              <div class="metric-label">PINN Physics Loss</div>
               <div class="metric-val" style="color: var(--accent-violet);" id="pinn-loss-val">0.0034</div>
-              <div class="metric-sub">Conservation Law</div>
+              <div class="metric-sub">MHD conservation penalty</div>
             </div>
             <div class="metric-cell">
-              <div class="metric-label">Temporal Attention</div>
+              <div class="metric-label">Attention Heads</div>
               <div class="metric-val">8 Heads</div>
               <div class="metric-sub">ST-Graph Transformer</div>
             </div>
             <div class="metric-cell">
               <div class="metric-label">Inference Latency</div>
               <div class="metric-val" style="color: var(--accent-cyan);">2.1 <span class="metric-unit">ms</span></div>
-              <div class="metric-sub">PyTorch RTX 5060</div>
+              <div class="metric-sub">Ultra-fast GPU runtime</div>
             </div>
           </div>
         </div>
@@ -1077,9 +1291,12 @@
     <div id="view-events" class="tab-view">
       <div class="bento-card">
         <div class="card-header">
-          <div class="card-title">
-            <span class="indicator" style="background: var(--accent-cyan);"></span>
-            Validated Solar Flare Catalogue (Aditya-L1 XSM & GOES Level-1)
+          <div>
+            <div class="card-title">
+              <span class="indicator" style="background: var(--accent-cyan);"></span>
+              Historic Solar Flare Verification Database
+            </div>
+            <div class="card-subtitle">Recorded events validated against ISRO PRADAN and NOAA Space Weather Prediction Center (SWPC)</div>
           </div>
           <div class="card-tools">
             <button class="ctrl-btn" onclick="exportCSV()">Export CSV</button>
@@ -1096,7 +1313,7 @@
                 <th>Peak Flux (nW/m²)</th>
                 <th>Neupert Corr</th>
                 <th>Lead Time</th>
-                <th>Status</th>
+                <th>Validation Status</th>
               </tr>
             </thead>
             <tbody id="catalogue-tbody">
@@ -1107,7 +1324,7 @@
                 <td>4500.0</td>
                 <td>0.965</td>
                 <td>24.2 min</td>
-                <td style="color: var(--accent-emerald);">CONFIRMED</td>
+                <td style="color: var(--accent-emerald);">CONFIRMED (AR3664)</td>
               </tr>
               <tr>
                 <td>2026-09-15 07:12</td>
@@ -1116,7 +1333,7 @@
                 <td>1420.5</td>
                 <td>0.912</td>
                 <td>16.5 min</td>
-                <td style="color: var(--accent-emerald);">CONFIRMED</td>
+                <td style="color: var(--accent-emerald);">CONFIRMED (AR3663)</td>
               </tr>
               <tr>
                 <td>2026-09-15 05:40</td>
@@ -1138,6 +1355,36 @@
               </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ABOUT SYSTEM MODAL -->
+    <div class="modal-backdrop" id="about-modal" onclick="closeAboutModal(event)">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+          <div class="modal-title">About the Solar Flare Early Warning System</div>
+          <button class="modal-close" onclick="closeAboutModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <p>
+            <strong>What is this project?</strong><br>
+            The <strong>Solar Flare Early Warning System (SFEWS)</strong> is a deep-learning space weather operations cockpit designed to forecast dangerous M- and X-class solar flares 15 to 60 minutes before peak destructive radiation reaches Earth.
+          </p>
+          <p>
+            <strong>Why is it important?</strong><br>
+            Solar superflares emit high-energy X-rays and Coronal Mass Ejections (CMEs) that disrupt GNSS satellite navigation, cause HF radio blackouts for aviation, and induce catastrophic geomagnetic currents in power grids. Early warning allows satellite operators and grid managers to execute defensive safe-modes.
+          </p>
+          <p>
+            <strong>What datasets and missions power it?</strong><br>
+            - <strong>ISRO Aditya-L1 (XSM / SoLEXS)</strong>: Hard X-ray spectrometer in halo orbit around Sun-Earth Lagrange Point 1 (PRADAN Level-1 data).<br>
+            - <strong>NOAA GOES-18</strong>: Continuous Soft X-Ray irradiance (0.1–0.8 nm).<br>
+            - <strong>NASA SDO / HMI</strong>: Line-of-sight magnetograms of active region magnetic shear.
+          </p>
+          <p>
+            <strong>AI Model Architecture:</strong><br>
+            A 4-tier ensemble featuring a <strong>30-Dimensional Spatio-Temporal Graph Transformer</strong> and <strong>CNN-LSTM</strong>, constrained by <strong>Physics-Informed Neural Network (PINN)</strong> magneto-hydrodynamic (MHD) thermal conduction loss.
+          </p>
         </div>
       </div>
     </div>
@@ -1167,6 +1414,14 @@
       } else if (tabName === 'sun') {
         resizeSunCanvas();
       }
+    }
+
+    // Modal Control
+    function openAboutModal() {
+      document.getElementById('about-modal').classList.add('open');
+    }
+    function closeAboutModal(e) {
+      document.getElementById('about-modal').classList.remove('open');
     }
 
     // Live UTC Clock
@@ -1364,8 +1619,8 @@
       pill.className = 'flare-pill pill-quiet';
       pill.innerText = 'B4.2';
 
-      document.getElementById('hero-status').innerText = 'Nominal Quiescent Emission';
-      document.getElementById('hero-desc').innerText = 'Dual satellite baseline telemetry indicates calm solar coronal conditions with negligible eruptive probability.';
+      document.getElementById('hero-status').innerText = 'Nominal Quiescent Emission • No Immediate Threat';
+      document.getElementById('hero-desc').innerText = 'Background coronal irradiance is within normal levels. Dual-satellite telemetry detects no magnetic reconnection precursor signatures in active solar regions.';
 
       document.getElementById('h15-val').innerText = '4.2%';
       document.getElementById('h15-bar').style.width = '4.2%';
@@ -1391,8 +1646,8 @@
       if (flareType === 'X') {
         pill.className = 'flare-pill pill-x';
         pill.innerText = 'X4.5';
-        document.getElementById('hero-status').innerText = 'CRITICAL SPACE WEATHER • X-CLASS FLARE DETECTED';
-        document.getElementById('hero-desc').innerText = 'Severe high-energy eruption detected from NOAA AR3664. Extreme HF radio blackout precursor in progress.';
+        document.getElementById('hero-status').innerText = 'CRITICAL SPACE WEATHER • X-CLASS FLARE ACTIVE';
+        document.getElementById('hero-desc').innerText = 'Severe high-energy eruption detected from NOAA AR3664. Hard X-ray acceleration confirms major coronal mass ejection precursor with impending HF radio blackout.';
 
         document.getElementById('h15-val').innerText = '94.2%';
         document.getElementById('h15-bar').style.width = '94.2%';
@@ -1411,8 +1666,8 @@
       } else {
         pill.className = 'flare-pill pill-m';
         pill.innerText = 'M2.0';
-        document.getElementById('hero-status').innerText = 'GUARDED SPACE WEATHER • M-CLASS FLARE ACTIVE';
-        document.getElementById('hero-desc').innerText = 'Moderate flare detected across Aditya-L1 SoLEXS & HEL1OS detectors. Mild polar cap absorption observed.';
+        document.getElementById('hero-status').innerText = 'GUARDED SPACE WEATHER • M-CLASS FLARE DETECTED';
+        document.getElementById('hero-desc').innerText = 'Moderate flare detected across Aditya-L1 SoLEXS & HEL1OS detectors. Mild polar cap absorption observed with localized communications degradation.';
 
         document.getElementById('h15-val').innerText = '58.4%';
         document.getElementById('h15-bar').style.width = '58.4%';

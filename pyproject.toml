@@ -27,7 +27,15 @@ viz = ["plotly>=5.15.0", "streamlit>=1.25.0"]
 edge = ["onnx>=1.14.0", "onnxruntime>=1.15.0"]
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["."]
+
+[tool.pyright]
+include = ["src", "scripts", "tests"]
+extraPaths = ["."]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 88

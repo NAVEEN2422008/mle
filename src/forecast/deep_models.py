@@ -384,16 +384,21 @@ if HAS_TORCH:
             }
 else:
     class CNNLSTMSolarForecaster:
-        pass
+        def __init__(self, *args, **kwargs):
+            pass
 
     class SpatioTemporalGraphTransformer:
-        pass
+        def __init__(self, *args, **kwargs):
+            pass
 
     class BinaryFocalLoss:
-        pass
+        def __init__(self, *args, **kwargs):
+            pass
 
     class NeupertPhysicsLoss:
-        pass
+        def __init__(self, *args, **kwargs):
+            pass
 
     class SpaceWeatherDataset:
-        pass
+        def __init__(self, *args, **kwargs):
+            pass

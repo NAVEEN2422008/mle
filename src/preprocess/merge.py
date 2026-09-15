@@ -126,8 +126,8 @@ def synchronize_timestamps(
         s_df = s_df.rename(columns=col_map)
         if "soft" in s_df.columns:
             if apply_despike:
-                s_df["soft"] = despike_mad_series(s_df["soft"])
-            dfs.append(s_df[["timestamp", "soft"]].drop_duplicates("timestamp"))
+                s_df["soft"] = despike_mad_series(pd.Series(s_df["soft"]))
+            dfs.append(s_df[["timestamp", "soft"]].drop_duplicates(subset=["timestamp"]))
 
     if hel1os_df is not None and not hel1os_df.empty:
         h_df = apply_light_travel_time_correction(hel1os_df, "ADITYA_L1")
@@ -139,8 +139,8 @@ def synchronize_timestamps(
         h_df = h_df.rename(columns=col_map)
         if "hard" in h_df.columns:
             if apply_despike:
-                h_df["hard"] = despike_mad_series(h_df["hard"])
-            dfs.append(h_df[["timestamp", "hard"]].drop_duplicates("timestamp"))
+                h_df["hard"] = despike_mad_series(pd.Series(h_df["hard"]))
+            dfs.append(h_df[["timestamp", "hard"]].drop_duplicates(subset=["timestamp"]))
 
     if goes_df is not None and not goes_df.empty:
         g_df = apply_light_travel_time_correction(goes_df, "GOES")
@@ -149,11 +149,11 @@ def synchronize_timestamps(
             g_df["goes_soft"] = g_df["flux_long"] * 1e9
             g_df["goes_hard"] = g_df["flux_short"] * 1e12
             if apply_despike:
-                g_df["goes_soft"] = despike_mad_series(g_df["goes_soft"])
-                g_df["goes_hard"] = despike_mad_series(g_df["goes_hard"])
-            dfs.append(g_df[["timestamp", "goes_soft", "goes_hard"]].drop_duplicates("timestamp"))
+                g_df["goes_soft"] = despike_mad_series(pd.Series(g_df["goes_soft"]))
+                g_df["goes_hard"] = despike_mad_series(pd.Series(g_df["goes_hard"]))
+            dfs.append(g_df[["timestamp", "goes_soft", "goes_hard"]].drop_duplicates(subset=["timestamp"]))
         elif "soft" in g_df.columns and "hard" in g_df.columns:
-            dfs.append(g_df[["timestamp", "soft", "hard"]].drop_duplicates("timestamp"))
+            dfs.append(g_df[["timestamp", "soft", "hard"]].drop_duplicates(subset=["timestamp"]))
 
     if not dfs:
         return pd.DataFrame()

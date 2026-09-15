@@ -168,7 +168,7 @@ def _make_model_factory(use_lightgbm: bool):
         try:
             from lightgbm import LGBMClassifier
 
-            def factory():
+            def lgbm_factory():
                 return LGBMClassifier(
                     n_estimators=300,
                     learning_rate=0.05,
@@ -184,13 +184,13 @@ def _make_model_factory(use_lightgbm: bool):
                     verbose=-1,
                 )
 
-            return factory
+            return lgbm_factory
         except ImportError:
             pass
 
     from sklearn.ensemble import GradientBoostingClassifier
 
-    def factory():
+    def gb_factory():
         return GradientBoostingClassifier(random_state=42)
 
-    return factory
+    return gb_factory

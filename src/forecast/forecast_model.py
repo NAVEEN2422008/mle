@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
-from typing import List, Tuple, Optional
+from datetime import datetime
+from typing import List, Tuple, Optional, Any
 from dataclasses import dataclass
 
 from ..nowcast.primitives import EMA, EWMV, RingBuffer
@@ -148,7 +149,7 @@ class FeatureExtractor:
         self.flare_history.append(timestamp)
         # Keep only recent history
         self.flare_history = [t for t in self.flare_history if timestamp - t < 3600 * 24]
-        f.flares_6h = len([t for t in self.flare_history if timestamp - t < 6 * 3600])
+        self.flares_6h = len([t for t in self.flare_history if timestamp - t < 6 * 3600])
 
 
 class LightGBMForecaster:
@@ -210,16 +211,17 @@ class LightGBMForecaster:
         )
         
         # Calibration is handled separately
-        self.model.fit(X, y, eval_metric='auc', verbose=False)
+        self.model.fit(X, y, eval_metric='auc')
         self.is_trained = True
         
         return {'training_status': 'success'}
     
     def predict(self, X: np.ndarray) -> np.ndarray:
         """Get raw prediction probabilities."""
-        if not self.is_trained:
+        if not self.is_trained or self.model is None:
             raise ValueError("Model not trained. Call train() first.")
-        return self.model.predict_proba(X)[:, 1]
+        p = np.asarray(self.model.predict_proba(X))
+        return p[:, 1]
     
     def predict_threshold(self, X: np.ndarray, threshold: float = 0.5) -> np.ndarray:
         """Get binary predictions with configurable threshold."""
@@ -242,30 +244,33 @@ class LightGBMForecaster:
             return self.calibrator.predict(probs)
         return probs
     
-    def export_onnx(self, path: str):
+    def export_onnx(self, path: str, n_features: int = 30):
         """Export model to ONNX for edge deployment."""
         try:
-            import skl2onnx
-            from skl2onnx import convert_sklearn
-            from skl2onnx.common.data_types import FloatTensorType
+            import importlib
+            skl2onnx = importlib.import_module("skl2onnx")
+            convert_sklearn = skl2onnx.convert_sklearn
+            skl2onnx_types = importlib.import_module("skl2onnx.common.data_types")
+            FloatTensorType = skl2onnx_types.FloatTensorType
             
-            initial_type = [('float_input', FloatTensorType([None, X.shape[1]]))]
+            initial_type = [('float_input', FloatTensorType([None, n_features]))]
             onnx_model = convert_sklearn(self.model, initial_types=initial_type)
             
-            with open(path, 'wb') as f:
-                f.write(onnx_model.SerializeToString())
+            with open(path, 'wb') as f_out:
+                f_out.write(onnx_model.SerializeToString())
             
             return True
-        except ImportError:
-            print("skl2onnx not installed. Skipping ONNX export.")
+        except (ImportError, Exception):
+            print("skl2onnx not available. Skipping ONNX export.")
             return False
     
     def get_feature_importance(self) -> dict:
         """Get feature importance scores."""
-        if not self.is_trained:
+        if not self.is_trained or self.model is None:
             return {}
+        n_feats = len(self.model.feature_importances_)
         return dict(zip(
-            self.feature_names or [f'feature_{i}' for i in range(X.shape[1])],
+            self.feature_names or [f'feature_{i}' for i in range(n_feats)],
             self.model.feature_importances_.tolist()
         ))
 

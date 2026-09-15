@@ -76,6 +76,7 @@ def run_adversarial_break_tests():
         "hard": carrington_hard,
     })
     
+    f_cols = []
     try:
         c_feat = compute_physics_features(c_df)
         f_cols = [c for c in c_feat.columns if c.startswith("f") and len(c) > 3]

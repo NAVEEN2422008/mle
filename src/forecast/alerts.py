@@ -62,36 +62,38 @@ class AlertEngine:
         self._recent: List[bool] = []   # last m ">= theta_enter" booleans
         self._exit_streak = 0
         self._current: Optional[AlertSegment] = None
-        self.segments: List[AlertSegment] = []
+        self._segments: List[AlertSegment] = []
 
     # ---------------- streaming API ----------------
 
     def update(self, prob: float, t_sec: float) -> Optional[str]:
         """Feed one sample. Returns 'OPEN' | 'CLOSE' | None."""
-        valid = prob is not None and not (isinstance(prob, float) and math.isnan(prob))
-
-        # --- exit path first (hysteresis band is below enter threshold) ---
-        if self._current is not None:
-            below = (not valid) or (prob < self.theta_exit)
-            self._exit_streak = self._exit_streak + 1 if below else 0
-            if self._exit_streak >= self.exit_patience:
-                seg = self._current
-                seg.t_close = t_sec
-                self.segments.append(seg)
-                self._current = None
-                self._exit_streak = 0
-                return "CLOSE"
+        if math.isnan(prob):
             return None
 
-        # --- entry path: k-of-m persistence ---
-        hit = bool(valid and prob >= self.theta_enter)
-        self._recent.append(hit)
+        # update rolling k-of-m window
+        self._recent.append(prob >= self.theta_enter)
         if len(self._recent) > self.m:
             self._recent.pop(0)
 
+        # check close
+        if self._current is not None:
+            if prob < self.theta_exit:
+                self._exit_streak += 1
+                if self._exit_streak >= self.exit_patience:
+                    seg = self._current
+                    seg.t_close = float(t_sec)
+                    self._segments.append(seg)
+                    self._current = None
+                    self._exit_streak = 0
+                    return "CLOSE"
+            else:
+                self._exit_streak = 0
+            return None
+
+        # check open
         if sum(self._recent) >= self.k:
-            self._current = AlertSegment(t_open=t_sec)
-            self._recent.clear()
+            self._current = AlertSegment(t_open=float(t_sec))
             self._exit_streak = 0
             return "OPEN"
 
@@ -102,12 +104,12 @@ class AlertEngine:
         if self._current is not None:
             seg = self._current
             seg.t_close = t_end
-            self.segments.append(seg)
+            self._segments.append(seg)
             self._current = None
 
     def segments(self) -> List[AlertSegment]:
         """All closed segments (+ current as pending)."""
-        out = list(self.segments)
+        out = list(self._segments)
         if self._current is not None:
             out.append(self._current)
         return out
@@ -116,7 +118,7 @@ class AlertEngine:
         self._recent.clear()
         self._exit_streak = 0
         self._current = None
-        self.segments.clear()
+        self._segments.clear()
 
 
 def alerts_by_theta_kofm(

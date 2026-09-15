@@ -150,7 +150,8 @@ class CrossBandAssociator:
         
         for solexs_det in self.detections['solexs']:
             best_match = None
-            best_score = 0
+            best_score = 0.0
+            best_neupert_score = 0.0
             
             for hel1os_det in self.detections['hel1os']:
                 dt = abs((solexs_det['time'] - hel1os_det['time']).total_seconds())
@@ -173,6 +174,7 @@ class CrossBandAssociator:
                 if total_score > best_score:
                     best_score = total_score
                     best_match = hel1os_det
+                    best_neupert_score = neupert_score
             
             if best_match is not None and best_score > 0.5:
                 # Create merged flare event
@@ -189,7 +191,7 @@ class CrossBandAssociator:
                     peak_flux_solexs=solexs_det['flux'],
                     peak_flux_hel1os=best_match['flux'],
                     goes_class=goes_class,
-                    confidence=min(1.0, best_score + 0.2 * neupert_score),
+                    confidence=min(1.0, best_score + 0.2 * best_neupert_score),
                     instrument_flags=Instrument.SOLEXS_SDD2 | Instrument.HEL1OS_CDTE,
                     neupert_verified=best_match['time'] < solexs_det['time'],
                 )

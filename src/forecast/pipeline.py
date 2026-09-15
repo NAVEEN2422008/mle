@@ -136,7 +136,7 @@ def build_causal_features(
         f["time_since_flare_min"] = np.nan
         f["decayed_history"] = 0.0
 
-    return f[FEATURE_NAMES]
+    return pd.DataFrame(f[list(FEATURE_NAMES)])
 
 
 def alert_crossing_times(

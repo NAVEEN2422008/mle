@@ -16,11 +16,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
 
-try:
-    from lightgbm import LGBMClassifier
-    HAS_LGBM = True
-except ImportError:
-    HAS_LGBM = False
+from lightgbm import LGBMClassifier
+HAS_LGBM = True
 
 from .metrics import ConfusionMatrix, brier_skill_score, pr_auc
 from .deep_models import (

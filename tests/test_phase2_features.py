@@ -35,8 +35,8 @@ def test_compute_30d_physics_features():
         assert len(matched) >= 1, f"Missing feature starting with {k}"
         
         # Verify no unhandled NaNs or Infs
-        assert not featured[matched[0]].isna().any(), f"Feature {matched[0]} contains NaNs"
-        assert not np.isinf(featured[matched[0]]).any(), f"Feature {matched[0]} contains Infs"
+        assert not bool(featured[matched[0]].isna().any()), f"Feature {matched[0]} contains NaNs"
+        assert not bool(np.isinf(featured[matched[0]].to_numpy()).any()), f"Feature {matched[0]} contains Infs"
 
 
 def test_neupert_cross_band_acceleration():
@@ -51,12 +51,12 @@ def test_neupert_cross_band_acceleration():
     featured = compute_physics_features(df, cadence_s=1.0)
     
     # SXR 1st derivative should be positive and increasing
-    d_soft = featured["f05_d_soft_dt"].values
-    assert (d_soft[10:90] > 0).all()
+    d_soft = np.asarray(featured["f05_d_soft_dt"].values, dtype=float)
+    assert bool((d_soft[10:90] > 0).all())
     
     # SXR 2nd derivative (acceleration) should be positive
-    d2_soft = featured["f07_d2_soft_dt2"].values
-    assert (d2_soft[10:90] > 0).all()
+    d2_soft = np.asarray(featured["f07_d2_soft_dt2"].values, dtype=float)
+    assert bool((d2_soft[10:90] > 0).all())
 
 
 def test_morlet_wavelet_qpp_power():

@@ -123,12 +123,13 @@ def test_realdata_goes():
     # ------------------------------------------------------------------
     lt = pd.DataFrame(getattr(rep, "lt_far_table", []))
     ltk = pd.DataFrame(getattr(rep, "lt_far_table_kofm", []))
+    b = None
     if len(lt):
         b = lt.loc[lt["tss"].idxmax()]
         print(f"[alerts/raw] best: theta={b['theta']} TSS={b['tss']:+.2f} "
               f"FAR={b['far']:.2f} false_alarms={int(b['false_alarms'])} "
               f"median-lead={b['median_lt_min']}min")
-    if len(ltk) and len(lt):
+    if len(ltk) and b is not None:
         bk = ltk.loc[ltk["tss"].idxmax()]
         print(f"[alerts/kofm] best: theta={bk['theta']} TSS={bk['tss']:+.2f} "
               f"FAR={bk['far']:.2f} false_alarms={int(bk['false_alarms'])} "

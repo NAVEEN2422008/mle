@@ -56,7 +56,8 @@ def test_smoke_end_to_end():
     onset_t, events = None, []
     for idx, row in df_synth.iterrows():
         i = int(idx)
-        _, alert, status, meta = det.update(row["soft"], timestamp=float(i))
+        soft_val = float(row["soft"])
+        _, alert, status, meta = det.update(soft_val, timestamp=float(i))
         if status == "ONSET" and onset_t is None:
             onset_t = i
         if alert:
@@ -69,7 +70,8 @@ def test_smoke_end_to_end():
     h_alerts = []
     for idx, row in df_synth.iterrows():
         i = int(idx)
-        _, alert, status, meta = hdet.update(max(row["hard"], 0), timestamp=float(i))
+        hard_val = max(float(row["hard"]), 0.0)
+        _, alert, status, meta = hdet.update(hard_val, timestamp=float(i))
         if alert:
             h_alerts.append((i, status))
 
@@ -78,7 +80,7 @@ def test_smoke_end_to_end():
     last = {}
     for idx, row in df_synth.iloc[:peak_s_idx + 40].iterrows():
         i = int(idx)
-        last = nc.update(row["soft"], row["hard"], timestamp=float(i))
+        last = nc.update(float(row["soft"]), float(row["hard"]), timestamp=float(i))
     assert bool(last.get("hxr_leads", False)) is True
 
     # 7. GOES classifier sanity

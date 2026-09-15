@@ -9,7 +9,7 @@ Provides:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple, Any, Sequence
+from typing import Dict, List, Optional, Tuple, Any, Sequence, Union
 import numpy as np
 import pandas as pd
 

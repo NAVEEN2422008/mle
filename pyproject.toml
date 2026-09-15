@@ -32,6 +32,7 @@ where = ["."]
 [tool.pyright]
 include = ["src", "scripts", "tests"]
 extraPaths = ["."]
+reportMissingTypeStubs = "none"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

@@ -54,8 +54,7 @@ def test_smoke_end_to_end():
     # 4. Soft-band CUSUM detection
     det = CUSUMDetector(baseline_window=150, cusum_k=5.0, h_c_sigma=30.0)
     onset_t, events = None, []
-    for idx, row in df_synth.iterrows():
-        i = int(idx)
+    for i, (_, row) in enumerate(df_synth.iterrows()):
         soft_val = float(row["soft"])
         _, alert, status, meta = det.update(soft_val, timestamp=float(i))
         if status == "ONSET" and onset_t is None:
@@ -68,8 +67,7 @@ def test_smoke_end_to_end():
     # 5. Hard-band Poisson-FOCuS stack
     hdet = HardDetector(mu0=bg_hard)
     h_alerts = []
-    for idx, row in df_synth.iterrows():
-        i = int(idx)
+    for i, (_, row) in enumerate(df_synth.iterrows()):
         hard_val = max(float(row["hard"]), 0.0)
         _, alert, status, meta = hdet.update(hard_val, timestamp=float(i))
         if alert:
@@ -78,8 +76,7 @@ def test_smoke_end_to_end():
     # 6. Neupert correlation engine
     nc = NeupertCorrelator(corr_window_s=200)
     last = {}
-    for idx, row in df_synth.iloc[:peak_s_idx + 40].iterrows():
-        i = int(idx)
+    for i, (_, row) in enumerate(df_synth.iloc[:peak_s_idx + 40].iterrows()):
         last = nc.update(float(row["soft"]), float(row["hard"]), timestamp=float(i))
     assert bool(last.get("hxr_leads", False)) is True
 

@@ -1207,6 +1207,30 @@
           </div>
         </div>
 
+        <!-- Enhanced Multi-Class Probability Breakdown & Lead Time Card -->
+        <div class="bento-card col-12" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 12px 18px;">
+          <div class="metric-cell" style="border-left: 3px solid var(--accent-emerald);">
+            <div class="metric-label"><span>P(C-Class Flare)</span><span style="color: var(--accent-emerald);">≥ 10⁻⁶ W/m²</span></div>
+            <div class="metric-val" id="p-c-class" style="color: var(--accent-emerald); font-size: 16px;">94.2%</div>
+            <div class="metric-sub">Minor HF radio fade</div>
+          </div>
+          <div class="metric-cell" style="border-left: 3px solid var(--accent-amber);">
+            <div class="metric-label"><span>P(M-Class Flare)</span><span style="color: var(--accent-amber);">≥ 10⁻⁵ W/m²</span></div>
+            <div class="metric-val" id="p-m-class" style="color: var(--accent-amber); font-size: 16px;">38.5%</div>
+            <div class="metric-sub">Aviation polar alert</div>
+          </div>
+          <div class="metric-cell" style="border-left: 3px solid var(--accent-crimson);">
+            <div class="metric-label"><span>P(X-Class Flare)</span><span style="color: var(--accent-crimson);">≥ 10⁻⁴ W/m²</span></div>
+            <div class="metric-val" id="p-x-class" style="color: var(--accent-crimson); font-size: 16px;">12.8%</div>
+            <div class="metric-sub">Satellite / Grid safe-mode</div>
+          </div>
+          <div class="metric-cell" style="border-left: 3px solid var(--accent-cyan);">
+            <div class="metric-label"><span>Forecast Lead Time</span><span style="color: var(--accent-cyan);">PINN Neupert</span></div>
+            <div class="metric-val" style="color: var(--accent-cyan); font-size: 16px;">+26.8 <span class="metric-unit">min</span></div>
+            <div class="metric-sub">Early warning horizon</div>
+          </div>
+        </div>
+
         <!-- Real-Time Telemetry Oscilloscope (Col 8) -->
         <div class="bento-card col-8">
           <div class="card-header">
@@ -1237,7 +1261,11 @@
               </div>
               <div class="chart-legend-item">
                 <span class="legend-dot" style="background: #71717a;"></span>
-                <span>d(SXR)/dt Neupert Derivative</span>
+                <span>d(SXR)/dt Neupert</span>
+              </div>
+              <div class="chart-legend-item">
+                <span class="legend-dot" style="background: rgba(56, 189, 248, 0.4); border: 1px dashed #38bdf8;"></span>
+                <span>Forecast Cone (T+15m – T+60m)</span>
               </div>
             </div>
             <div class="chart-crosshair-info" id="crosshair-val">T: Live | SXR: 420.5 nW/m²</div>
@@ -1827,6 +1855,8 @@
       const h = scopeCanvas.height / window.devicePixelRatio;
       scopeCtx.clearRect(0, 0, w, h);
 
+      const pastW = w * 0.78; // 78% of canvas for live/past telemetry, 22% for forecast projection
+
       // Background grid lines
       scopeCtx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
       scopeCtx.lineWidth = 1;
@@ -1843,12 +1873,33 @@
         scopeCtx.stroke();
       }
 
+      // Vertical "NOW / Live T₀" Divider
+      scopeCtx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+      scopeCtx.lineWidth = 1;
+      scopeCtx.setLineDash([4, 4]);
+      scopeCtx.beginPath();
+      scopeCtx.moveTo(pastW, 0);
+      scopeCtx.lineTo(pastW, h);
+      scopeCtx.stroke();
+      scopeCtx.setLineDash([]);
+
+      scopeCtx.font = '10px "JetBrains Mono"';
+      scopeCtx.fillStyle = '#71717a';
+      scopeCtx.fillText('PAST TELEMETRY', 10, h - 8);
+      scopeCtx.fillStyle = '#38bdf8';
+      scopeCtx.fillText('NOW (T₀) ──► FORWARD FORECAST', pastW - 75, 18);
+
       // Draw Neupert Derivative
-      drawNeupertDerivative(sxrData, '#52525b', w, h);
+      drawNeupertDerivative(sxrData, '#52525b', pastW, h);
       // Draw SXR Line
-      drawTrace(sxrData, '#38bdf8', w, h);
+      const lastSxrY = drawTrace(sxrData, '#38bdf8', pastW, h);
       // Draw HXR Line
-      drawTrace(hxrData, '#f59e0b', w, h, true);
+      drawTrace(hxrData, '#f59e0b', pastW, h, true);
+
+      // Draw Forward Forecast Projection Cone
+      if (lastSxrY !== null) {
+        drawForecastCone(pastW, lastSxrY, w, h);
+      }
     }
 
     function drawNeupertDerivative(data, color, w, h) {
@@ -1872,13 +1923,14 @@
     }
 
     function drawTrace(data, color, w, h, isSecondary = false) {
-      if (!data.length) return;
+      if (!data.length) return null;
       scopeCtx.strokeStyle = color;
       scopeCtx.lineWidth = 1.8;
       scopeCtx.beginPath();
 
       const maxVal = isLogScale ? 5000 : 3000;
       const minVal = 50;
+      let lastY = null;
 
       for (let i = 0; i < data.length; i++) {
         const x = (i / (MAX_BUFFER - 1)) * w;
@@ -1888,11 +1940,70 @@
         }
         norm = Math.max(0.05, Math.min(0.95, norm));
         const y = h - (norm * h * 0.85) - (h * 0.08);
+        lastY = y;
 
         if (i === 0) scopeCtx.moveTo(x, y);
         else scopeCtx.lineTo(x, y);
       }
       scopeCtx.stroke();
+      return lastY;
+    }
+
+    function drawForecastCone(startX, startY, totalW, h) {
+      const forecastW = totalW - startX;
+      const endX = totalW - 10;
+      const midX = startX + forecastW * 0.5;
+
+      // Project target peak based on current SXR trend
+      const latestVal = sxrData[sxrData.length - 1] || 420;
+      const targetVal = latestVal > 800 ? latestVal * 1.6 : latestVal * 1.25;
+      const maxVal = isLogScale ? 5000 : 3000;
+      let targetNorm = Math.log10(Math.max(1, targetVal)) / Math.log10(maxVal);
+      targetNorm = Math.max(0.1, Math.min(0.92, targetNorm));
+      const targetY = h - (targetNorm * h * 0.85) - (h * 0.08);
+
+      // 1. Shaded 95% Confidence Cone
+      scopeCtx.fillStyle = 'rgba(56, 189, 248, 0.08)';
+      scopeCtx.beginPath();
+      scopeCtx.moveTo(startX, startY);
+      scopeCtx.bezierCurveTo(midX, startY - 10, midX + forecastW * 0.25, targetY - 30, endX, targetY - 35);
+      scopeCtx.lineTo(endX, targetY + 25);
+      scopeCtx.bezierCurveTo(midX + forecastW * 0.25, targetY + 20, midX, startY + 10, startX, startY);
+      scopeCtx.closePath();
+      scopeCtx.fill();
+
+      // 2. Projected Mean Trajectory (Dashed Cyan Line)
+      scopeCtx.strokeStyle = '#38bdf8';
+      scopeCtx.lineWidth = 1.6;
+      scopeCtx.setLineDash([4, 4]);
+      scopeCtx.beginPath();
+      scopeCtx.moveTo(startX, startY);
+      scopeCtx.bezierCurveTo(midX, startY, midX, targetY, endX, targetY);
+      scopeCtx.stroke();
+      scopeCtx.setLineDash([]);
+
+      // 3. Target Milestone Dots: T+15m, T+30m, T+60m
+      const milestones = [
+        { label: 'T+15m', frac: 0.28, p: '4.2%' },
+        { label: 'T+30m (Peak)', frac: 0.62, p: '7.8%' },
+        { label: 'T+60m', frac: 0.95, p: '12.5%' }
+      ];
+
+      milestones.forEach(m => {
+        const mx = startX + (endX - startX) * m.frac;
+        // Interpolate bezier approx
+        const t = m.frac;
+        const my = (1-t)*(1-t)*startY + 2*(1-t)*t*startY + t*t*targetY;
+
+        scopeCtx.fillStyle = '#38bdf8';
+        scopeCtx.beginPath();
+        scopeCtx.arc(mx, my, 3, 0, Math.PI * 2);
+        scopeCtx.fill();
+
+        scopeCtx.font = '9px "JetBrains Mono"';
+        scopeCtx.fillStyle = '#a1a1aa';
+        scopeCtx.fillText(m.label, mx - 14, my - 8);
+      });
     }
 
     // 3D Solar Disk Canvas

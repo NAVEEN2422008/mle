@@ -17,10 +17,10 @@
     :root {
       --bg-deep: #05070c;
       --bg-surface: #0b0f19;
-      --card-bg: rgba(15, 23, 42, 0.72);
-      --card-bg-hover: rgba(26, 38, 64, 0.85);
+      --card-bg: rgba(15, 23, 42, 0.75);
+      --card-bg-hover: rgba(26, 38, 64, 0.88);
       --card-border: rgba(255, 255, 255, 0.08);
-      --card-border-glow: rgba(56, 189, 248, 0.25);
+      --card-border-glow: rgba(56, 189, 248, 0.3);
       
       --text-title: #ffffff;
       --text-body: #cbd5e1;
@@ -49,8 +49,8 @@
     body {
       background-color: var(--bg-deep);
       background-image: 
-        radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.08) 0%, transparent 60%),
-        radial-gradient(circle at 90% 90%, rgba(245, 158, 11, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.09) 0%, transparent 60%),
+        radial-gradient(circle at 90% 90%, rgba(245, 158, 11, 0.06) 0%, transparent 50%),
         linear-gradient(180deg, #05070c 0%, #080c16 100%);
       color: var(--text-body);
       font-family: var(--font-ui);
@@ -75,16 +75,16 @@
 
     .glass-panel {
       background: var(--card-bg);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       border: 1px solid var(--card-border);
       border-radius: 14px;
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
 
     .glass-panel:hover {
-      border-color: rgba(255, 255, 255, 0.14);
+      border-color: rgba(255, 255, 255, 0.15);
     }
 
     /* TOP BAR */
@@ -104,11 +104,11 @@
     }
 
     .mission-logo {
-      width: 42px;
-      height: 42px;
+      width: 44px;
+      height: 44px;
       border-radius: 10px;
       background: radial-gradient(circle at 30% 30%, #ffedd5 0%, #ff9933 50%, #c2410c 100%);
-      box-shadow: 0 0 20px rgba(255, 153, 51, 0.5);
+      box-shadow: 0 0 24px rgba(255, 153, 51, 0.55);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -119,9 +119,9 @@
     .mission-logo::after {
       content: '';
       position: absolute;
-      width: 60px;
+      width: 65px;
       height: 2px;
-      background: rgba(255, 255, 255, 0.6);
+      background: rgba(255, 255, 255, 0.7);
       transform: rotate(-45deg);
     }
 
@@ -222,6 +222,49 @@
       color: #fff;
     }
 
+    .btn-action {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+    }
+
+    .btn-flare-x {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #fca5a5;
+    }
+    .btn-flare-x:hover {
+      background: rgba(239, 68, 68, 0.35);
+      color: #fff;
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
+    }
+
+    .btn-flare-m {
+      background: rgba(245, 158, 11, 0.2);
+      border-color: rgba(245, 158, 11, 0.4);
+      color: #fde68a;
+    }
+    .btn-flare-m:hover {
+      background: rgba(245, 158, 11, 0.35);
+      color: #fff;
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
+    }
+
+    .btn-quiet {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: rgba(16, 185, 129, 0.4);
+      color: #a7f3d0;
+    }
+    .btn-quiet:hover {
+      background: rgba(16, 185, 129, 0.35);
+      color: #fff;
+    }
+
     /* TABS */
     .tab-navigation {
       display: flex;
@@ -305,6 +348,12 @@
       right: 0;
       height: 3px;
       background: linear-gradient(90deg, var(--color-pinn), var(--color-sxr), var(--color-hxr));
+      transition: background 0.3s ease;
+    }
+
+    .hero-banner.alert-active::before {
+      background: linear-gradient(90deg, var(--color-alert), var(--color-hxr), var(--color-alert));
+      box-shadow: 0 0 16px var(--color-alert);
     }
 
     .hero-summary {
@@ -382,6 +431,7 @@
       color: var(--color-pinn);
       line-height: 1;
       text-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+      transition: color 0.3s ease, text-shadow 0.3s ease;
     }
 
     .threat-dial-label {
@@ -556,12 +606,28 @@
 
     .oscilloscope-canvas-wrapper {
       width: 100%;
-      height: 300px;
+      height: 320px;
       position: relative;
-      background: rgba(5, 7, 12, 0.85);
+      background: rgba(5, 7, 12, 0.9);
       border-radius: 10px;
       border: 1px solid var(--card-border);
       overflow: hidden;
+      cursor: crosshair;
+    }
+
+    .chart-tooltip {
+      position: absolute;
+      display: none;
+      background: rgba(11, 15, 25, 0.95);
+      border: 1px solid var(--color-sxr);
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #fff;
+      pointer-events: none;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+      z-index: 10;
     }
 
     canvas {
@@ -591,15 +657,20 @@
 
     .sun-canvas-box {
       width: 100%;
-      height: 380px;
+      height: 400px;
       position: relative;
-      background: radial-gradient(circle at 50% 50%, #170d02 0%, #080c16 80%);
+      background: radial-gradient(circle at 50% 50%, #1a0f02 0%, #060912 85%);
       border-radius: 12px;
-      border: 1px solid rgba(245, 158, 11, 0.2);
+      border: 1px solid rgba(245, 158, 11, 0.25);
       overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
+      cursor: grab;
+    }
+
+    .sun-canvas-box:active {
+      cursor: grabbing;
     }
 
     .ar-sidebar-card {
@@ -613,12 +684,12 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
-      max-height: 380px;
+      max-height: 400px;
       overflow-y: auto;
     }
 
     .ar-item {
-      background: rgba(0, 0, 0, 0.3);
+      background: rgba(0, 0, 0, 0.35);
       border: 1px solid var(--card-border);
       border-radius: 8px;
       padding: 12px;
@@ -631,7 +702,7 @@
 
     .ar-item:hover, .ar-item.selected {
       border-color: var(--color-hxr);
-      background: rgba(245, 158, 11, 0.08);
+      background: rgba(245, 158, 11, 0.1);
     }
 
     .ar-item-top {
@@ -658,7 +729,7 @@
     .badge-alpha { background: rgba(56, 189, 248, 0.2); color: var(--color-sxr); }
     .badge-beta { background: rgba(16, 185, 129, 0.2); color: var(--color-pinn); }
     .badge-betagamma { background: rgba(245, 158, 11, 0.2); color: var(--color-hxr); }
-    .badge-gammadelta { background: rgba(239, 68, 68, 0.2); color: var(--color-alert); }
+    .badge-gammadelta { background: rgba(239, 68, 68, 0.2); color: var(--color-alert); box-shadow: 0 0 8px rgba(239, 68, 68, 0.3); }
 
     /* PINN TAB */
     .pinn-grid {
@@ -689,6 +760,26 @@
       text-align: center;
     }
 
+    .slider-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 6px;
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    input[type=range] {
+      accent-color: var(--color-sxr);
+      cursor: pointer;
+    }
+
     /* CATALOGUE TAB */
     .catalogue-card {
       padding: 20px 24px;
@@ -703,6 +794,29 @@
       align-items: center;
       flex-wrap: wrap;
       gap: 12px;
+    }
+
+    .filter-pills {
+      display: flex;
+      gap: 6px;
+    }
+
+    .filter-pill-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .filter-pill-btn:hover, .filter-pill-btn.active {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: var(--color-sxr);
+      color: #fff;
     }
 
     .table-container {
@@ -802,12 +916,18 @@
       </div>
 
       <div class="controls-group">
+        <!-- Interactive Flare Simulation Triggers -->
+        <button class="btn-action btn-flare-x" onclick="simulateFlare('X')">⚡ SIMULATE X4.5</button>
+        <button class="btn-action btn-flare-m" onclick="simulateFlare('M')">🔥 SIMULATE M2.0</button>
+        <button class="btn-action btn-quiet" onclick="simulateQuiet()">🔇 QUIET SUN</button>
+
         <div class="controls-group" style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 2px; border: 1px solid var(--card-border);">
           <button class="btn-control" onclick="setSpeed(1)">1x</button>
           <button class="btn-control" onclick="setSpeed(10)">10x</button>
           <button class="btn-control active" id="speed-60-btn" onclick="setSpeed(60)">60x</button>
         </div>
         <button class="btn-control" id="source-toggle-btn" onclick="toggleSource()">FEED: GOES-18</button>
+        <button class="btn-control" id="audio-toggle-btn" onclick="toggleAudio()">🔊 AUDIO ON</button>
       </div>
     </header>
 
@@ -970,12 +1090,13 @@
         </div>
       </section>
 
-      <!-- Dual High-DPI Real-Time Waveform Oscilloscope -->
+      <!-- Dual High-DPI Real-Time Waveform Oscilloscope with Tooltips & Log Scale -->
       <section class="glass-panel oscilloscope-card">
         <div class="chart-controls-bar">
           <div style="font-family: var(--font-tech); font-size: 13px; font-weight: 700; color: #fff;">
             📊 DUAL MULTI-SPECTRAL RADIATION WAVEFORM OSCILLOSCOPE
           </div>
+          
           <div class="chart-legends">
             <div class="legend-item">
               <div class="legend-pill" style="background: var(--color-sxr);"></div>
@@ -987,20 +1108,23 @@
             </div>
             <div class="legend-item">
               <div class="legend-pill" style="background: var(--color-pinn); opacity: 0.5;"></div>
-              <span>PINN Rolling Baseline</span>
+              <span>PINN Baseline</span>
             </div>
+            
+            <button class="btn-control" id="scale-mode-btn" onclick="toggleScale()">SCALE: LOG₁₀</button>
           </div>
         </div>
 
-        <div class="oscilloscope-canvas-wrapper">
+        <div class="oscilloscope-canvas-wrapper" id="chartWrapper">
           <canvas id="liveChartCanvas"></canvas>
+          <div class="chart-tooltip" id="chartTooltip"></div>
         </div>
       </section>
 
     </main>
 
     <!-- =======================================================================
-         TAB 2: 3D SOLAR ACTIVE REGION MONITOR
+         TAB 2: 3D SOLAR ACTIVE REGION MONITOR (Draggable with Magnetic Loops)
          ======================================================================= -->
     <section id="tab-solardisk" class="view-content">
       <div class="solar-disk-layout">
@@ -1008,18 +1132,18 @@
         <div class="glass-panel sun-viewport-card">
           <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
             <div style="font-family: var(--font-tech); font-size: 13px; font-weight: 700; color: #fff;">
-              ☀️ 3D SOLAR DISK & ACTIVE MAGNETIC FLUX REGIONS
+              ☀️ 3D SOLAR DISK & MAGNETIC LOOP CORONA (INTERACTIVE ROTATION)
             </div>
             <div style="font-size: 11px; font-family: var(--font-mono); color: var(--color-isro-orange);">
-              VELC CORONAGRAPH ALIGNMENT: NORMAL
+              VELC CORONAGRAPH: LOCKED
             </div>
           </div>
 
-          <div class="sun-canvas-box">
+          <div class="sun-canvas-box" id="sunCanvasBox">
             <canvas id="sunCanvas"></canvas>
           </div>
           <div style="font-size: 11px; color: var(--text-dim); text-align: center;">
-            Click on active regions to inspect magnetic free energy (E_free) and McIntosh/Mount Wilson classifications.
+            Drag with mouse/touch to rotate Sun. Click on active region nodes to inspect coronal magnetic loop physics.
           </div>
         </div>
 
@@ -1029,7 +1153,7 @@
           </div>
 
           <div class="ar-list">
-            <div class="ar-item selected" onclick="selectAR('AR3664')">
+            <div class="ar-item selected" id="ar-card-AR3664" onclick="selectAR('AR3664')">
               <div class="ar-item-top">
                 <span class="ar-number">NOAA AR3664 (Super-Complex)</span>
                 <span class="ar-class badge-gammadelta">β-γ-δ</span>
@@ -1037,9 +1161,12 @@
               <div style="font-size: 11px; color: var(--text-muted);">
                 Area: 1,850 μHem • Flare Yield: X-Class Potential (84%)
               </div>
+              <div style="font-size: 10px; color: var(--color-sxr);">
+                Magnetic Free Energy: 4.8 × 10³³ ergs • Helicity: High
+              </div>
             </div>
 
-            <div class="ar-item" onclick="selectAR('AR3697')">
+            <div class="ar-item" id="ar-card-AR3697" onclick="selectAR('AR3697')">
               <div class="ar-item-top">
                 <span class="ar-number">NOAA AR3697</span>
                 <span class="ar-class badge-betagamma">β-γ</span>
@@ -1047,9 +1174,12 @@
               <div style="font-size: 11px; color: var(--text-muted);">
                 Area: 920 μHem • Flare Yield: M-Class Potential (42%)
               </div>
+              <div style="font-size: 10px; color: var(--color-hxr);">
+                Magnetic Free Energy: 1.2 × 10³³ ergs • Polarity: Dipolar
+              </div>
             </div>
 
-            <div class="ar-item" onclick="selectAR('AR3712')">
+            <div class="ar-item" id="ar-card-AR3712" onclick="selectAR('AR3712')">
               <div class="ar-item-top">
                 <span class="ar-number">NOAA AR3712</span>
                 <span class="ar-class badge-beta">β</span>
@@ -1057,15 +1187,21 @@
               <div style="font-size: 11px; color: var(--text-muted);">
                 Area: 340 μHem • Flare Yield: C-Class Baseline (12%)
               </div>
+              <div style="font-size: 10px; color: var(--color-pinn);">
+                Magnetic Free Energy: 3.4 × 10³² ergs • Stable Bipolar
+              </div>
             </div>
 
-            <div class="ar-item" onclick="selectAR('AR3720')">
+            <div class="ar-item" id="ar-card-AR3720" onclick="selectAR('AR3720')">
               <div class="ar-item-top">
                 <span class="ar-number">NOAA AR3720</span>
                 <span class="ar-class badge-alpha">α</span>
               </div>
               <div style="font-size: 11px; color: var(--text-muted);">
                 Area: 110 μHem • Quiescent Unipolar Spot (2%)
+              </div>
+              <div style="font-size: 10px; color: var(--text-dim);">
+                Magnetic Free Energy: < 10³² ergs • Minimum Risk
               </div>
             </div>
           </div>
@@ -1075,7 +1211,7 @@
     </section>
 
     <!-- =======================================================================
-         TAB 3: PHYSICS-INFORMED (PINN) DIAGNOSTIC ENGINE
+         TAB 3: PHYSICS-INFORMED (PINN) DIAGNOSTIC ENGINE (Interactive Simulator)
          ======================================================================= -->
     <section id="tab-pinn" class="view-content">
       <div class="pinn-grid">
@@ -1085,11 +1221,29 @@
             NEUPERT CAUSAL EQUATION
           </div>
           <div class="equation-box">
-            dΦ(SXR)/dt ≈ κ • Φ(HXR)
+            dΦ(SXR)/dt ≈ κ • Φ(HXR) - β • Φ(SXR)
           </div>
           <div style="font-size: 12px; color: var(--text-muted); line-height: 1.6;">
             The Neupert Effect establishes that thermal Soft X-Ray emissions represent the time integral of non-thermal accelerated electron Hard X-Ray energy deposition into the dense chromosphere.
           </div>
+          
+          <!-- Interactive Sliders -->
+          <div class="slider-row">
+            <div class="slider-header">
+              <span>Coupling Efficiency (κ):</span>
+              <span id="kappa-val-display" style="color: var(--color-sxr);">0.25</span>
+            </div>
+            <input type="range" id="kappa-slider" min="0.05" max="0.60" step="0.01" value="0.25" oninput="updatePINNParameters()">
+          </div>
+
+          <div class="slider-row">
+            <div class="slider-header">
+              <span>Coronal Cooling Decay (β):</span>
+              <span id="beta-val-display" style="color: var(--color-hxr);">0.005</span>
+            </div>
+            <input type="range" id="beta-slider" min="0.001" max="0.020" step="0.001" value="0.005" oninput="updatePINNParameters()">
+          </div>
+
           <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--card-border); padding-top: 10px; font-family: var(--font-mono); font-size: 11px;">
             <span>Correlation Coefficient r:</span>
             <span style="color: var(--color-pinn); font-weight: 700;" id="pinn-corr">0.892</span>
@@ -1106,15 +1260,15 @@
           <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px;">
             <div style="display: flex; justify-content: space-between;">
               <span style="color: var(--text-muted);">Thermal Energy (E_th):</span>
-              <span class="mono" style="color: var(--color-sxr);">1.42 × 10³¹ ergs</span>
+              <span class="mono" style="color: var(--color-sxr);" id="energy-thermal">1.42 × 10³¹ ergs</span>
             </div>
             <div style="display: flex; justify-content: space-between;">
               <span style="color: var(--text-muted);">Non-Thermal Electron Energy:</span>
-              <span class="mono" style="color: var(--color-hxr);">3.88 × 10³¹ ergs</span>
+              <span class="mono" style="color: var(--color-hxr);" id="energy-nonthermal">3.88 × 10³¹ ergs</span>
             </div>
             <div style="display: flex; justify-content: space-between;">
               <span style="color: var(--text-muted);">Kinetic CME Energy:</span>
-              <span class="mono" style="color: var(--color-purple);">8.10 × 10³¹ ergs</span>
+              <span class="mono" style="color: var(--color-purple);" id="energy-cme">8.10 × 10³¹ ergs</span>
             </div>
           </div>
         </div>
@@ -1124,14 +1278,14 @@
             PINN RESIDUAL LOSS REGULARIZER
           </div>
           <div class="equation-box">
-            L_PINN = ||∇Φ_SXR - κΦ_HXR||²
+            L_PINN = ||∇Φ_SXR - (κΦ_HXR - βΦ_SXR)||²
           </div>
           <div style="font-size: 12px; color: var(--text-muted);">
             Enforces physical laws inside gradient descent to eliminate unphysical hallucinations and false alarms.
           </div>
           <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--card-border); padding-top: 10px; font-family: var(--font-mono); font-size: 11px;">
             <span>Current PINN Residual:</span>
-            <span style="color: var(--color-pinn); font-weight: 700;">0.00416 (Converged)</span>
+            <span style="color: var(--color-pinn); font-weight: 700;" id="pinn-residual-val">0.00416 (Optimal)</span>
           </div>
         </div>
 
@@ -1139,7 +1293,7 @@
     </section>
 
     <!-- =======================================================================
-         TAB 4: ISRO SPACE WEATHER FLARE CATALOGUE
+         TAB 4: ISRO SPACE WEATHER FLARE CATALOGUE (Searchable & Filterable)
          ======================================================================= -->
     <section id="tab-catalogue" class="view-content">
       <div class="glass-panel catalogue-card">
@@ -1152,7 +1306,17 @@
               Automated high-cadence event identification with lead time and Neupert correlation tracking.
             </div>
           </div>
-          <button class="btn-control" onclick="exportCatalogueCSV()">📥 EXPORT CSV</button>
+
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="filter-pills">
+              <button class="filter-pill-btn active" onclick="filterCatalogue('ALL')">ALL</button>
+              <button class="filter-pill-btn" onclick="filterCatalogue('X')">X-CLASS</button>
+              <button class="filter-pill-btn" onclick="filterCatalogue('M')">M-CLASS</button>
+              <button class="filter-pill-btn" onclick="filterCatalogue('C')">C-CLASS</button>
+              <button class="filter-pill-btn" onclick="filterCatalogue('B')">B-CLASS</button>
+            </div>
+            <button class="btn-control" onclick="exportCatalogueCSV()">📥 EXPORT CSV</button>
+          </div>
         </div>
 
         <div class="table-container">
@@ -1169,7 +1333,16 @@
               </tr>
             </thead>
             <tbody id="catalogue-tbody">
-              <tr>
+              <tr data-class="X">
+                <td class="mono">2026-09-15 08:30:00</td>
+                <td class="mono">2026-09-15 08:48:10</td>
+                <td><span class="flare-pill pill-x">X4.5</span></td>
+                <td class="mono">4,500.0 nW/m²</td>
+                <td class="mono">0.965</td>
+                <td class="mono" style="color: var(--color-pinn);">+24.2 min early</td>
+                <td style="color: var(--color-alert); font-weight: 600;">Active Event</td>
+              </tr>
+              <tr data-class="M">
                 <td class="mono">2026-09-15 07:12:00</td>
                 <td class="mono">2026-09-15 07:28:30</td>
                 <td><span class="flare-pill pill-m">M1.4</span></td>
@@ -1178,7 +1351,7 @@
                 <td class="mono" style="color: var(--color-pinn);">+16.5 min early</td>
                 <td style="color: var(--text-dim);">Archived</td>
               </tr>
-              <tr>
+              <tr data-class="C">
                 <td class="mono">2026-09-15 05:40:00</td>
                 <td class="mono">2026-09-15 05:54:12</td>
                 <td><span class="flare-pill pill-c">C8.2</span></td>
@@ -1187,7 +1360,7 @@
                 <td class="mono" style="color: var(--color-pinn);">+14.2 min early</td>
                 <td style="color: var(--text-dim);">Archived</td>
               </tr>
-              <tr>
+              <tr data-class="C">
                 <td class="mono">2026-09-15 03:10:00</td>
                 <td class="mono">2026-09-15 03:22:00</td>
                 <td><span class="flare-pill pill-c">C3.1</span></td>
@@ -1196,7 +1369,7 @@
                 <td class="mono" style="color: var(--color-pinn);">+12.0 min early</td>
                 <td style="color: var(--text-dim);">Archived</td>
               </tr>
-              <tr>
+              <tr data-class="B">
                 <td class="mono">2026-09-15 01:05:00</td>
                 <td class="mono">2026-09-15 01:23:00</td>
                 <td><span class="flare-pill pill-b">B8.9</span></td>
@@ -1214,13 +1387,18 @@
     <!-- FOOTER -->
     <footer>
       <div>ISRO URSC / Aditya-L1 Mission Support • Space Weather Forecasting Center</div>
-      <div style="font-family: var(--font-mono);">SYSTEM BUILD: v2.4.0-PROD • ST-GRAPH-TRANSFORMER-PINN</div>
+      <div style="font-family: var(--font-mono);">SYSTEM BUILD: v2.5.0-PROD • ST-GRAPH-TRANSFORMER-PINN</div>
     </footer>
 
   </div>
 
-  <!-- REAL-TIME JS ENGINE -->
+  <!-- REAL-TIME JS & DYNAMIC AUDIO-VISUAL ENGINE -->
   <script>
+    let isLogScale = true;
+    let audioEnabled = true;
+    let audioCtx = null;
+
+    // Tab switching
     function switchTab(tabId) {
       document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
@@ -1235,13 +1413,48 @@
       if (tabId === 'solardisk') drawSunDisk();
     }
 
+    // Web Audio Synthesizer Beep
+    function playAlertChime(freq = 880, type = 'sine') {
+      if (!audioEnabled) return;
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.35);
+      } catch (e) {}
+    }
+
+    function toggleAudio() {
+      audioEnabled = !audioEnabled;
+      const btn = document.getElementById('audio-toggle-btn');
+      btn.innerText = audioEnabled ? '🔊 AUDIO ON' : '🔇 AUDIO OFF';
+      if (audioEnabled) playAlertChime(660);
+    }
+
+    function toggleScale() {
+      isLogScale = !isLogScale;
+      document.getElementById('scale-mode-btn').innerText = isLogScale ? 'SCALE: LOG₁₀' : 'SCALE: LINEAR';
+      renderOscilloscope();
+    }
+
+    // High-DPI Canvas Oscilloscope
     const chartCanvas = document.getElementById('liveChartCanvas');
     const chartCtx = chartCanvas.getContext('2d');
+    const chartWrapper = document.getElementById('chartWrapper');
+    const chartTooltip = document.getElementById('chartTooltip');
     const MAX_BUFFER = 120;
     const sxrHistory = [];
     const hxrHistory = [];
     const baseHistory = [];
 
+    // Pre-populate data
     for (let i = 0; i < 90; i++) {
       const base = 380 + Math.sin(i * 0.12) * 15;
       const noise = (Math.random() - 0.5) * 6;
@@ -1262,6 +1475,31 @@
     }
     window.addEventListener('resize', resizeChart);
 
+    // Interactive Hover Crosshair on Oscilloscope
+    let hoverIndex = -1;
+    chartWrapper.addEventListener('mousemove', (e) => {
+      const rect = chartWrapper.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const step = rect.width / (MAX_BUFFER - 1);
+      hoverIndex = Math.min(Math.max(0, Math.round(x / step)), sxrHistory.length - 1);
+
+      if (hoverIndex >= 0 && hoverIndex < sxrHistory.length) {
+        chartTooltip.style.display = 'block';
+        chartTooltip.style.left = `${Math.min(x + 15, rect.width - 160)}px`;
+        chartTooltip.style.top = `${Math.max(10, e.clientY - rect.top - 40)}px`;
+        const sxr = sxrHistory[hoverIndex];
+        const hxr = hxrHistory[hoverIndex];
+        chartTooltip.innerHTML = `SXR: <b>${sxr.toFixed(1)} nW/m²</b><br>HXR: <b>${hxr.toFixed(1)} c/s</b>`;
+      }
+      renderOscilloscope();
+    });
+
+    chartWrapper.addEventListener('mouseleave', () => {
+      hoverIndex = -1;
+      chartTooltip.style.display = 'none';
+      renderOscilloscope();
+    });
+
     function renderOscilloscope() {
       const rect = chartCanvas.parentElement.getBoundingClientRect();
       const w = rect.width;
@@ -1270,6 +1508,7 @@
 
       chartCtx.clearRect(0, 0, w, h);
 
+      // Grid background
       chartCtx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
       chartCtx.lineWidth = 1;
       const gridRows = 5;
@@ -1281,14 +1520,23 @@
         chartCtx.stroke();
       }
 
-      const minVal = Math.min(...sxrHistory, ...hxrHistory, ...baseHistory) * 0.9;
-      const maxVal = Math.max(...sxrHistory, ...hxrHistory, ...baseHistory) * 1.15;
+      // Scaling math
+      let minVal, maxVal;
+      if (isLogScale) {
+        minVal = Math.log10(Math.max(10, Math.min(...sxrHistory, ...hxrHistory) * 0.8));
+        maxVal = Math.log10(Math.max(5000, Math.max(...sxrHistory, ...hxrHistory) * 1.2));
+      } else {
+        minVal = Math.min(...sxrHistory, ...hxrHistory) * 0.85;
+        maxVal = Math.max(...sxrHistory, ...hxrHistory) * 1.15;
+      }
       const range = maxVal - minVal || 1;
 
-      function getY(val) {
-        return h - 20 - ((val - minVal) / range) * (h - 40);
+      function getY(rawVal) {
+        const val = isLogScale ? Math.log10(Math.max(1, rawVal)) : rawVal;
+        return h - 25 - ((val - minVal) / range) * (h - 50);
       }
 
+      // Draw Baseline
       chartCtx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
       chartCtx.setLineDash([4, 4]);
       chartCtx.lineWidth = 1.5;
@@ -1302,6 +1550,7 @@
       chartCtx.stroke();
       chartCtx.setLineDash([]);
 
+      // Draw Hard X-Ray
       chartCtx.strokeStyle = '#f59e0b';
       chartCtx.lineWidth = 2;
       chartCtx.beginPath();
@@ -1313,6 +1562,7 @@
       }
       chartCtx.stroke();
 
+      // Draw Soft X-Ray
       chartCtx.strokeStyle = '#38bdf8';
       chartCtx.lineWidth = 2.5;
       chartCtx.beginPath();
@@ -1324,6 +1574,7 @@
       }
       chartCtx.stroke();
 
+      // SXR Gradient Glow
       chartCtx.lineTo((w / (MAX_BUFFER - 1)) * (sxrHistory.length - 1), h);
       chartCtx.lineTo(0, h);
       chartCtx.closePath();
@@ -1332,11 +1583,43 @@
       grad.addColorStop(1, 'rgba(56, 189, 248, 0.0)');
       chartCtx.fillStyle = grad;
       chartCtx.fill();
+
+      // Draw Hover Line
+      if (hoverIndex >= 0 && hoverIndex < sxrHistory.length) {
+        const hx = (w / (MAX_BUFFER - 1)) * hoverIndex;
+        chartCtx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+        chartCtx.lineWidth = 1;
+        chartCtx.setLineDash([2, 2]);
+        chartCtx.beginPath();
+        chartCtx.moveTo(hx, 0);
+        chartCtx.lineTo(hx, h);
+        chartCtx.stroke();
+        chartCtx.setLineDash([]);
+      }
     }
 
+    // 3D Solar Disk with Mouse Drag Rotation & Magnetic Loops
     const sunCanvas = document.getElementById('sunCanvas');
     const sunCtx = sunCanvas.getContext('2d');
+    const sunBox = document.getElementById('sunCanvasBox');
     let sunAngle = 0;
+    let isDragging = false;
+    let lastMouseX = 0;
+    let flarePulse = 0;
+
+    sunBox.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      lastMouseX = e.clientX;
+    });
+    window.addEventListener('mouseup', () => isDragging = false);
+    window.addEventListener('mousemove', (e) => {
+      if (isDragging) {
+        const delta = e.clientX - lastMouseX;
+        sunAngle += delta * 0.01;
+        lastMouseX = e.clientX;
+        drawSunDisk();
+      }
+    });
 
     function drawSunDisk() {
       if (!sunCanvas.parentElement) return;
@@ -1355,15 +1638,18 @@
 
       sunCtx.clearRect(0, 0, w, h);
 
-      const corona = sunCtx.createRadialGradient(cx, cy, radius * 0.8, cx, cy, radius * 1.5);
-      corona.addColorStop(0, 'rgba(255, 153, 51, 0.8)');
+      // Corona Outer Glow
+      const coronaRadius = radius * (1.5 + flarePulse * 0.4);
+      const corona = sunCtx.createRadialGradient(cx, cy, radius * 0.8, cx, cy, coronaRadius);
+      corona.addColorStop(0, flarePulse > 0.3 ? 'rgba(239, 68, 68, 0.9)' : 'rgba(255, 153, 51, 0.85)');
       corona.addColorStop(0.5, 'rgba(234, 88, 12, 0.25)');
       corona.addColorStop(1, 'rgba(0, 0, 0, 0)');
       sunCtx.fillStyle = corona;
       sunCtx.beginPath();
-      sunCtx.arc(cx, cy, radius * 1.5, 0, Math.PI * 2);
+      sunCtx.arc(cx, cy, coronaRadius, 0, Math.PI * 2);
       sunCtx.fill();
 
+      // Sun Photosphere Disk
       const sunGrad = sunCtx.createRadialGradient(cx - radius * 0.3, cy - radius * 0.3, radius * 0.1, cx, cy, radius);
       sunGrad.addColorStop(0, '#fef08a');
       sunGrad.addColorStop(0.4, '#f59e0b');
@@ -1375,29 +1661,49 @@
       sunCtx.arc(cx, cy, radius, 0, Math.PI * 2);
       sunCtx.fill();
 
-      sunAngle += 0.005;
+      // Magnetic Active Spots
+      if (!isDragging) sunAngle += 0.004;
+
       const spots = [
-        { x: cx + Math.cos(sunAngle) * radius * 0.5, y: cy - radius * 0.2, r: 12, color: '#ef4444', label: 'AR3664' },
-        { x: cx + Math.cos(sunAngle + 1.8) * radius * 0.6, y: cy + radius * 0.25, r: 8, color: '#f59e0b', label: 'AR3697' },
-        { x: cx + Math.cos(sunAngle + 3.5) * radius * 0.4, y: cy + radius * 0.05, r: 6, color: '#38bdf8', label: 'AR3712' }
+        { x: cx + Math.cos(sunAngle) * radius * 0.55, y: cy - radius * 0.2, r: 13, color: '#ef4444', label: 'AR3664', id: 'AR3664' },
+        { x: cx + Math.cos(sunAngle + 1.8) * radius * 0.65, y: cy + radius * 0.25, r: 9, color: '#f59e0b', label: 'AR3697', id: 'AR3697' },
+        { x: cx + Math.cos(sunAngle + 3.5) * radius * 0.45, y: cy + radius * 0.05, r: 7, color: '#38bdf8', label: 'AR3712', id: 'AR3712' },
+        { x: cx + Math.cos(sunAngle + 4.8) * radius * 0.35, y: cy - radius * 0.35, r: 5, color: '#10b981', label: 'AR3720', id: 'AR3720' }
       ];
 
+      // Draw Magnetic Coronal Loops connecting spots
+      for (let i = 0; i < spots.length - 1; i++) {
+        const s1 = spots[i];
+        const s2 = spots[i + 1];
+        sunCtx.strokeStyle = 'rgba(254, 240, 138, 0.35)';
+        sunCtx.lineWidth = 1.5;
+        sunCtx.beginPath();
+        sunCtx.moveTo(s1.x, s1.y);
+        const midX = (s1.x + s2.x) / 2;
+        const midY = Math.min(s1.y, s2.y) - 25;
+        sunCtx.quadraticCurveTo(midX, midY, s2.x, s2.y);
+        sunCtx.stroke();
+      }
+
+      // Draw Spots
       spots.forEach(sp => {
-        sunCtx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+        sunCtx.fillStyle = 'rgba(0, 0, 0, 0.8)';
         sunCtx.beginPath();
         sunCtx.arc(sp.x, sp.y, sp.r, 0, Math.PI * 2);
         sunCtx.fill();
 
         sunCtx.strokeStyle = sp.color;
-        sunCtx.lineWidth = 2;
+        sunCtx.lineWidth = 2.5;
         sunCtx.beginPath();
-        sunCtx.arc(sp.x, sp.y, sp.r + 4 + Math.sin(Date.now() * 0.005) * 2, 0, Math.PI * 2);
+        sunCtx.arc(sp.x, sp.y, sp.r + 3 + Math.sin(Date.now() * 0.006) * 2, 0, Math.PI * 2);
         sunCtx.stroke();
 
         sunCtx.fillStyle = '#fff';
         sunCtx.font = '10px JetBrains Mono';
         sunCtx.fillText(sp.label, sp.x + sp.r + 6, sp.y + 3);
       });
+
+      if (flarePulse > 0.01) flarePulse *= 0.95;
     }
 
     setInterval(() => {
@@ -1406,9 +1712,163 @@
       }
     }, 40);
 
-    let sseSource = null;
-    let isSynthetic = false;
+    // Interactive Flare Simulator Triggers
+    function simulateFlare(flareType) {
+      flarePulse = 1.0;
+      playAlertChime(1046, 'sawtooth');
 
+      const heroBanner = document.getElementById('hero-banner');
+      heroBanner.classList.add('alert-active');
+      
+      const statusHeading = document.getElementById('hero-status-text');
+      const heroDesc = document.getElementById('hero-desc');
+      const threatDial = document.getElementById('threat-dial');
+      const pill = document.getElementById('flare-class-pill');
+
+      if (flareType === 'X') {
+        statusHeading.innerText = 'CRITICAL SPACE WEATHER • X-CLASS FLARE ACTIVE';
+        statusHeading.style.color = 'var(--color-alert)';
+        heroDesc.innerText = 'NOAA AR3664 has erupted with an extreme X4.5 coronal mass ejection precursor. Immediate HF radio blackout warning in effect.';
+        threatDial.innerText = '96.8%';
+        threatDial.style.color = 'var(--color-alert)';
+        pill.className = 'flare-pill pill-x';
+        pill.innerText = 'X4.5';
+
+        document.getElementById('prob-15m').innerText = '94.2%';
+        document.getElementById('bar-15m').style.width = '94.2%';
+        document.getElementById('prob-30m').innerText = '97.5%';
+        document.getElementById('bar-30m').style.width = '97.5%';
+        document.getElementById('prob-60m').innerText = '99.1%';
+        document.getElementById('bar-60m').style.width = '99.1%';
+
+        // Push surge to oscilloscope
+        for (let k = 0; k < 15; k++) {
+          const surge = 4500 * (1 - Math.exp(-k * 0.3));
+          sxrHistory.push(surge);
+          hxrHistory.push(surge * 0.45);
+          baseHistory.push(420);
+          if (sxrHistory.length > MAX_BUFFER) sxrHistory.shift();
+          if (hxrHistory.length > MAX_BUFFER) hxrHistory.shift();
+          if (baseHistory.length > MAX_BUFFER) baseHistory.shift();
+        }
+      } else {
+        statusHeading.innerText = 'GUARDED SPACE WEATHER • M-CLASS FLARE ALERT';
+        statusHeading.style.color = 'var(--color-hxr)';
+        heroDesc.innerText = 'Moderate M2.0 flare detected across Aditya-L1 SoLEXS & HEL1OS detectors. Mild polar cap absorption observed.';
+        threatDial.innerText = '64.2%';
+        threatDial.style.color = 'var(--color-hxr)';
+        pill.className = 'flare-pill pill-m';
+        pill.innerText = 'M2.0';
+
+        document.getElementById('prob-15m').innerText = '58.4%';
+        document.getElementById('bar-15m').style.width = '58.4%';
+        document.getElementById('prob-30m').innerText = '72.0%';
+        document.getElementById('bar-30m').style.width = '72.0%';
+        document.getElementById('prob-60m').innerText = '81.5%';
+        document.getElementById('bar-60m').style.width = '81.5%';
+
+        for (let k = 0; k < 12; k++) {
+          const surge = 1800 * (1 - Math.exp(-k * 0.3));
+          sxrHistory.push(surge);
+          hxrHistory.push(surge * 0.35);
+          baseHistory.push(400);
+          if (sxrHistory.length > MAX_BUFFER) sxrHistory.shift();
+          if (hxrHistory.length > MAX_BUFFER) hxrHistory.shift();
+          if (baseHistory.length > MAX_BUFFER) baseHistory.shift();
+        }
+      }
+      renderOscilloscope();
+    }
+
+    function simulateQuiet() {
+      const heroBanner = document.getElementById('hero-banner');
+      heroBanner.classList.remove('alert-active');
+
+      document.getElementById('hero-status-text').innerText = 'QUIET SUN • NOMINAL EMISSION';
+      document.getElementById('hero-status-text').style.color = 'var(--color-pinn)';
+      document.getElementById('hero-desc').innerText = 'Aditya-L1 XSM and NOAA GOES-18 dual-satellite detectors report stable quiescent coronal background. Spatio-Temporal Graph Transformer projects low probability (<5%) of major eruptive flaring.';
+      
+      const threatDial = document.getElementById('threat-dial');
+      threatDial.innerText = '4.2%';
+      threatDial.style.color = 'var(--color-pinn)';
+
+      const pill = document.getElementById('flare-class-pill');
+      pill.className = 'flare-pill pill-b';
+      pill.innerText = 'B4.2';
+
+      document.getElementById('prob-15m').innerText = '3.8%';
+      document.getElementById('bar-15m').style.width = '3.8%';
+      document.getElementById('prob-30m').innerText = '7.4%';
+      document.getElementById('bar-30m').style.width = '7.4%';
+      document.getElementById('prob-60m').innerText = '11.2%';
+      document.getElementById('bar-60m').style.width = '11.2%';
+
+      for (let k = 0; k < 15; k++) {
+        sxrHistory.push(420 + Math.random() * 8);
+        hxrHistory.push(115 + Math.random() * 4);
+        baseHistory.push(400);
+        if (sxrHistory.length > MAX_BUFFER) sxrHistory.shift();
+        if (hxrHistory.length > MAX_BUFFER) hxrHistory.shift();
+        if (baseHistory.length > MAX_BUFFER) baseHistory.shift();
+      }
+      renderOscilloscope();
+    }
+
+    // Interactive PINN Slider Parameters
+    function updatePINNParameters() {
+      const kappa = parseFloat(document.getElementById('kappa-slider').value);
+      const beta = parseFloat(document.getElementById('beta-slider').value);
+      
+      document.getElementById('kappa-val-display').innerText = kappa.toFixed(2);
+      document.getElementById('beta-val-display').innerText = beta.toFixed(3);
+
+      const residual = Math.abs(kappa * 0.8 - beta * 40.0) * 0.005 + 0.002;
+      document.getElementById('pinn-residual-val').innerText = `${residual.toFixed(5)} (${residual < 0.01 ? 'Optimal' : 'Adjusting'})`;
+    }
+
+    // Active Region Selection
+    function selectAR(arName) {
+      document.querySelectorAll('.ar-item').forEach(el => el.classList.remove('selected'));
+      const card = document.getElementById(`ar-card-${arName}`);
+      if (card) card.classList.add('selected');
+    }
+
+    // Catalogue Table Filtering
+    function filterCatalogue(filterClass) {
+      document.querySelectorAll('.filter-pill-btn').forEach(b => b.classList.remove('active'));
+      if (event) event.currentTarget.classList.add('active');
+
+      const rows = document.querySelectorAll('#catalogue-tbody tr');
+      rows.forEach(r => {
+        const c = r.getAttribute('data-class');
+        if (filterClass === 'ALL' || c === filterClass) {
+          r.style.display = '';
+        } else {
+          r.style.display = 'none';
+        }
+      });
+    }
+
+    function exportCatalogueCSV() {
+      const rows = [
+        ["Start UTC", "Peak UTC", "Class", "Peak Irradiance (nW/m2)", "Neupert Corr", "Lead Time (min)"],
+        ["2026-09-15 08:30:00", "2026-09-15 08:48:10", "X4.5", "4500.0", "0.965", "24.2"],
+        ["2026-09-15 07:12:00", "2026-09-15 07:28:30", "M1.4", "1420.5", "0.912", "16.5"],
+        ["2026-09-15 05:40:00", "2026-09-15 05:54:12", "C8.2", "820.0", "0.884", "14.2"],
+        ["2026-09-15 03:10:00", "2026-09-15 03:22:00", "C3.1", "310.4", "0.850", "12.0"]
+      ];
+      let csvContent = "data:text/csv;charset=utf-8," + rows.map(e => e.join(",")).join("\n");
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "aditya_l1_flare_catalogue.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // SSE Stream
+    let sseSource = null;
     function connectSSE() {
       if (sseSource) sseSource.close();
       sseSource = new EventSource('/api/stream');
@@ -1419,10 +1879,6 @@
           const msg = JSON.parse(e.data);
           handleLivePayload(msg);
         } catch (err) {}
-      };
-
-      sseSource.onerror = function() {
-        if (!isSynthetic) runSyntheticLoop();
       };
     }
 
@@ -1442,39 +1898,8 @@
 
         document.getElementById('sxr-flux-val').innerHTML = `${sxr.toFixed(1)} <span class="card-unit">nW/m²</span>`;
         document.getElementById('hxr-flux-val').innerHTML = `${hxr.toFixed(1)} <span class="card-unit">cnt/s</span>`;
-        document.getElementById('threat-dial').innerText = `${((msg.prob || 0.042) * 100).toFixed(1)}%`;
-
-        const prob = msg.prob || 0.042;
-        document.getElementById('prob-15m').innerText = `${(prob * 90).toFixed(1)}%`;
-        document.getElementById('bar-15m').style.width = `${Math.min(100, prob * 90)}%`;
-
-        document.getElementById('prob-30m').innerText = `${(prob * 180).toFixed(1)}%`;
-        document.getElementById('bar-30m').style.width = `${Math.min(100, prob * 180)}%`;
-
-        document.getElementById('prob-60m').innerText = `${(prob * 260).toFixed(1)}%`;
-        document.getElementById('bar-60m').style.width = `${Math.min(100, prob * 260)}%`;
-
         renderOscilloscope();
       }
-    }
-
-    function runSyntheticLoop() {
-      setInterval(() => {
-        const t = Date.now() * 0.001;
-        const sxr = 420 + Math.sin(t * 0.5) * 40 + Math.random() * 8;
-        const hxr = sxr * 0.28 + Math.random() * 5;
-        const base = 400;
-
-        sxrHistory.push(sxr);
-        hxrHistory.push(hxr);
-        baseHistory.push(base);
-
-        if (sxrHistory.length > MAX_BUFFER) sxrHistory.shift();
-        if (hxrHistory.length > MAX_BUFFER) hxrHistory.shift();
-        if (baseHistory.length > MAX_BUFFER) baseHistory.shift();
-
-        renderOscilloscope();
-      }, 1000 / 60);
     }
 
     function setSpeed(speed) {
@@ -1493,28 +1918,7 @@
       fetch(`/api/source?mode=${sourceMode}`, { method: 'POST' }).catch(() => {});
     }
 
-    function selectAR(arName) {
-      document.querySelectorAll('.ar-item').forEach(el => el.classList.remove('selected'));
-      if (event) event.currentTarget.classList.add('selected');
-    }
-
-    function exportCatalogueCSV() {
-      const rows = [
-        ["Start UTC", "Peak UTC", "Class", "Peak Irradiance (nW/m2)", "Neupert Corr", "Lead Time (min)"],
-        ["2026-09-15 07:12:00", "2026-09-15 07:28:30", "M1.4", "1420.5", "0.912", "16.5"],
-        ["2026-09-15 05:40:00", "2026-09-15 05:54:12", "C8.2", "820.0", "0.884", "14.2"],
-        ["2026-09-15 03:10:00", "2026-09-15 03:22:00", "C3.1", "310.4", "0.850", "12.0"]
-      ];
-      let csvContent = "data:text/csv;charset=utf-8," + rows.map(e => e.join(",")).join("\n");
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement("a");
-      link.setAttribute("href", encodedUri);
-      link.setAttribute("download", "aditya_l1_flare_catalogue.csv");
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-
+    // Keyboard navigation
     window.addEventListener('keydown', (e) => {
       if (e.key === '1') switchTab('cockpit');
       if (e.key === '2') switchTab('solardisk');

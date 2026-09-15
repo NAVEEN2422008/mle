@@ -180,25 +180,26 @@ def compute_physics_features(df: pd.DataFrame, cadence_s: float = 1.0) -> pd.Dat
     span_15m = max(15, int(900 / dt))
     span_60m = max(60, int(3600 / dt))
     
-    ema_s_5m = s_series.ewm(span=span_5m).mean().bfill().values
-    ema_s_15m = s_series.ewm(span=span_15m).mean().bfill().values
-    ema_s_60m = s_series.ewm(span=span_60m).mean().bfill().values
+    ema_s_5m = np.asarray(s_series.ewm(span=span_5m).mean().bfill().values, dtype=float)
+    ema_s_15m = np.asarray(s_series.ewm(span=span_15m).mean().bfill().values, dtype=float)
+    ema_s_60m = np.asarray(s_series.ewm(span=span_60m).mean().bfill().values, dtype=float)
     
     h_series = pd.Series(h_vals, index=out.index)
-    ema_h_5m = h_series.ewm(span=span_5m).mean().bfill().values
-    ema_h_15m = h_series.ewm(span=span_15m).mean().bfill().values
+    ema_h_5m = np.asarray(h_series.ewm(span=span_5m).mean().bfill().values, dtype=float)
+    ema_h_15m = np.asarray(h_series.ewm(span=span_15m).mean().bfill().values, dtype=float)
     
     out["f11_soft_ema_5m_ratio"] = s_vals / (ema_s_5m + eps)
     out["f12_soft_ema_15m_ratio"] = s_vals / (ema_s_15m + eps)
     out["f13_soft_ema_60m_ratio"] = s_vals / (ema_s_60m + eps)
     out["f14_hard_ema_5m_ratio"] = h_vals / (ema_h_5m + eps)
     out["f15_hard_ema_15m_ratio"] = h_vals / (ema_h_15m + eps)
-    out["f16_soft_std_15m"] = s_series.rolling(span_15m, min_periods=3).std().fillna(0.0).values
+    out["f16_soft_std_15m"] = np.asarray(s_series.rolling(span_15m, min_periods=3).std().fillna(0.0).values, dtype=float)
 
     # =========================================================================
     # Group 4: Astrophysical Spectral Indices & Plasma Proxies (6 features)
     # =========================================================================
-    out["f17_hardness_ratio"] = h_vals / (out["f04_soft_excess"].values + eps)
+    soft_excess_arr = np.asarray(out["f04_soft_excess"].values, dtype=float)
+    out["f17_hardness_ratio"] = h_vals / (soft_excess_arr + eps)
     out["f18_log_hardness"] = np.log10(np.clip(h_vals / (s_vals + eps), 1e-4, 1e4))
     out["f19_temp_proxy_te"] = (h_vals / (s_vals + eps)) ** 0.5
     out["f20_em_proxy"] = (s_vals ** 2) / (h_vals + eps)
@@ -213,7 +214,7 @@ def compute_physics_features(df: pd.DataFrame, cadence_s: float = 1.0) -> pd.Dat
     # Rolling Pearson correlation between HXR and dSXR/dt over 10m window
     win_10m = max(10, int(600 / dt))
     ds_series = pd.Series(np.maximum(0.0, d_s), index=out.index)
-    roll_corr = h_series.rolling(win_10m, min_periods=5).corr(ds_series).fillna(0.0).values
+    roll_corr = np.asarray(h_series.rolling(win_10m, min_periods=5).corr(ds_series).fillna(0.0).values, dtype=float)
     out["f24_neupert_corr_10m"] = roll_corr
     
     # Neupert integral residual: SXR - cumulative sum of HXR

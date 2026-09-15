@@ -21,7 +21,7 @@ import json
 import threading
 import time
 from collections import deque
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Deque, Dict, List, Optional
 
@@ -106,7 +106,7 @@ class LiveEngine(threading.Thread):
         soft = 1000.0 + np.abs(rng.normal(0, 12, n))
         hard = 50.0 + np.abs(rng.normal(0, 2.5, n))
         model = FlareModel()
-        t0 = datetime.utcnow()
+        t0 = datetime.now(timezone.utc)
         specs = [(600, 60, 300, 1500), (2400, 90, 600, 4200), (5400, 70, 450, 2600)]
         for s, r, d, amp in specs:
             for i in range(s, min(s + r + d, n)):
@@ -156,8 +156,10 @@ class LiveEngine(threading.Thread):
                 graph_model = SpatioTemporalGraphTransformer(num_nodes=5, in_features_per_node=2, d_model=64)
                 graph_model.load_state_dict(torch.load(ckpt_path, map_location="cpu"))
                 graph_model.eval()
-                learned_alpha = float(torch.exp(graph_model.log_alpha).item())
-                learned_beta = float(torch.exp(graph_model.log_beta).item())
+                if hasattr(graph_model, "learned_alpha"):
+                    learned_alpha = float(graph_model.learned_alpha.item())
+                if hasattr(graph_model, "learned_beta"):
+                    learned_beta = float(graph_model.learned_beta.item())
         except Exception:
             graph_model = None
 

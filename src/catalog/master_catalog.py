@@ -128,6 +128,7 @@ class MasterCatalogue:
 
         for sd in soft_dets:
             best: Optional[Tuple[float, Detection]] = None
+            best_j: Optional[int] = None
             for j, hd in enumerate(hard_dets):
                 if j in used_hard:
                     continue
@@ -144,7 +145,7 @@ class MasterCatalogue:
                     best = (score, hd)
                     best_j = j
 
-            if best is not None and best[0] >= 0.4:
+            if best is not None and best_j is not None and best[0] >= 0.4:
                 hd = best[1]
                 used_hard.add(best_j)
                 self.stats.n_merged += 1

@@ -12,10 +12,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Dict, List, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import pandas as pd
+
+ArrayLike = Union[Sequence[Any], np.ndarray, pd.Series]
 
 
 @dataclass
@@ -85,8 +87,8 @@ class ConfusionMatrix:
 
 
 def compute_expected_calibration_error(
-    y_true: Sequence[int],
-    y_prob: Sequence[float],
+    y_true: ArrayLike,
+    y_prob: ArrayLike,
     n_bins: int = 10,
 ) -> float:
     """Computes Expected Calibration Error (ECE) across uniform probability bins.
@@ -116,13 +118,13 @@ def compute_expected_calibration_error(
     return float(ece)
 
 
-def brier_score(y_true: Sequence[int], y_prob: Sequence[float]) -> float:
+def brier_score(y_true: ArrayLike, y_prob: ArrayLike) -> float:
     y = np.asarray(y_true, dtype=float)
     p = np.asarray(y_prob, dtype=float)
     return float(np.mean((p - y) ** 2))
 
 
-def brier_skill_score(y_true: Sequence[int], y_prob: Sequence[float]) -> float:
+def brier_skill_score(y_true: ArrayLike, y_prob: ArrayLike) -> float:
     """BSS vs climatology; decomposes into reliability+resolution-uncertainty."""
     y = np.asarray(y_true, dtype=float)
     p = np.asarray(y_prob, dtype=float)
@@ -134,7 +136,7 @@ def brier_skill_score(y_true: Sequence[int], y_prob: Sequence[float]) -> float:
     return 1.0 - bs_model / bs_clim
 
 
-def pr_auc(y_true: Sequence[int], y_score: Sequence[float]) -> float:
+def pr_auc(y_true: ArrayLike, y_score: ArrayLike) -> float:
     """Area under Precision-Recall curve (step-wise). Better than ROC under imbalance."""
     y = np.asarray(y_true)
     s = np.asarray(y_score)
@@ -184,7 +186,7 @@ class LeadTimeReport:
         thresh = minutes * 60
         return float(np.mean([v >= thresh for v in self.values_s]))
 
-    def summary(self) -> Dict[str, float]:
+    def summary(self) -> Dict[str, Any]:
         q25, q75 = self.iqr_s
         return {
             "n_verified": len(self.values_s),
@@ -241,13 +243,15 @@ def lt_vs_far_curve(
 
 
 def evaluate_forecast(
-    y_true: Sequence[int],
-    y_prob: Sequence[float],
+    y_true: ArrayLike,
+    y_prob: ArrayLike,
     threshold: float = 0.5,
 ) -> Dict[str, float]:
     """One-shot evaluation at a fixed operating threshold."""
     cm = ConfusionMatrix()
-    for yt, yp in zip(y_true, y_prob):
+    yt_arr = np.asarray(y_true, dtype=int)
+    yp_arr = np.asarray(y_prob, dtype=float)
+    for yt, yp in zip(yt_arr, yp_arr):
         pred = 1 if yp >= threshold else 0
         if yt == 1 and pred == 1:
             cm.tp += 1
@@ -263,15 +267,15 @@ def evaluate_forecast(
         "far": round(cm.far, 3),
         "tss": round(cm.tss, 3),
         "hss": round(cm.hss, 3),
-        "bss": round(brier_skill_score(y_true, y_prob), 3),
-        "brier": round(brier_score(y_true, y_prob), 4),
-        "pr_auc": round(pr_auc(y_true, y_prob), 3),
+        "bss": round(brier_skill_score(yt_arr, yp_arr), 3),
+        "brier": round(brier_score(yt_arr, yp_arr), 4),
+        "pr_auc": round(pr_auc(yt_arr, yp_arr), 3),
     }
 
 
 def compute_contingency_scores(
-    y_true: Sequence[int],
-    y_prob: Sequence[float],
+    y_true: ArrayLike,
+    y_prob: ArrayLike,
     threshold: float = 0.5,
 ) -> Dict[str, float]:
     """Computes operational space weather verification metrics (TSS, HSS, POD, FAR)."""

@@ -297,16 +297,11 @@
       box-shadow: 0 0 5px var(--accent-emerald);
     }
 
-    .payload-item span.dot.alert {
-      background: var(--accent-amber);
-      box-shadow: 0 0 5px var(--accent-amber);
-    }
-
     .payload-item strong {
       color: var(--text-primary);
     }
 
-    /* PROJECT EXPLAINER BANNER (Visual Pipeline) */
+    /* PROJECT EXPLAINER BANNER */
     .explainer-card {
       background: linear-gradient(180deg, #121218 0%, #0d0d12 100%);
       border: 1px solid var(--border-subtle);
@@ -481,7 +476,7 @@
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-md);
       padding: 7px 11px;
-      min-width: 105px;
+      min-width: 108px;
       display: flex;
       flex-direction: column;
       gap: 3px;
@@ -504,12 +499,19 @@
       color: var(--text-primary);
     }
 
+    .h-ci {
+      font-size: 9.5px;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+    }
+
     .h-bar-bg {
       width: 100%;
       height: 3px;
       background: rgba(255, 255, 255, 0.08);
       border-radius: 2px;
       overflow: hidden;
+      margin-top: 2px;
     }
 
     .h-bar-fill {
@@ -517,6 +519,24 @@
       background: var(--accent-cyan);
       border-radius: 2px;
       transition: width 0.4s ease;
+    }
+
+    /* NOAA Space Weather Scale Indicators */
+    .scale-bar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 6px;
+    }
+
+    .scale-badge {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      padding: 2px 6px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
     }
 
     /* Card Headers */
@@ -1051,6 +1071,7 @@
 
       <!-- Live Controls -->
       <div class="header-actions">
+        <button class="ctrl-btn" id="audio-toggle-btn" onclick="toggleAudioChime()">🔊 Audio: ON</button>
         <button class="ctrl-btn highlight" onclick="openAboutModal()">ℹ About System</button>
         <button class="ctrl-btn" onclick="simulateQuiet()">Quiet Sun</button>
         <button class="ctrl-btn" onclick="simulateFlare('M')">M-Flare</button>
@@ -1138,6 +1159,11 @@
             <div class="hero-details">
               <h2 id="hero-status">Nominal Quiescent Emission • No Immediate Threat</h2>
               <p id="hero-desc">Background solar coronal irradiance is within normal quiet limits. Dual-satellite telemetry detects no active magnetic reconnection precursors in current NOAA active regions.</p>
+              <div class="scale-bar">
+                <span class="scale-badge" id="noaa-r-scale">R-Scale: R0 (None)</span>
+                <span class="scale-badge" id="noaa-s-scale">S-Scale: S0 (Nominal)</span>
+                <span class="scale-badge" id="noaa-g-scale">G-Scale: G0 (Calm)</span>
+              </div>
             </div>
           </div>
 
@@ -1149,6 +1175,7 @@
                 <span style="color: var(--accent-cyan);">P(Flare)</span>
               </span>
               <span class="h-val" id="h15-val">4.2%</span>
+              <span class="h-ci">[3.1% – 5.5%]</span>
               <div class="h-bar-bg">
                 <div class="h-bar-fill" id="h15-bar" style="width: 4.2%;"></div>
               </div>
@@ -1160,6 +1187,7 @@
                 <span style="color: var(--accent-cyan);">P(Flare)</span>
               </span>
               <span class="h-val" id="h30-val">7.8%</span>
+              <span class="h-ci">[5.8% – 10.2%]</span>
               <div class="h-bar-bg">
                 <div class="h-bar-fill" id="h30-bar" style="width: 7.8%;"></div>
               </div>
@@ -1171,6 +1199,7 @@
                 <span style="color: var(--accent-cyan);">P(Flare)</span>
               </span>
               <span class="h-val" id="h60-val">12.5%</span>
+              <span class="h-ci">[9.2% – 16.4%]</span>
               <div class="h-bar-bg">
                 <div class="h-bar-fill" id="h60-bar" style="width: 12.5%;"></div>
               </div>
@@ -1348,7 +1377,7 @@
                 <span class="ar-title">NOAA AR3664 (Super-Region)</span>
                 <span class="ar-badge">βγδ Super-Complex</span>
               </div>
-              <p class="ar-desc">Area: 2150 µHem | Highly sheared multipolar magnetic cluster responsible for historic G5 geomagnetic storms and extreme X-class solar superflares.</p>
+              <p class="ar-desc">Area: 2150 µHem | Schrijver R = 4.82 | Highly sheared multipolar cluster responsible for historic G5 geomagnetic storms and extreme X-class superflares.</p>
             </div>
 
             <div class="ar-card" onclick="selectActiveRegion(this, '3663')">
@@ -1356,7 +1385,7 @@
                 <span class="ar-title">NOAA AR3663</span>
                 <span class="ar-badge" style="color: var(--accent-cyan);">βγ Complex Dipole</span>
               </div>
-              <p class="ar-desc">Area: 780 µHem | Moderately active dipole configuration producing recurrent M-class eruptions with localized radio absorption.</p>
+              <p class="ar-desc">Area: 780 µHem | Schrijver R = 3.12 | Moderately active dipole configuration producing recurrent M-class eruptions with localized radio absorption.</p>
             </div>
 
             <div class="ar-card" onclick="selectActiveRegion(this, '3697')">
@@ -1364,7 +1393,7 @@
                 <span class="ar-title">NOAA AR3697</span>
                 <span class="ar-badge" style="color: var(--accent-emerald);">α Unipolar Spot</span>
               </div>
-              <p class="ar-desc">Area: 320 µHem | Stable unipolar spot configuration nearing the western solar limb with low flare eruption potential.</p>
+              <p class="ar-desc">Area: 320 µHem | Schrijver R = 1.45 | Stable unipolar spot configuration nearing western solar limb with low flare eruption potential.</p>
             </div>
 
             <div class="ar-card" onclick="selectActiveRegion(this, '3700')">
@@ -1372,7 +1401,7 @@
                 <span class="ar-title">NOAA AR3700</span>
                 <span class="ar-badge" style="color: var(--accent-violet);">β Emerging Region</span>
               </div>
-              <p class="ar-desc">Area: 410 µHem | Newly emerging flux region on the eastern limb showing rapid magnetic gradient intensification.</p>
+              <p class="ar-desc">Area: 410 µHem | Schrijver R = 2.05 | Newly emerging flux region on the eastern limb showing rapid magnetic gradient intensification.</p>
             </div>
           </div>
         </div>
@@ -1722,6 +1751,40 @@
       document.getElementById('about-modal').classList.remove('open');
     }
 
+    // Web Audio Chime Beacon
+    let audioEnabled = true;
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function toggleAudioChime() {
+      audioEnabled = !audioEnabled;
+      const btn = document.getElementById('audio-toggle-btn');
+      btn.innerText = audioEnabled ? '🔊 Audio: ON' : '🔇 Audio: OFF';
+    }
+
+    function playAlertChime(freq = 880, type = 'sine') {
+      if (!audioEnabled) return;
+      try {
+        initAudio();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.4);
+      } catch (err) {}
+    }
+
     // Live UTC Clock
     function updateClock() {
       const now = new Date();
@@ -1985,6 +2048,10 @@
       document.getElementById('hero-status').innerText = 'Nominal Quiescent Emission • No Immediate Threat';
       document.getElementById('hero-desc').innerText = 'Background solar coronal irradiance is within normal quiet limits. Dual-satellite telemetry detects no active magnetic reconnection precursors in current NOAA active regions.';
 
+      document.getElementById('noaa-r-scale').innerText = 'R-Scale: R0 (None)';
+      document.getElementById('noaa-s-scale').innerText = 'S-Scale: S0 (Nominal)';
+      document.getElementById('noaa-g-scale').innerText = 'G-Scale: G0 (Calm)';
+
       document.getElementById('h15-val').innerText = '4.2%';
       document.getElementById('h15-bar').style.width = '4.2%';
       document.getElementById('h30-val').innerText = '7.8%';
@@ -2007,10 +2074,15 @@
       const pill = document.getElementById('flare-pill');
 
       if (flareType === 'X') {
+        playAlertChime(980, 'sawtooth');
         pill.className = 'flare-pill pill-x';
         pill.innerText = 'X4.5';
         document.getElementById('hero-status').innerText = 'CRITICAL SPACE WEATHER • X-CLASS FLARE ACTIVE';
         document.getElementById('hero-desc').innerText = 'Severe high-energy eruption detected from NOAA AR3664. Hard X-ray acceleration confirms major coronal mass ejection precursor with impending HF radio blackout.';
+
+        document.getElementById('noaa-r-scale').innerText = 'R-Scale: R3 (Strong HF Blackout)';
+        document.getElementById('noaa-s-scale').innerText = 'S-Scale: S2 (Moderate Radiation)';
+        document.getElementById('noaa-g-scale').innerText = 'G-Scale: G4 (Severe Magnetic Storm)';
 
         document.getElementById('h15-val').innerText = '94.2%';
         document.getElementById('h15-bar').style.width = '94.2%';
@@ -2027,10 +2099,15 @@
           if (hxrData.length > MAX_BUFFER) hxrData.shift();
         }
       } else {
+        playAlertChime(660, 'sine');
         pill.className = 'flare-pill pill-m';
         pill.innerText = 'M2.0';
         document.getElementById('hero-status').innerText = 'GUARDED SPACE WEATHER • M-CLASS FLARE DETECTED';
         document.getElementById('hero-desc').innerText = 'Moderate flare detected across Aditya-L1 SoLEXS & HEL1OS detectors. Mild polar cap absorption observed with localized communications degradation.';
+
+        document.getElementById('noaa-r-scale').innerText = 'R-Scale: R1 (Minor Radio Fade)';
+        document.getElementById('noaa-s-scale').innerText = 'S-Scale: S1 (Minor)';
+        document.getElementById('noaa-g-scale').innerText = 'G-Scale: G1 (Minor)';
 
         document.getElementById('h15-val').innerText = '58.4%';
         document.getElementById('h15-bar').style.width = '58.4%';

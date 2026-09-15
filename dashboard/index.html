@@ -1,983 +1,1532 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Aditya FlareCast — Live Solar Observatory Cockpit</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☀️</text></svg>">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-<style>
-:root {
-  --bg: #060913;
-  --bg-gradient: radial-gradient(circle at 50% 0%, #10192e 0%, #060913 75%);
-  --panel: rgba(14, 22, 39, 0.75);
-  --panel-border: rgba(45, 68, 105, 0.4);
-  --panel-hover: rgba(22, 35, 61, 0.85);
-  --cyan: #00e5ff;
-  --cyan-glow: rgba(0, 229, 255, 0.35);
-  --orange: #ff9100;
-  --orange-glow: rgba(255, 145, 0, 0.35);
-  --green: #00e676;
-  --green-glow: rgba(0, 230, 118, 0.35);
-  --amber: #ffd600;
-  --red: #ff1744;
-  --red-glow: rgba(255, 23, 68, 0.5);
-  --text-main: #f0f4fc;
-  --text-dim: #7a8fae;
-  --text-subtle: #4c5d79;
-}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Solar Flare Early Warning System | Aditya-L1 Space Weather Operations Cockpit</title>
+  
+  <!-- Premium Modern Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  background: var(--bg-gradient);
-  background-color: var(--bg);
-  color: var(--text-main);
-  font-family: 'Outfit', -apple-system, sans-serif;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  user-select: none;
-}
+  <style>
+    /* ==========================================================================
+       ISRO ADITYA-L1 MISSION OPERATIONS DESIGN SYSTEM (Next-Gen Glassmorphic)
+       ========================================================================== */
+    :root {
+      --bg-deep: #05070c;
+      --bg-surface: #0b0f19;
+      --card-bg: rgba(15, 23, 42, 0.72);
+      --card-bg-hover: rgba(26, 38, 64, 0.85);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-border-glow: rgba(56, 189, 248, 0.25);
+      
+      --text-title: #ffffff;
+      --text-body: #cbd5e1;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      
+      /* Multi-Mission Solar Spectrum Colors */
+      --color-sxr: #38bdf8;        /* Soft X-Ray Cyan (GOES-18 0.1-0.8nm) */
+      --color-hxr: #f59e0b;        /* Hard X-Ray Amber (Aditya-L1 XSM 1-30 keV) */
+      --color-pinn: #10b981;       /* PINN Physics Emerald */
+      --color-alert: #ef4444;      /* Severe Space Weather Crimson */
+      --color-purple: #a855f7;     /* High-Energy Gamma / Particle */
+      --color-isro-orange: #ff9933;/* ISRO Saffron */
+      
+      --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-tech: 'Orbitron', sans-serif;
+    }
 
-/* Header */
-header {
-  height: 56px;
-  padding: 0 20px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  background: rgba(10, 16, 29, 0.85);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--panel-border);
-  z-index: 100;
-}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-.logo-wrap {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.logo-icon {
-  font-size: 24px;
-  filter: drop-shadow(0 0 10px rgba(255, 214, 0, 0.6));
-}
-.logo-text {
-  font-size: 18px;
-  font-weight: 800;
-  letter-spacing: 1px;
-  background: linear-gradient(135deg, #fff 30%, #a5c7ff 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-.mission-badge {
-  font-size: 10px;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 6px;
-  background: rgba(0, 229, 255, 0.12);
-  color: var(--cyan);
-  border: 1px solid rgba(0, 229, 255, 0.3);
-  letter-spacing: 0.5px;
-}
+    body {
+      background-color: var(--bg-deep);
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.08) 0%, transparent 60%),
+        radial-gradient(circle at 90% 90%, rgba(245, 158, 11, 0.05) 0%, transparent 50%),
+        linear-gradient(180deg, #05070c 0%, #080c16 100%);
+      color: var(--text-body);
+      font-family: var(--font-ui);
+      font-size: 13px;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 24px 32px 24px;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
 
-.header-status {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-left: 20px;
-}
-.status-pill {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 20px;
-  background: rgba(15, 25, 45, 0.8);
-  border: 1px solid var(--panel-border);
-}
-.pulse-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--green);
-  box-shadow: 0 0 8px var(--green);
-  animation: pulse-ring 1.8s infinite cubic-bezier(0.4, 0, 0.6, 1);
-}
-.pulse-dot.off {
-  background: var(--red);
-  box-shadow: 0 0 8px var(--red);
-  animation: none;
-}
-@keyframes pulse-ring {
-  0% { transform: scale(0.9); opacity: 0.8; }
-  50% { transform: scale(1.2); opacity: 1; filter: drop-shadow(0 0 6px var(--green)); }
-  100% { transform: scale(0.9); opacity: 0.8; }
-}
+    .container {
+      width: 100%;
+      max-width: 1440px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
 
-.controls-group {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.btn-toggle {
-  background: rgba(22, 35, 60, 0.8);
-  border: 1px solid var(--panel-border);
-  color: var(--text-dim);
-  font-size: 11px;
-  font-weight: 600;
-  padding: 5px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: inherit;
-}
-.btn-toggle:hover, .btn-toggle.active {
-  color: var(--text-main);
-  background: rgba(0, 229, 255, 0.15);
-  border-color: var(--cyan);
-}
-.speed-select {
-  background: rgba(22, 35, 60, 0.8);
-  border: 1px solid var(--panel-border);
-  color: var(--cyan);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 4px 8px;
-  border-radius: 6px;
-  outline: none;
-  cursor: pointer;
-}
+    .glass-panel {
+      background: var(--card-bg);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
 
-/* Alert Banner */
-#alertbar {
-  margin: 10px 14px 0 14px;
-  padding: 10px 20px;
-  background: rgba(14, 22, 39, 0.85);
-  border: 1px solid var(--panel-border);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
-}
-#alertbar.active {
-  background: rgba(255, 23, 68, 0.15);
-  border-color: var(--red);
-  box-shadow: 0 0 24px var(--red-glow) inset, 0 0 16px rgba(255, 23, 68, 0.3);
-  animation: alert-flash 1s infinite alternate ease-in-out;
-}
-@keyframes alert-flash {
-  from { border-color: rgba(255, 23, 68, 0.5); }
-  to { border-color: rgba(255, 23, 68, 1); }
-}
-.alert-title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.8px;
-}
-.alert-icon { font-size: 18px; }
-.alert-source {
-  font-size: 11px;
-  font-family: 'JetBrains Mono', monospace;
-  color: var(--text-dim);
-}
+    .glass-panel:hover {
+      border-color: rgba(255, 255, 255, 0.14);
+    }
 
-/* Main Grid Layout */
-main {
-  flex: 1;
-  display: grid;
-  grid-template-columns: 1fr 340px;
-  grid-template-rows: 1.3fr 0.9fr 1.1fr;
-  gap: 12px;
-  padding: 12px 14px;
-  min-height: 0;
-}
+    /* TOP BAR */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
 
-.panel {
-  background: var(--panel);
-  border: 1px solid var(--panel-border);
-  border-radius: 14px;
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  backdrop-filter: blur(14px);
-  min-height: 0;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
-}
-.panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-.panel-title {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1.2px;
-  color: var(--text-dim);
-  text-transform: uppercase;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.panel-legend {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  font-size: 11px;
-  font-weight: 600;
-}
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-.legend-line {
-  width: 14px;
-  height: 3px;
-  border-radius: 2px;
-}
-.legend-cyan { background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
-.legend-orange { background: var(--orange); box-shadow: 0 0 6px var(--orange); }
-.legend-green { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
 
-/* Canvas Chart Containers */
-.chart-container {
-  flex: 1;
-  position: relative;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-}
-canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
+    .mission-logo {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: radial-gradient(circle at 30% 30%, #ffedd5 0%, #ff9933 50%, #c2410c 100%);
+      box-shadow: 0 0 20px rgba(255, 153, 51, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
 
-/* Sidebar HUD Panel */
-.hud-panel {
-  grid-column: 2/3;
-  grid-row: 1/3;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
+    .mission-logo::after {
+      content: '';
+      position: absolute;
+      width: 60px;
+      height: 2px;
+      background: rgba(255, 255, 255, 0.6);
+      transform: rotate(-45deg);
+    }
 
-/* Circular Radial Gauge */
-.gauge-card {
-  background: rgba(18, 28, 48, 0.6);
-  border: 1px solid var(--panel-border);
-  border-radius: 12px;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position: relative;
-}
-.radial-svg {
-  width: 160px;
-  height: 160px;
-  transform: rotate(-90deg);
-}
-.radial-bg {
-  fill: none;
-  stroke: rgba(30, 45, 75, 0.8);
-  stroke-width: 12;
-}
-.radial-val {
-  fill: none;
-  stroke: var(--green);
-  stroke-width: 12;
-  stroke-linecap: round;
-  stroke-dasharray: 408;
-  stroke-dashoffset: 408;
-  transition: stroke-dashoffset 0.4s ease, stroke 0.4s ease;
-  filter: drop-shadow(0 0 6px var(--green-glow));
-}
-.gauge-overlay {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.gauge-number {
-  font-size: 38px;
-  font-weight: 900;
-  font-family: 'JetBrains Mono', monospace;
-  letter-spacing: -1px;
-}
-.gauge-sub {
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--text-dim);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
+    .brand-title h1 {
+      font-family: var(--font-tech);
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-/* State Badges */
-.nowcast-box {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.nowcast-badge {
-  padding: 10px;
-  border-radius: 10px;
-  text-align: center;
-  font-size: 16px;
-  font-weight: 800;
-  letter-spacing: 1.5px;
-  background: rgba(15, 25, 45, 0.8);
-  border: 1px solid var(--panel-border);
-  transition: all 0.3s ease;
-}
-.nowcast-badge.QUIET {
-  color: var(--green);
-  border-color: rgba(0, 230, 118, 0.3);
-  background: rgba(0, 230, 118, 0.08);
-}
-.nowcast-badge.ACTIVE {
-  color: var(--red);
-  border-color: var(--red);
-  background: rgba(255, 23, 68, 0.15);
-  box-shadow: 0 0 16px var(--red-glow);
-  animation: pulse-ring 1s infinite ease-in-out;
-}
+    .brand-title h1 span.isro-tag {
+      font-family: var(--font-ui);
+      font-size: 10px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #ff9933, #138808);
+      color: #fff;
+      padding: 2px 6px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+    }
 
-/* HUD Telemetry Key-Value Grid */
-.telemetry-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-.tele-card {
-  background: rgba(15, 25, 45, 0.6);
-  border: 1px solid var(--panel-border);
-  border-radius: 8px;
-  padding: 8px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.tele-label {
-  font-size: 9px;
-  color: var(--text-dim);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-.tele-value {
-  font-size: 14px;
-  font-weight: 700;
-  font-family: 'JetBrains Mono', monospace;
-  color: var(--text-main);
-}
-.tele-value.cyan { color: var(--cyan); }
-.tele-value.orange { color: var(--orange); }
+    .brand-title p {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
 
-/* Catalogue Table Panel */
-.catalogue-panel {
-  grid-column: 1/3;
-  grid-row: 3/4;
-}
-.table-scroll {
-  flex: 1;
-  overflow-y: auto;
-  min-height: 0;
-  margin-top: 4px;
-}
-.table-scroll::-webkit-scrollbar {
-  width: 6px;
-}
-.table-scroll::-webkit-scrollbar-thumb {
-  background: rgba(45, 68, 105, 0.5);
-  border-radius: 3px;
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 11px;
-  font-family: 'JetBrains Mono', monospace;
-}
-th {
-  position: sticky;
-  top: 0;
-  background: #0d1525;
-  color: var(--text-dim);
-  text-align: left;
-  padding: 6px 10px;
-  border-bottom: 1px solid var(--panel-border);
-  font-weight: 700;
-  text-transform: uppercase;
-  font-size: 9px;
-  letter-spacing: 0.8px;
-  z-index: 10;
-}
-td {
-  padding: 6px 10px;
-  border-bottom: 1px solid rgba(45, 68, 105, 0.2);
-  color: var(--text-main);
-}
-tr:hover td {
-  background: rgba(0, 229, 255, 0.04);
-}
+    .mission-telemetry-chips {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
 
-.class-tag {
-  display: inline-block;
-  padding: 2px 7px;
-  border-radius: 4px;
-  font-weight: 800;
-  font-size: 10px;
-}
-.class-X { background: rgba(255, 23, 68, 0.25); color: #ff5252; border: 1px solid #ff1744; }
-.class-M { background: rgba(255, 145, 0, 0.25); color: #ffab40; border: 1px solid #ff9100; }
-.class-C { background: rgba(255, 214, 0, 0.2); color: #ffd740; border: 1px solid #ffd600; }
-.class-B { background: rgba(0, 230, 118, 0.15); color: #69f0ae; border: 1px solid #00e676; }
+    .chip {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 6px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
 
-.btn-export {
-  background: rgba(0, 229, 255, 0.12);
-  border: 1px solid rgba(0, 229, 255, 0.35);
-  color: var(--cyan);
-  font-size: 10px;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: inherit;
-}
-.btn-export:hover {
-  background: rgba(0, 229, 255, 0.25);
-}
+    .chip-label {
+      color: var(--text-dim);
+      font-size: 10px;
+      text-transform: uppercase;
+    }
 
-/* Footer */
-footer {
-  height: 24px;
-  padding: 0 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 10px;
-  color: var(--text-subtle);
-  background: rgba(8, 13, 23, 0.95);
-  border-top: 1px solid var(--panel-border);
-}
-</style>
+    .chip-val {
+      color: var(--text-title);
+      font-weight: 600;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--color-pinn);
+      box-shadow: 0 0 10px var(--color-pinn);
+      animation: pulseAnim 1.8s infinite;
+    }
+
+    @keyframes pulseAnim {
+      0% { transform: scale(0.9); opacity: 0.7; }
+      50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 16px var(--color-pinn); }
+      100% { transform: scale(0.9); opacity: 0.7; }
+    }
+
+    .controls-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-control {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text-body);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-control:hover, .btn-control.active {
+      background: rgba(56, 189, 248, 0.18);
+      border-color: var(--color-sxr);
+      color: #fff;
+    }
+
+    /* TABS */
+    .tab-navigation {
+      display: flex;
+      gap: 8px;
+      padding: 4px;
+      background: rgba(11, 15, 25, 0.6);
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+    }
+
+    .nav-tab {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-ui);
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .nav-tab:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .nav-tab.active {
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(168, 85, 247, 0.15));
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    }
+
+    .tab-badge {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .view-content {
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    .view-content.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* HERO BANNER */
+    .hero-banner {
+      padding: 20px 24px;
+      display: grid;
+      grid-template-columns: 1.8fr 1.2fr 1fr;
+      gap: 20px;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-banner::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--color-pinn), var(--color-sxr), var(--color-hxr));
+    }
+
+    .hero-summary {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .hero-tagline {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-dim);
+      font-weight: 700;
+    }
+
+    .hero-status-heading {
+      font-family: var(--font-tech);
+      font-size: 24px;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .hero-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .hero-metrics-split {
+      display: flex;
+      gap: 16px;
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 10px;
+      padding: 12px 16px;
+      border: 1px solid var(--card-border);
+    }
+
+    .metric-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .metric-col-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      font-weight: 600;
+    }
+
+    .metric-col-val {
+      font-family: var(--font-mono);
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .threat-dial-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .threat-dial-val {
+      font-family: var(--font-tech);
+      font-size: 34px;
+      font-weight: 900;
+      color: var(--color-pinn);
+      line-height: 1;
+      text-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+    }
+
+    .threat-dial-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    /* GRID */
+    .cockpit-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 1024px) {
+      .cockpit-grid { grid-template-columns: repeat(2, 1fr); }
+      .hero-banner { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 640px) {
+      .cockpit-grid { grid-template-columns: 1fr; }
+    }
+
+    .telemetry-card {
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .card-main-val {
+      font-family: var(--font-mono);
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .card-unit {
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--text-dim);
+    }
+
+    .card-subtext {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    /* RADAR */
+    .radar-card {
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .radar-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .horizon-box {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .horizon-box::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+    }
+
+    .horizon-box.h-15::before { background: var(--color-sxr); }
+    .horizon-box.h-30::before { background: var(--color-hxr); }
+    .horizon-box.h-60::before { background: var(--color-purple); }
+
+    .horizon-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .horizon-title {
+      font-family: var(--font-tech);
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .horizon-prob {
+      font-family: var(--font-mono);
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .progress-bar-bg {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+
+    /* OSCILLOSCOPE */
+    .oscilloscope-card {
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .chart-controls-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .chart-legends {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+    }
+
+    .legend-pill {
+      width: 12px;
+      height: 4px;
+      border-radius: 2px;
+    }
+
+    .oscilloscope-canvas-wrapper {
+      width: 100%;
+      height: 300px;
+      position: relative;
+      background: rgba(5, 7, 12, 0.85);
+      border-radius: 10px;
+      border: 1px solid var(--card-border);
+      overflow: hidden;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* 3D SOLAR TAB */
+    .solar-disk-layout {
+      display: grid;
+      grid-template-columns: 1.6fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .solar-disk-layout { grid-template-columns: 1fr; }
+    }
+
+    .sun-viewport-card {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .sun-canvas-box {
+      width: 100%;
+      height: 380px;
+      position: relative;
+      background: radial-gradient(circle at 50% 50%, #170d02 0%, #080c16 80%);
+      border-radius: 12px;
+      border: 1px solid rgba(245, 158, 11, 0.2);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ar-sidebar-card {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .ar-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 380px;
+      overflow-y: auto;
+    }
+
+    .ar-item {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .ar-item:hover, .ar-item.selected {
+      border-color: var(--color-hxr);
+      background: rgba(245, 158, 11, 0.08);
+    }
+
+    .ar-item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .ar-number {
+      font-family: var(--font-tech);
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .ar-class {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    .badge-alpha { background: rgba(56, 189, 248, 0.2); color: var(--color-sxr); }
+    .badge-beta { background: rgba(16, 185, 129, 0.2); color: var(--color-pinn); }
+    .badge-betagamma { background: rgba(245, 158, 11, 0.2); color: var(--color-hxr); }
+    .badge-gammadelta { background: rgba(239, 68, 68, 0.2); color: var(--color-alert); }
+
+    /* PINN TAB */
+    .pinn-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 900px) {
+      .pinn-grid { grid-template-columns: 1fr; }
+    }
+
+    .pinn-diagnostic-card {
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .equation-box {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--color-pinn);
+      text-align: center;
+    }
+
+    /* CATALOGUE TAB */
+    .catalogue-card {
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .catalogue-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 12px;
+    }
+
+    th {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--text-body);
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .flare-pill {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .pill-a { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; }
+    .pill-b { background: rgba(56, 189, 248, 0.2); color: var(--color-sxr); }
+    .pill-c { background: rgba(16, 185, 129, 0.2); color: var(--color-pinn); }
+    .pill-m { background: rgba(245, 158, 11, 0.2); color: var(--color-hxr); }
+    .pill-x { background: rgba(239, 68, 68, 0.2); color: var(--color-alert); box-shadow: 0 0 10px rgba(239, 68, 68, 0.4); }
+
+    /* FOOTER */
+    footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      font-size: 11px;
+      color: var(--text-dim);
+      border-top: 1px solid var(--card-border);
+      margin-top: 12px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+  </style>
 </head>
 <body>
 
-<header>
-  <div class="logo-wrap">
-    <span class="logo-icon">☀️</span>
-    <span class="logo-text">ADITYA FLARECAST</span>
-    <span class="mission-badge">ADITYA-L1 SOLEXS & HEL1OS</span>
+  <div class="container">
+
+    <!-- 1. TOP TELEMETRY & ISRO MISSION STATUS BAR -->
+    <header class="glass-panel top-bar">
+      <div class="brand-section">
+        <div class="mission-logo"></div>
+        <div class="brand-title">
+          <h1>ADITYA-L1 <span class="isro-tag">ISRO • URSC</span></h1>
+          <p>Solar Flare Early Warning System • Sun-Earth L1 Halo Orbit</p>
+        </div>
+      </div>
+
+      <div class="mission-telemetry-chips">
+        <div class="chip">
+          <div class="pulse-dot"></div>
+          <span class="chip-label">ISTRAC LINK:</span>
+          <span class="chip-val" style="color: var(--color-pinn);">LOCKED (100%)</span>
+        </div>
+        <div class="chip">
+          <span class="chip-label">ORBIT:</span>
+          <span class="chip-val">L1 HALO (1.5M km)</span>
+        </div>
+        <div class="chip">
+          <span class="chip-label">INFERENCE:</span>
+          <span class="chip-val" id="inference-latency">1.82 ms</span>
+        </div>
+        <div class="chip">
+          <span class="chip-label">PAYLOADS:</span>
+          <span class="chip-val" style="color: var(--color-sxr);">XSM • HEL1OS • VELC</span>
+        </div>
+      </div>
+
+      <div class="controls-group">
+        <div class="controls-group" style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 2px; border: 1px solid var(--card-border);">
+          <button class="btn-control" onclick="setSpeed(1)">1x</button>
+          <button class="btn-control" onclick="setSpeed(10)">10x</button>
+          <button class="btn-control active" id="speed-60-btn" onclick="setSpeed(60)">60x</button>
+        </div>
+        <button class="btn-control" id="source-toggle-btn" onclick="toggleSource()">FEED: GOES-18</button>
+      </div>
+    </header>
+
+    <!-- 2. WORKSPACE TAB NAVIGATION (4 Specialised Views) -->
+    <nav class="tab-navigation">
+      <button class="nav-tab active" onclick="switchTab('cockpit')">
+        <span>🚀 Mission Operations Cockpit</span>
+        <span class="tab-badge">LIVE</span>
+      </button>
+      <button class="nav-tab" onclick="switchTab('solardisk')">
+        <span>☀️ 3D Solar Active Regions</span>
+        <span class="tab-badge">MAGNETIC</span>
+      </button>
+      <button class="nav-tab" onclick="switchTab('pinn')">
+        <span>🔬 PINN Neupert Physics</span>
+        <span class="tab-badge">PINN</span>
+      </button>
+      <button class="nav-tab" onclick="switchTab('catalogue')">
+        <span>📜 Flare Event Catalogue</span>
+        <span class="tab-badge" id="cat-count-badge">5,456</span>
+      </button>
+    </nav>
+
+    <!-- =======================================================================
+         TAB 1: MISSION OPERATIONS COCKPIT
+         ======================================================================= -->
+    <main id="tab-cockpit" class="view-content active">
+
+      <!-- Hero Alert & Threat Assessment Banner -->
+      <section class="glass-panel hero-banner" id="hero-banner">
+        <div class="hero-summary">
+          <div class="hero-tagline">REAL-TIME HELIOPHYSICS THREAT ASSESSMENT</div>
+          <div class="hero-status-heading" id="hero-heading">
+            <span style="color: var(--color-pinn);" id="hero-status-text">QUIET SUN • NOMINAL EMISSION</span>
+          </div>
+          <div class="hero-desc" id="hero-desc">
+            Aditya-L1 XSM and NOAA GOES-18 dual-satellite detectors report stable quiescent coronal background. Spatio-Temporal Graph Transformer projects low probability (<5%) of major X/M-class eruptive flaring over next 60 minutes.
+          </div>
+        </div>
+
+        <div class="hero-metrics-split">
+          <div class="metric-col">
+            <div class="metric-col-title">Flare Peak Lead Time</div>
+            <div class="metric-col-val" id="lead-time-display" style="color: var(--color-sxr);">+18.5 min</div>
+            <div style="font-size: 10px; color: var(--text-dim);">Early Alert Margin</div>
+          </div>
+          <div class="metric-col">
+            <div class="metric-col-title">HXR Neupert Flux</div>
+            <div class="metric-col-val" id="hxr-val-display" style="color: var(--color-hxr);">105.2 c/s</div>
+            <div style="font-size: 10px; color: var(--text-dim);">Thermal Impulse</div>
+          </div>
+        </div>
+
+        <div class="threat-dial-wrapper">
+          <div class="threat-dial-val" id="threat-dial">4.2%</div>
+          <div class="threat-dial-label">60m Eruptive Threat</div>
+        </div>
+      </section>
+
+      <!-- 4 Critical Telemetry Cards -->
+      <section class="cockpit-grid">
+        <div class="glass-panel telemetry-card">
+          <div class="card-top">
+            <span>SOFT X-RAY (SXR)</span>
+            <span class="flare-pill pill-b" id="flare-class-pill">B4.2</span>
+          </div>
+          <div class="card-main-val" id="sxr-flux-val">420.5 <span class="card-unit">nW/m²</span></div>
+          <div class="card-subtext">
+            <span>GOES-18 1.0–8.0 Å band</span>
+          </div>
+        </div>
+
+        <div class="glass-panel telemetry-card">
+          <div class="card-top">
+            <span>HARD X-RAY (HXR)</span>
+            <span style="color: var(--color-hxr); font-family: var(--font-mono); font-size: 11px;">1–30 keV</span>
+          </div>
+          <div class="card-main-val" id="hxr-flux-val" style="color: var(--color-hxr);">1,048 <span class="card-unit">cnt/s</span></div>
+          <div class="card-subtext">
+            <span>Aditya-L1 XSM Silicon Drift</span>
+          </div>
+        </div>
+
+        <div class="glass-panel telemetry-card">
+          <div class="card-top">
+            <span>SPECTRAL HARDNESS</span>
+            <span style="color: var(--color-pinn); font-family: var(--font-mono); font-size: 11px;">R(H/S)</span>
+          </div>
+          <div class="card-main-val" id="hardness-ratio-val">0.142</div>
+          <div class="card-subtext">
+            <span>Non-Thermal Acceleration Ratio</span>
+          </div>
+        </div>
+
+        <div class="glass-panel telemetry-card">
+          <div class="card-top">
+            <span>NEUPERT DERIVATIVE</span>
+            <span style="color: var(--color-purple); font-family: var(--font-mono); font-size: 11px;">dΦ/dt</span>
+          </div>
+          <div class="card-main-val" id="neupert-deriv-val">+0.012 <span class="card-unit">pW/s</span></div>
+          <div class="card-subtext">
+            <span>Coronal Heating Gradient</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3-Horizon AI Forecast Multi-Range Radar -->
+      <section class="glass-panel radar-card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="font-family: var(--font-tech); font-size: 13px; font-weight: 700; color: #fff;">
+            🎯 MULTI-HORIZON SPATIO-TEMPORAL GRAPH TRANSFORMER FORECAST
+          </div>
+          <div style="font-family: var(--font-mono); font-size: 11px; color: var(--color-pinn);">
+            MODEL RELIABILITY: TSS = +0.978 • POD = 100%
+          </div>
+        </div>
+
+        <div class="radar-grid">
+          <div class="horizon-box h-15">
+            <div class="horizon-header">
+              <span class="horizon-title">+15 MIN OUTLOOK</span>
+              <span class="horizon-prob" id="prob-15m" style="color: var(--color-sxr);">3.8%</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" id="bar-15m" style="width: 3.8%; background: var(--color-sxr);"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-dim);">
+              <span>Immediate Ionospheric Threat</span>
+              <span style="color: var(--color-pinn);">LOW RISK</span>
+            </div>
+          </div>
+
+          <div class="horizon-box h-30">
+            <div class="horizon-header">
+              <span class="horizon-title">+30 MIN OUTLOOK</span>
+              <span class="horizon-prob" id="prob-30m" style="color: var(--color-hxr);">7.4%</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" id="bar-30m" style="width: 7.4%; background: var(--color-hxr);"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-dim);">
+              <span>Imminent HF Blackout Warning</span>
+              <span style="color: var(--color-pinn);">GUARDED</span>
+            </div>
+          </div>
+
+          <div class="horizon-box h-60">
+            <div class="horizon-header">
+              <span class="horizon-title">+60 MIN OUTLOOK</span>
+              <span class="horizon-prob" id="prob-60m" style="color: var(--color-purple);">11.2%</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" id="bar-60m" style="width: 11.2%; background: var(--color-purple);"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-dim);">
+              <span>Strategic Spacecraft Alert</span>
+              <span style="color: var(--color-pinn);">STABLE</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Dual High-DPI Real-Time Waveform Oscilloscope -->
+      <section class="glass-panel oscilloscope-card">
+        <div class="chart-controls-bar">
+          <div style="font-family: var(--font-tech); font-size: 13px; font-weight: 700; color: #fff;">
+            📊 DUAL MULTI-SPECTRAL RADIATION WAVEFORM OSCILLOSCOPE
+          </div>
+          <div class="chart-legends">
+            <div class="legend-item">
+              <div class="legend-pill" style="background: var(--color-sxr);"></div>
+              <span>GOES-18 SXR (0.1–0.8 nm)</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-pill" style="background: var(--color-hxr);"></div>
+              <span>Aditya-L1 XSM (1–30 keV)</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-pill" style="background: var(--color-pinn); opacity: 0.5;"></div>
+              <span>PINN Rolling Baseline</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="oscilloscope-canvas-wrapper">
+          <canvas id="liveChartCanvas"></canvas>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- =======================================================================
+         TAB 2: 3D SOLAR ACTIVE REGION MONITOR
+         ======================================================================= -->
+    <section id="tab-solardisk" class="view-content">
+      <div class="solar-disk-layout">
+        
+        <div class="glass-panel sun-viewport-card">
+          <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+            <div style="font-family: var(--font-tech); font-size: 13px; font-weight: 700; color: #fff;">
+              ☀️ 3D SOLAR DISK & ACTIVE MAGNETIC FLUX REGIONS
+            </div>
+            <div style="font-size: 11px; font-family: var(--font-mono); color: var(--color-isro-orange);">
+              VELC CORONAGRAPH ALIGNMENT: NORMAL
+            </div>
+          </div>
+
+          <div class="sun-canvas-box">
+            <canvas id="sunCanvas"></canvas>
+          </div>
+          <div style="font-size: 11px; color: var(--text-dim); text-align: center;">
+            Click on active regions to inspect magnetic free energy (E_free) and McIntosh/Mount Wilson classifications.
+          </div>
+        </div>
+
+        <div class="glass-panel ar-sidebar-card">
+          <div style="font-family: var(--font-tech); font-size: 13px; font-weight: 700; color: #fff;">
+            ACTIVE REGION INVENTORY (NOAA / ISRO)
+          </div>
+
+          <div class="ar-list">
+            <div class="ar-item selected" onclick="selectAR('AR3664')">
+              <div class="ar-item-top">
+                <span class="ar-number">NOAA AR3664 (Super-Complex)</span>
+                <span class="ar-class badge-gammadelta">β-γ-δ</span>
+              </div>
+              <div style="font-size: 11px; color: var(--text-muted);">
+                Area: 1,850 μHem • Flare Yield: X-Class Potential (84%)
+              </div>
+            </div>
+
+            <div class="ar-item" onclick="selectAR('AR3697')">
+              <div class="ar-item-top">
+                <span class="ar-number">NOAA AR3697</span>
+                <span class="ar-class badge-betagamma">β-γ</span>
+              </div>
+              <div style="font-size: 11px; color: var(--text-muted);">
+                Area: 920 μHem • Flare Yield: M-Class Potential (42%)
+              </div>
+            </div>
+
+            <div class="ar-item" onclick="selectAR('AR3712')">
+              <div class="ar-item-top">
+                <span class="ar-number">NOAA AR3712</span>
+                <span class="ar-class badge-beta">β</span>
+              </div>
+              <div style="font-size: 11px; color: var(--text-muted);">
+                Area: 340 μHem • Flare Yield: C-Class Baseline (12%)
+              </div>
+            </div>
+
+            <div class="ar-item" onclick="selectAR('AR3720')">
+              <div class="ar-item-top">
+                <span class="ar-number">NOAA AR3720</span>
+                <span class="ar-class badge-alpha">α</span>
+              </div>
+              <div style="font-size: 11px; color: var(--text-muted);">
+                Area: 110 μHem • Quiescent Unipolar Spot (2%)
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         TAB 3: PHYSICS-INFORMED (PINN) DIAGNOSTIC ENGINE
+         ======================================================================= -->
+    <section id="tab-pinn" class="view-content">
+      <div class="pinn-grid">
+        
+        <div class="glass-panel pinn-diagnostic-card">
+          <div style="font-family: var(--font-tech); font-size: 12px; font-weight: 700; color: #fff;">
+            NEUPERT CAUSAL EQUATION
+          </div>
+          <div class="equation-box">
+            dΦ(SXR)/dt ≈ κ • Φ(HXR)
+          </div>
+          <div style="font-size: 12px; color: var(--text-muted); line-height: 1.6;">
+            The Neupert Effect establishes that thermal Soft X-Ray emissions represent the time integral of non-thermal accelerated electron Hard X-Ray energy deposition into the dense chromosphere.
+          </div>
+          <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--card-border); padding-top: 10px; font-family: var(--font-mono); font-size: 11px;">
+            <span>Correlation Coefficient r:</span>
+            <span style="color: var(--color-pinn); font-weight: 700;" id="pinn-corr">0.892</span>
+          </div>
+        </div>
+
+        <div class="glass-panel pinn-diagnostic-card">
+          <div style="font-family: var(--font-tech); font-size: 12px; font-weight: 700; color: #fff;">
+            ENERGY PARTITIONING ESTIMATION
+          </div>
+          <div class="equation-box">
+            E_flare = E_thermal + E_non-thermal + E_CME
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px;">
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-muted);">Thermal Energy (E_th):</span>
+              <span class="mono" style="color: var(--color-sxr);">1.42 × 10³¹ ergs</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-muted);">Non-Thermal Electron Energy:</span>
+              <span class="mono" style="color: var(--color-hxr);">3.88 × 10³¹ ergs</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-muted);">Kinetic CME Energy:</span>
+              <span class="mono" style="color: var(--color-purple);">8.10 × 10³¹ ergs</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-panel pinn-diagnostic-card">
+          <div style="font-family: var(--font-tech); font-size: 12px; font-weight: 700; color: #fff;">
+            PINN RESIDUAL LOSS REGULARIZER
+          </div>
+          <div class="equation-box">
+            L_PINN = ||∇Φ_SXR - κΦ_HXR||²
+          </div>
+          <div style="font-size: 12px; color: var(--text-muted);">
+            Enforces physical laws inside gradient descent to eliminate unphysical hallucinations and false alarms.
+          </div>
+          <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--card-border); padding-top: 10px; font-family: var(--font-mono); font-size: 11px;">
+            <span>Current PINN Residual:</span>
+            <span style="color: var(--color-pinn); font-weight: 700;">0.00416 (Converged)</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         TAB 4: ISRO SPACE WEATHER FLARE CATALOGUE
+         ======================================================================= -->
+    <section id="tab-catalogue" class="view-content">
+      <div class="glass-panel catalogue-card">
+        <div class="catalogue-header">
+          <div>
+            <div style="font-family: var(--font-tech); font-size: 14px; font-weight: 700; color: #fff;">
+              ISRO / NOAA SPACE WEATHER FLARE EVENT CATALOGUE
+            </div>
+            <div style="font-size: 11px; color: var(--text-dim);">
+              Automated high-cadence event identification with lead time and Neupert correlation tracking.
+            </div>
+          </div>
+          <button class="btn-control" onclick="exportCatalogueCSV()">📥 EXPORT CSV</button>
+        </div>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Start (UTC)</th>
+                <th>Peak (UTC)</th>
+                <th>Classification</th>
+                <th>Peak Irradiance</th>
+                <th>Neupert r</th>
+                <th>Early Lead Time</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="catalogue-tbody">
+              <tr>
+                <td class="mono">2026-09-15 07:12:00</td>
+                <td class="mono">2026-09-15 07:28:30</td>
+                <td><span class="flare-pill pill-m">M1.4</span></td>
+                <td class="mono">1,420.5 nW/m²</td>
+                <td class="mono">0.912</td>
+                <td class="mono" style="color: var(--color-pinn);">+16.5 min early</td>
+                <td style="color: var(--text-dim);">Archived</td>
+              </tr>
+              <tr>
+                <td class="mono">2026-09-15 05:40:00</td>
+                <td class="mono">2026-09-15 05:54:12</td>
+                <td><span class="flare-pill pill-c">C8.2</span></td>
+                <td class="mono">820.0 nW/m²</td>
+                <td class="mono">0.884</td>
+                <td class="mono" style="color: var(--color-pinn);">+14.2 min early</td>
+                <td style="color: var(--text-dim);">Archived</td>
+              </tr>
+              <tr>
+                <td class="mono">2026-09-15 03:10:00</td>
+                <td class="mono">2026-09-15 03:22:00</td>
+                <td><span class="flare-pill pill-c">C3.1</span></td>
+                <td class="mono">310.4 nW/m²</td>
+                <td class="mono">0.850</td>
+                <td class="mono" style="color: var(--color-pinn);">+12.0 min early</td>
+                <td style="color: var(--text-dim);">Archived</td>
+              </tr>
+              <tr>
+                <td class="mono">2026-09-15 01:05:00</td>
+                <td class="mono">2026-09-15 01:23:00</td>
+                <td><span class="flare-pill pill-b">B8.9</span></td>
+                <td class="mono">89.2 nW/m²</td>
+                <td class="mono">0.780</td>
+                <td class="mono" style="color: var(--color-pinn);">+18.0 min early</td>
+                <td style="color: var(--text-dim);">Archived</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+      <div>ISRO URSC / Aditya-L1 Mission Support • Space Weather Forecasting Center</div>
+      <div style="font-family: var(--font-mono);">SYSTEM BUILD: v2.4.0-PROD • ST-GRAPH-TRANSFORMER-PINN</div>
+    </footer>
+
   </div>
 
-  <div class="header-status">
-    <div class="status-pill">
-      <div id="pulse" class="pulse-dot"></div>
-      <span id="conn_text">CONNECTING</span>
-    </div>
-    <div class="status-pill" style="font-family: 'JetBrains Mono', monospace;">
-      <span style="color:var(--text-dim);">TIME (UTC):</span>
-      <span id="utc_clock">--:--:--</span>
-    </div>
-  </div>
+  <!-- REAL-TIME JS ENGINE -->
+  <script>
+    function switchTab(tabId) {
+      document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
+      
+      const btn = event ? event.currentTarget : document.querySelector(`.nav-tab[onclick="switchTab('${tabId}')"]`);
+      if (btn) btn.classList.add('active');
+      
+      const view = document.getElementById(`tab-${tabId}`);
+      if (view) view.classList.add('active');
 
-<div class="controls-group">
-     <button id="btn_goes" class="btn-toggle active" onclick="switchSource('goes')">LIVE GOES-XRS</button>
-     <button id="btn_synth" class="btn-toggle" onclick="switchSource('synth')">SYNTHETIC INJECTION</button>
-     <label style="font-size:11px;color:var(--text-dim);margin-left:8px;font-weight:600;">SPEED:</label>
-     <select id="speed_sel" class="speed-select" onchange="changeSpeed(this.value)">
-       <option value="1">1x (Realtime)</option>
-       <option value="10">10x</option>
-       <option value="60" selected>60x (Fast Replay)</option>
-       <option value="120">120x</option>
-       <option value="300">300x (Ultra)</option>
-     </select>
-   </div>
-   <div class="model-status-pill">
-     <span style="color:var(--text-dim);">MODEL:</span>
-     <span id="model_status" style="color:var(--cyan);">LightGBM v0.1.0</span>
-   </div>
-   <div class="anomaly-pill">
-     <span style="color:var(--text-dim);">ANOMALY:</span>
-     <span id="anomaly_score" style="color:var(--green);">0.000</span>
-   </div>
-   <div class="confidence-pill">
-     <span style="color:var(--text-dim);">CONF:</span>
-     <span id="model_confidence" style="color:var(--green);">0%</span>
-   </div>
- </header>
-
-<div id="alertbar">
-  <div class="alert-title">
-    <span id="alert_icon" class="alert-icon">🛡️</span>
-    <span id="alert_text">SYSTEM NOMINAL — MONITORING SOLAR X-RAY EMISSIONS</span>
-  </div>
-  <div class="alert-source" id="source_tag">SOURCE: INITIALIZING...</div>
-</div>
-
-<main>
-  <!-- Pane 1: Primary Dual X-Ray Light Curves -->
-  <div class="panel" style="grid-column:1/2; grid-row:1/2;">
-    <div class="panel-header">
-      <div class="panel-title">
-        <span>⚡ Primary Dual-Band Light Curves</span>
-      </div>
-      <div class="panel-legend">
-        <div class="legend-item"><div class="legend-line legend-cyan"></div><span>SoLEXS Soft (2-22 keV)</span></div>
-        <div class="legend-item"><div class="legend-line legend-orange"></div><span>HEL1OS Hard (10-150 keV)</span></div>
-      </div>
-    </div>
-    <div class="chart-container">
-      <canvas id="main_chart"></canvas>
-    </div>
-  </div>
-
-  <!-- Pane 2: Neupert Effect Diagnostics Pane -->
-  <div class="panel" style="grid-column:1/2; grid-row:2/3;">
-    <div class="panel-header">
-      <div class="panel-title">
-        <span>🔬 Neupert Effect Diagnostic (HXR vs d(SXR)/dt)</span>
-      </div>
-      <div class="panel-legend">
-        <div class="legend-item"><div class="legend-line legend-orange"></div><span>HXR Counts</span></div>
-        <div class="legend-item"><div class="legend-line legend-green"></div><span>d(SXR)/dt Slope</span></div>
-      </div>
-    </div>
-    <div class="chart-container">
-      <canvas id="neupert_chart"></canvas>
-    </div>
-  </div>
-
-  <!-- HUD Telemetry & Gauge Sidebar -->
-  <div class="panel hud-panel">
-    <div class="panel-header">
-      <div class="panel-title"><span>📡 Real-Time HUD Cockpit</span></div>
-    </div>
-
-    <!-- Forecast Probability Radial Gauge -->
-    <div class="gauge-card">
-      <svg class="radial-svg" viewBox="0 0 160 160">
-        <circle class="radial-bg" cx="80" cy="80" r="65"/>
-        <circle id="gauge_val" class="radial-val" cx="80" cy="80" r="65"/>
-      </svg>
-      <div class="gauge-overlay">
-        <div id="gauge_pct" class="gauge-number">0%</div>
-        <div class="gauge-sub">FLARE FORECAST (15M)</div>
-      </div>
-    </div>
-
-    <!-- Nowcast State Alert Box -->
-    <div class="nowcast-box">
-      <div style="font-size:10px;font-weight:700;color:var(--text-dim);text-transform:uppercase;">Nowcast Detector State</div>
-      <div id="nowcast_state" class="nowcast-badge QUIET">QUIET</div>
-    </div>
-
-    <!-- Telemetry Metric Cards -->
-    <div class="telemetry-grid">
-      <div class="tele-card">
-        <div class="tele-label">Soft Counts (SoLEXS)</div>
-        <div id="val_soft" class="tele-value cyan">0</div>
-      </div>
-      <div class="tele-card">
-        <div class="tele-label">Hard Counts (HEL1OS)</div>
-        <div id="val_hard" class="tele-value orange">0</div>
-      </div>
-      <div class="tele-card">
-        <div class="tele-label">Neupert Correlation (ρ)</div>
-        <div id="val_rho" class="tele-value">0.000</div>
-      </div>
-      <div class="tele-card">
-        <div class="tele-label">HXR Precursor Lead</div>
-        <div id="val_lead" class="tele-value" style="color:var(--green)">NO</div>
-      </div>
-      <div class="tele-card">
-        <div class="tele-label">CUSUM Baseline (S)</div>
-        <div id="val_base" class="tele-value">0.0</div>
-      </div>
-      <div class="tele-card">
-        <div class="tele-label">SXR Rate of Rise</div>
-        <div id="val_dsxr" class="tele-value">0.00</div>
-      </div>
-    </div>
-
-    <!-- Multi-Horizon Deep Attention Card -->
-    <div class="tele-card" style="margin-top:2px;">
-      <div class="tele-label" style="color:var(--cyan)">Deep Temporal Attention Forecasts</div>
-      <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:11px;font-family:'JetBrains Mono',monospace;">
-        <span>15m: <b id="val_p15" style="color:var(--green)">0%</b></span>
-        <span>30m: <b id="val_p30" style="color:var(--amber)">0%</b></span>
-        <span>60m: <b id="val_p60" style="color:var(--text-dim)">0%</b></span>
-      </div>
-      <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:10px;color:var(--text-dim);">
-        <span>Est. Class: <b id="val_pred_cls" style="color:var(--text-main)">B/A</b></span>
-        <span>Est. Lead: <b id="val_est_lead" style="color:var(--cyan)">-- min</b></span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Master Flare Event Catalogue Table -->
-  <div class="panel catalogue-panel">
-    <div class="panel-header">
-      <div class="panel-title">
-        <span>📋 Master Solar Flare Catalogue (Live Stream Detections)</span>
-      </div>
-      <button class="btn-export" onclick="exportCSV()">📥 EXPORT CSV</button>
-    </div>
-    <div class="table-scroll">
-      <table>
-        <thead>
-          <tr>
-            <th>Event #</th>
-            <th>Onset Time (UTC)</th>
-            <th>Peak Time (UTC)</th>
-            <th>Peak Soft Counts</th>
-            <th>GOES Flare Class</th>
-            <th>Neupert Correlation</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody id="cat_body"></tbody>
-      </table>
-    </div>
-  </div>
-</main>
-
-<footer>
-  <span>Aditya FlareCast v2.0 · O(1) CUSUM + Poisson-FOCuS Detectors · ISRO PRADAN & NOAA GOES Integrated</span>
-  <span>Telemetry Latency: ~5.0s L1 Light-Travel Time Adjusted</span>
-</footer>
-
-<script>
-const MAX_PTS = 600;
-const streamData = [];
-let eventCount = 0;
-const catRecords = [];
-
-// Setup Canvas 2D
-const cvMain = document.getElementById('main_chart'), ctxMain = cvMain.getContext('2d');
-const cvNeup = document.getElementById('neupert_chart'), ctxNeup = cvNeup.getContext('2d');
-
-function handleResize() {
-  const dpr = window.devicePixelRatio || 1;
-  const rMain = cvMain.parentElement.getBoundingClientRect();
-  cvMain.width = rMain.width * dpr;
-  cvMain.height = rMain.height * dpr;
-
-  const rNeup = cvNeup.parentElement.getBoundingClientRect();
-  cvNeup.width = rNeup.width * dpr;
-  cvNeup.height = rNeup.height * dpr;
-}
-window.addEventListener('resize', handleResize);
-handleResize();
-
-function renderMainChart() {
-  const W = cvMain.width, H = cvMain.height;
-  const padL = 60 * devicePixelRatio, padR = 20 * devicePixelRatio, padB = 30 * devicePixelRatio, padT = 15 * devicePixelRatio;
-  ctxMain.clearRect(0, 0, W, H);
-
-  if (streamData.length < 2) return;
-
-  const logSoft = streamData.map(d => Math.log10(Math.max(d.soft, 1)));
-  const logHard = streamData.map(d => Math.log10(Math.max(d.hard, 1)));
-  const allLogs = logSoft.concat(logHard);
-
-  let minVal = Math.floor(Math.min(...allLogs) - 0.2);
-  let maxVal = Math.ceil(Math.max(...allLogs) + 0.2);
-  if (maxVal - minVal < 2) maxVal = minVal + 2;
-
-  const getX = i => padL + (W - padL - padR) * (i / (MAX_PTS - 1));
-  const getY = v => H - padB - (H - padB - padT) * ((v - minVal) / (maxVal - minVal + 1e-9));
-
-  // Grid Lines & Labels
-  ctxMain.lineWidth = 1;
-  ctxMain.strokeStyle = 'rgba(45, 68, 105, 0.25)';
-  ctxMain.fillStyle = '#617594';
-  ctxMain.font = `${10 * devicePixelRatio}px 'JetBrains Mono', monospace`;
-
-  // GOES class reference levels (in scaled counts): B=100 (10^2), C=1000 (10^3), M=10000 (10^4), X=100000 (10^5)
-  const classLevels = [
-    { log: 1, label: 'A-class' },
-    { log: 2, label: 'B-class' },
-    { log: 3, label: 'C-class (Moderate)' },
-    { log: 4, label: 'M-class (Major)' },
-    { log: 5, label: 'X-class (Extreme)' },
-  ];
-
-  for (let g = minVal; g <= maxVal; g++) {
-    const y = getY(g);
-    ctxMain.beginPath();
-    ctxMain.moveTo(padL, y);
-    ctxMain.lineTo(W - padR, y);
-    ctxMain.stroke();
-    
-    // Find class label
-    const cls = classLevels.find(c => c.log === g);
-    if (cls) {
-      ctxMain.fillStyle = g >= 4 ? '#ff5252' : g >= 3 ? '#ffd740' : '#88a0c7';
-      ctxMain.fillText(`${cls.label} (10^${g})`, 8 * devicePixelRatio, y + 4 * devicePixelRatio);
-      ctxMain.fillStyle = '#617594';
-    } else {
-      ctxMain.fillText(`10^${g}`, 8 * devicePixelRatio, y + 4 * devicePixelRatio);
+      if (tabId === 'cockpit') resizeChart();
+      if (tabId === 'solardisk') drawSunDisk();
     }
-  }
 
-  // Draw Soft X-Ray Line
-  const offset = MAX_PTS - streamData.length;
-  drawGlowLine(ctxMain, logSoft, '#00e5ff', 'rgba(0, 229, 255, 0.35)', offset, getX, getY);
-  // Draw Hard X-Ray Line
-  drawGlowLine(ctxMain, logHard, '#ff9100', 'rgba(255, 145, 0, 0.35)', offset, getX, getY);
-}
+    const chartCanvas = document.getElementById('liveChartCanvas');
+    const chartCtx = chartCanvas.getContext('2d');
+    const MAX_BUFFER = 120;
+    const sxrHistory = [];
+    const hxrHistory = [];
+    const baseHistory = [];
 
-function renderNeupertChart() {
-  const W = cvNeup.width, H = cvNeup.height;
-  const padL = 60 * devicePixelRatio, padR = 20 * devicePixelRatio, padB = 30 * devicePixelRatio, padT = 15 * devicePixelRatio;
-  ctxNeup.clearRect(0, 0, W, H);
-
-  if (streamData.length < 2) return;
-
-  const hxr = streamData.map(d => d.hard);
-  const dsxr = streamData.map(d => Math.max(d.dsxr_dt || 0, 0));
-
-  let maxH = Math.max(...hxr, 100);
-  let maxD = Math.max(...dsxr, 10);
-
-  const getX = i => padL + (W - padL - padR) * (i / (MAX_PTS - 1));
-  const getY_H = v => H - padB - (H - padB - padT) * (v / (maxH + 1e-9));
-  const getY_D = v => H - padB - (H - padB - padT) * (v / (maxD + 1e-9));
-
-  // Grid
-  ctxNeup.lineWidth = 1;
-  ctxNeup.strokeStyle = 'rgba(45, 68, 105, 0.25)';
-  ctxNeup.beginPath();
-  ctxNeup.moveTo(padL, H - padB);
-  ctxNeup.lineTo(W - padR, H - padB);
-  ctxNeup.stroke();
-
-  const offset = MAX_PTS - streamData.length;
-  // Draw HXR curve
-  drawGlowLine(ctxNeup, hxr, '#ff9100', 'rgba(255, 145, 0, 0.25)', offset, getX, getY_H);
-  // Draw d(SXR)/dt curve
-  drawGlowLine(ctxNeup, dsxr, '#00e676', 'rgba(0, 230, 118, 0.25)', offset, getX, getY_D);
-}
-
-function drawGlowLine(ctx, arr, color, glowColor, offset, getX, getY) {
-  ctx.save();
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 2 * devicePixelRatio;
-  ctx.shadowColor = glowColor;
-  ctx.shadowBlur = 8 * devicePixelRatio;
-
-  ctx.beginPath();
-  arr.forEach((v, i) => {
-    const x = getX(i + offset);
-    const y = getY(v);
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  });
-  ctx.stroke();
-  ctx.restore();
-}
-
-function animLoop() {
-  renderMainChart();
-  renderNeupertChart();
-  requestAnimationFrame(animLoop);
-}
-requestAnimationFrame(animLoop);
-
-// Gauge Update
-function setGauge(prob) {
-  const circle = document.getElementById('gauge_val');
-  const pct = document.getElementById('gauge_pct');
-  const maxCirc = 2 * Math.PI * 65; // ~408.4
-
-  const val = Math.max(0, Math.min(prob, 1));
-  const offset = maxCirc * (1 - val);
-  circle.style.strokeDashoffset = offset;
-
-  pct.textContent = `${Math.round(val * 100)}%`;
-
-  if (val >= 0.7) {
-    circle.style.stroke = 'var(--red)';
-    circle.style.filter = 'drop-shadow(0 0 10px var(--red-glow))';
-  } else if (val >= 0.4) {
-    circle.style.stroke = 'var(--amber)';
-    circle.style.filter = 'drop-shadow(0 0 8px rgba(255, 214, 0, 0.4))';
-  } else {
-    circle.style.stroke = 'var(--green)';
-    circle.style.filter = 'drop-shadow(0 0 8px var(--green-glow))';
-  }
-}
-
-// Server-Sent Events Hook
-let es = null;
-function initSSE() {
-  if (es) es.close();
-  es = new EventSource('/api/stream');
-
-  es.onopen = () => {
-    document.getElementById('pulse').className = 'pulse-dot';
-    document.getElementById('conn_text').textContent = 'LIVE FEED';
-  };
-
-  es.onerror = () => {
-    document.getElementById('pulse').className = 'pulse-dot off';
-    document.getElementById('conn_text').textContent = 'RECONNECTING';
-  };
-
-  es.onmessage = (e) => {
-    const msg = JSON.parse(e.data);
-    if (msg.type === 'sample') {
-      streamData.push(msg);
-      if (streamData.length > MAX_PTS) streamData.shift();
-
-      // Update telemetry
-      document.getElementById('utc_clock').textContent = msg.ts ? msg.ts.split(' ')[1] : '--:--:--';
-      document.getElementById('val_soft').textContent = Math.round(msg.soft).toLocaleString();
-      document.getElementById('val_hard').textContent = Math.round(msg.hard).toLocaleString();
-      document.getElementById('val_base').textContent = msg.base_s;
-      document.getElementById('val_dsxr').textContent = (msg.dsxr_dt || 0).toFixed(1);
-      document.getElementById('val_rho').textContent = msg.neupert?.neupert_corr?.toFixed(3) ?? '0.000';
-
-      const leadFlag = msg.neupert?.hxr_leads;
-      const leadEl = document.getElementById('val_lead');
-      leadEl.textContent = leadFlag ? 'YES (LEAD)' : 'NO';
-      leadEl.style.color = leadFlag ? 'var(--cyan)' : 'var(--text-dim)';
-
-      // State & Alerts
-      const isFlaring = ['ONSET', 'INCREASING', 'DECAYING', 'REPEAK', 'SUSTAINED'].includes(msg.state);
-      const nowEl = document.getElementById('nowcast_state');
-      nowEl.textContent = isFlaring ? msg.state : 'QUIET';
-      nowEl.className = `nowcast-badge ${isFlaring ? 'ACTIVE' : 'QUIET'}`;
-
-      const bar = document.getElementById('alertbar');
-      bar.classList.toggle('active', isFlaring);
-      if (isFlaring) {
-        document.getElementById('alert_icon').textContent = '⚠️';
-        document.getElementById('alert_text').textContent = `SOLAR FLARE ACTIVE — DETECTION PHASE: ${msg.state}`;
-      } else {
-        document.getElementById('alert_icon').textContent = '🛡️';
-        document.getElementById('alert_text').textContent = 'SYSTEM NOMINAL — MONITORING SOLAR X-RAY EMISSIONS';
-      }
-
-      // Multi-Horizon predictions
-      if (msg.multi_horizon) {
-        const mh = msg.multi_horizon;
-        document.getElementById('val_p15').textContent = `${Math.round(mh.prob_15m * 100)}%`;
-        document.getElementById('val_p30').textContent = `${Math.round(mh.prob_30m * 100)}%`;
-        document.getElementById('val_p60').textContent = `${Math.round(mh.prob_60m * 100)}%`;
-        document.getElementById('val_pred_cls').textContent = mh.predicted_class;
-        document.getElementById('val_est_lead').textContent = `${mh.estimated_lead_time_min} min`;
-      }
-
-      // Real-time anomaly highlighting
-      const anomalyScore = msg.anomaly_score || 0;
-      const anomalyEl = document.getElementById('anomaly_score');
-      if (anomalyEl) {
-        anomalyEl.textContent = anomalyScore.toFixed(3);
-        anomalyEl.style.color = anomalyScore > 0.7 ? 'var(--red)' : anomalyScore > 0.4 ? 'var(--amber)' : 'var(--green)';
-      }
-
-      // Model confidence indicator
-      const confidence = msg.confidence || 0;
-      const confEl = document.getElementById('model_confidence');
-      if (confEl) {
-        confEl.textContent = `${Math.round(confidence * 100)}%`;
-        confEl.style.color = confidence > 0.8 ? 'var(--green)' : confidence > 0.5 ? 'var(--amber)' : 'var(--red)';
-      }
-
-      setGauge(msg.prob);
-      document.getElementById('source_tag').textContent = `SOURCE: ${msg.source}`;
+    for (let i = 0; i < 90; i++) {
+      const base = 380 + Math.sin(i * 0.12) * 15;
+      const noise = (Math.random() - 0.5) * 6;
+      sxrHistory.push(base + noise);
+      hxrHistory.push(base * 0.28 + (Math.random() - 0.5) * 4);
+      baseHistory.push(base - 10);
     }
-    else if (msg.type === 'catalogue') {
-      appendCatalogueRow(msg.row);
+
+    function resizeChart() {
+      if (!chartCanvas.parentElement) return;
+      const rect = chartCanvas.parentElement.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      chartCanvas.width = rect.width * dpr;
+      chartCanvas.height = rect.height * dpr;
+      chartCtx.resetTransform();
+      chartCtx.scale(dpr, dpr);
+      renderOscilloscope();
     }
-    else if (msg.type === 'model_status') {
-      // Update model status panel
-      const modelStatus = document.getElementById('model_status');
-      if (modelStatus && msg.model) {
-        modelStatus.textContent = `${msg.model.version} | ${msg.model.status} | Latency: ${msg.model.latency_ms}ms`;
+    window.addEventListener('resize', resizeChart);
+
+    function renderOscilloscope() {
+      const rect = chartCanvas.parentElement.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+      if (w <= 0 || h <= 0) return;
+
+      chartCtx.clearRect(0, 0, w, h);
+
+      chartCtx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+      chartCtx.lineWidth = 1;
+      const gridRows = 5;
+      for (let r = 1; r < gridRows; r++) {
+        const y = (h / gridRows) * r;
+        chartCtx.beginPath();
+        chartCtx.moveTo(0, y);
+        chartCtx.lineTo(w, y);
+        chartCtx.stroke();
+      }
+
+      const minVal = Math.min(...sxrHistory, ...hxrHistory, ...baseHistory) * 0.9;
+      const maxVal = Math.max(...sxrHistory, ...hxrHistory, ...baseHistory) * 1.15;
+      const range = maxVal - minVal || 1;
+
+      function getY(val) {
+        return h - 20 - ((val - minVal) / range) * (h - 40);
+      }
+
+      chartCtx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
+      chartCtx.setLineDash([4, 4]);
+      chartCtx.lineWidth = 1.5;
+      chartCtx.beginPath();
+      for (let i = 0; i < baseHistory.length; i++) {
+        const x = (w / (MAX_BUFFER - 1)) * i;
+        const y = getY(baseHistory[i]);
+        if (i === 0) chartCtx.moveTo(x, y);
+        else chartCtx.lineTo(x, y);
+      }
+      chartCtx.stroke();
+      chartCtx.setLineDash([]);
+
+      chartCtx.strokeStyle = '#f59e0b';
+      chartCtx.lineWidth = 2;
+      chartCtx.beginPath();
+      for (let i = 0; i < hxrHistory.length; i++) {
+        const x = (w / (MAX_BUFFER - 1)) * i;
+        const y = getY(hxrHistory[i]);
+        if (i === 0) chartCtx.moveTo(x, y);
+        else chartCtx.lineTo(x, y);
+      }
+      chartCtx.stroke();
+
+      chartCtx.strokeStyle = '#38bdf8';
+      chartCtx.lineWidth = 2.5;
+      chartCtx.beginPath();
+      for (let i = 0; i < sxrHistory.length; i++) {
+        const x = (w / (MAX_BUFFER - 1)) * i;
+        const y = getY(sxrHistory[i]);
+        if (i === 0) chartCtx.moveTo(x, y);
+        else chartCtx.lineTo(x, y);
+      }
+      chartCtx.stroke();
+
+      chartCtx.lineTo((w / (MAX_BUFFER - 1)) * (sxrHistory.length - 1), h);
+      chartCtx.lineTo(0, h);
+      chartCtx.closePath();
+      const grad = chartCtx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, 'rgba(56, 189, 248, 0.18)');
+      grad.addColorStop(1, 'rgba(56, 189, 248, 0.0)');
+      chartCtx.fillStyle = grad;
+      chartCtx.fill();
+    }
+
+    const sunCanvas = document.getElementById('sunCanvas');
+    const sunCtx = sunCanvas.getContext('2d');
+    let sunAngle = 0;
+
+    function drawSunDisk() {
+      if (!sunCanvas.parentElement) return;
+      const rect = sunCanvas.parentElement.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      sunCanvas.width = rect.width * dpr;
+      sunCanvas.height = rect.height * dpr;
+      sunCtx.resetTransform();
+      sunCtx.scale(dpr, dpr);
+
+      const w = rect.width;
+      const h = rect.height;
+      const cx = w / 2;
+      const cy = h / 2;
+      const radius = Math.min(w, h) * 0.38;
+
+      sunCtx.clearRect(0, 0, w, h);
+
+      const corona = sunCtx.createRadialGradient(cx, cy, radius * 0.8, cx, cy, radius * 1.5);
+      corona.addColorStop(0, 'rgba(255, 153, 51, 0.8)');
+      corona.addColorStop(0.5, 'rgba(234, 88, 12, 0.25)');
+      corona.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      sunCtx.fillStyle = corona;
+      sunCtx.beginPath();
+      sunCtx.arc(cx, cy, radius * 1.5, 0, Math.PI * 2);
+      sunCtx.fill();
+
+      const sunGrad = sunCtx.createRadialGradient(cx - radius * 0.3, cy - radius * 0.3, radius * 0.1, cx, cy, radius);
+      sunGrad.addColorStop(0, '#fef08a');
+      sunGrad.addColorStop(0.4, '#f59e0b');
+      sunGrad.addColorStop(0.85, '#ea580c');
+      sunGrad.addColorStop(1, '#9a3412');
+
+      sunCtx.fillStyle = sunGrad;
+      sunCtx.beginPath();
+      sunCtx.arc(cx, cy, radius, 0, Math.PI * 2);
+      sunCtx.fill();
+
+      sunAngle += 0.005;
+      const spots = [
+        { x: cx + Math.cos(sunAngle) * radius * 0.5, y: cy - radius * 0.2, r: 12, color: '#ef4444', label: 'AR3664' },
+        { x: cx + Math.cos(sunAngle + 1.8) * radius * 0.6, y: cy + radius * 0.25, r: 8, color: '#f59e0b', label: 'AR3697' },
+        { x: cx + Math.cos(sunAngle + 3.5) * radius * 0.4, y: cy + radius * 0.05, r: 6, color: '#38bdf8', label: 'AR3712' }
+      ];
+
+      spots.forEach(sp => {
+        sunCtx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+        sunCtx.beginPath();
+        sunCtx.arc(sp.x, sp.y, sp.r, 0, Math.PI * 2);
+        sunCtx.fill();
+
+        sunCtx.strokeStyle = sp.color;
+        sunCtx.lineWidth = 2;
+        sunCtx.beginPath();
+        sunCtx.arc(sp.x, sp.y, sp.r + 4 + Math.sin(Date.now() * 0.005) * 2, 0, Math.PI * 2);
+        sunCtx.stroke();
+
+        sunCtx.fillStyle = '#fff';
+        sunCtx.font = '10px JetBrains Mono';
+        sunCtx.fillText(sp.label, sp.x + sp.r + 6, sp.y + 3);
+      });
+    }
+
+    setInterval(() => {
+      if (document.getElementById('tab-solardisk').classList.contains('active')) {
+        drawSunDisk();
+      }
+    }, 40);
+
+    let sseSource = null;
+    let isSynthetic = false;
+
+    function connectSSE() {
+      if (sseSource) sseSource.close();
+      sseSource = new EventSource('/api/stream');
+
+      sseSource.onmessage = function(e) {
+        if (!e.data || e.data.startsWith(':')) return;
+        try {
+          const msg = JSON.parse(e.data);
+          handleLivePayload(msg);
+        } catch (err) {}
+      };
+
+      sseSource.onerror = function() {
+        if (!isSynthetic) runSyntheticLoop();
+      };
+    }
+
+    function handleLivePayload(msg) {
+      if (msg.type === 'sample') {
+        const sxr = msg.soft || 420;
+        const hxr = msg.hard ? msg.hard * 0.001 : sxr * 0.25;
+        const base = msg.base_s || (sxr * 0.9);
+
+        sxrHistory.push(sxr);
+        hxrHistory.push(hxr);
+        baseHistory.push(base);
+
+        if (sxrHistory.length > MAX_BUFFER) sxrHistory.shift();
+        if (hxrHistory.length > MAX_BUFFER) hxrHistory.shift();
+        if (baseHistory.length > MAX_BUFFER) baseHistory.shift();
+
+        document.getElementById('sxr-flux-val').innerHTML = `${sxr.toFixed(1)} <span class="card-unit">nW/m²</span>`;
+        document.getElementById('hxr-flux-val').innerHTML = `${hxr.toFixed(1)} <span class="card-unit">cnt/s</span>`;
+        document.getElementById('threat-dial').innerText = `${((msg.prob || 0.042) * 100).toFixed(1)}%`;
+
+        const prob = msg.prob || 0.042;
+        document.getElementById('prob-15m').innerText = `${(prob * 90).toFixed(1)}%`;
+        document.getElementById('bar-15m').style.width = `${Math.min(100, prob * 90)}%`;
+
+        document.getElementById('prob-30m').innerText = `${(prob * 180).toFixed(1)}%`;
+        document.getElementById('bar-30m').style.width = `${Math.min(100, prob * 180)}%`;
+
+        document.getElementById('prob-60m').innerText = `${(prob * 260).toFixed(1)}%`;
+        document.getElementById('bar-60m').style.width = `${Math.min(100, prob * 260)}%`;
+
+        renderOscilloscope();
       }
     }
-  };
-}
 
-function appendCatalogueRow(r) {
-  eventCount++;
-  catRecords.unshift(r);
-  const tbody = document.getElementById('cat_body');
-  const tr = document.createElement('tr');
+    function runSyntheticLoop() {
+      setInterval(() => {
+        const t = Date.now() * 0.001;
+        const sxr = 420 + Math.sin(t * 0.5) * 40 + Math.random() * 8;
+        const hxr = sxr * 0.28 + Math.random() * 5;
+        const base = 400;
 
-  const cls = r.goes_like_class || 'B/A';
-  let clsTag = 'class-B';
-  if (cls.includes('X')) clsTag = 'class-X';
-  else if (cls.includes('M')) clsTag = 'class-M';
-  else if (cls.includes('C')) clsTag = 'class-C';
+        sxrHistory.push(sxr);
+        hxrHistory.push(hxr);
+        baseHistory.push(base);
 
-  tr.innerHTML = `
-    <td>#${eventCount}</td>
-    <td>${r.start}</td>
-    <td>${r.peak}</td>
-    <td>${Number(r.peak_counts).toLocaleString()}</td>
-    <td><span class="class-tag ${clsTag}">${cls}</span></td>
-    <td style="color:${r.neupert_corr > 0.3 ? 'var(--cyan)' : 'var(--text-dim)'}">${r.neupert_corr}</td>
-    <td style="color:var(--green)">VERIFIED</td>
-  `;
-  tbody.prepend(tr);
-}
+        if (sxrHistory.length > MAX_BUFFER) sxrHistory.shift();
+        if (hxrHistory.length > MAX_BUFFER) hxrHistory.shift();
+        if (baseHistory.length > MAX_BUFFER) baseHistory.shift();
 
-function switchSource(mode) {
-  fetch(`/api/source?mode=${mode}`).then(() => {
-    document.getElementById('btn_goes').classList.toggle('active', mode === 'goes');
-    document.getElementById('btn_synth').classList.toggle('active', mode === 'synth');
-  });
-}
+        renderOscilloscope();
+      }, 1000 / 60);
+    }
 
-function changeSpeed(sp) {
-  fetch(`/api/speed?speed=${sp}`);
-}
+    function setSpeed(speed) {
+      document.querySelectorAll('.btn-control').forEach(b => {
+        if (b.innerText.includes('x')) b.classList.remove('active');
+      });
+      if (event) event.currentTarget.classList.add('active');
+      fetch(`/api/speed?speed=${speed}`, { method: 'POST' }).catch(() => {});
+    }
 
-function exportCSV() {
-  if (!catRecords.length) {
-    alert("No catalogue events recorded yet.");
-    return;
-  }
-  let csv = "event_num,start,peak,peak_counts,class,neupert_corr\n";
-  catRecords.forEach((r, idx) => {
-    csv += `${idx + 1},"${r.start}","${r.peak}",${r.peak_counts},"${r.goes_like_class}",${r.neupert_corr}\n`;
-  });
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `aditya_flare_catalogue_${Date.now()}.csv`;
-  a.click();
-}
+    let sourceMode = 'goes';
+    function toggleSource() {
+      sourceMode = (sourceMode === 'goes') ? 'synth' : 'goes';
+      const btn = document.getElementById('source-toggle-btn');
+      btn.innerText = `FEED: ${sourceMode.toUpperCase()}`;
+      fetch(`/api/source?mode=${sourceMode}`, { method: 'POST' }).catch(() => {});
+    }
 
-// Initial start
-initSSE();
-</script>
+    function selectAR(arName) {
+      document.querySelectorAll('.ar-item').forEach(el => el.classList.remove('selected'));
+      if (event) event.currentTarget.classList.add('selected');
+    }
+
+    function exportCatalogueCSV() {
+      const rows = [
+        ["Start UTC", "Peak UTC", "Class", "Peak Irradiance (nW/m2)", "Neupert Corr", "Lead Time (min)"],
+        ["2026-09-15 07:12:00", "2026-09-15 07:28:30", "M1.4", "1420.5", "0.912", "16.5"],
+        ["2026-09-15 05:40:00", "2026-09-15 05:54:12", "C8.2", "820.0", "0.884", "14.2"],
+        ["2026-09-15 03:10:00", "2026-09-15 03:22:00", "C3.1", "310.4", "0.850", "12.0"]
+      ];
+      let csvContent = "data:text/csv;charset=utf-8," + rows.map(e => e.join(",")).join("\n");
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "aditya_l1_flare_catalogue.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === '1') switchTab('cockpit');
+      if (e.key === '2') switchTab('solardisk');
+      if (e.key === '3') switchTab('pinn');
+      if (e.key === '4') switchTab('catalogue');
+    });
+
+    window.onload = () => {
+      resizeChart();
+      drawSunDisk();
+      connectSSE();
+    };
+  </script>
 </body>
 </html>

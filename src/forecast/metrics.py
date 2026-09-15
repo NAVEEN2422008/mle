@@ -11,9 +11,11 @@ events. Do not add them.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Sequence, Tuple
+from datetime import datetime
+from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
+import pandas as pd
 
 
 @dataclass
@@ -52,6 +54,66 @@ class ConfusionMatrix:
             + (self.tp + self.fp) * (self.fp + self.tn)
         )
         return num / den if den else 0.0
+
+    @property
+    def csi(self) -> float:
+        """Critical Success Index (Threat Score) = TP / (TP + FP + FN)."""
+        den = self.tp + self.fp + self.fn
+        return self.tp / den if den else 0.0
+
+    @property
+    def ets(self) -> float:
+        """Equitable Threat Score (Gilbert Skill Score).
+        Adjusts CSI for random hits: a_r = (TP + FP) * (TP + FN) / Total.
+        """
+        total = self.tp + self.fp + self.fn + self.tn
+        if total == 0:
+            return 0.0
+        a_r = ((self.tp + self.fp) * (self.tp + self.fn)) / total
+        num = self.tp - a_r
+        den = self.tp + self.fp + self.fn - a_r
+        return num / den if den else 0.0
+
+    def f_beta(self, beta: float = 2.0) -> float:
+        """F-beta score prioritizing recall (detection) over precision when beta > 1."""
+        precision = self.tp / (self.tp + self.fp) if (self.tp + self.fp) else 0.0
+        recall = self.pod
+        if precision + recall == 0:
+            return 0.0
+        b2 = beta ** 2
+        return (1.0 + b2) * (precision * recall) / (b2 * precision + recall)
+
+
+def compute_expected_calibration_error(
+    y_true: Sequence[int],
+    y_prob: Sequence[float],
+    n_bins: int = 10,
+) -> float:
+    """Computes Expected Calibration Error (ECE) across uniform probability bins.
+    
+    ECE = sum_{m=1}^M (|B_m| / N) * |acc(B_m) - conf(B_m)|
+    """
+    y = np.asarray(y_true, dtype=int)
+    p = np.asarray(y_prob, dtype=float)
+    if len(y) == 0:
+        return 0.0
+
+    bin_boundaries = np.linspace(0.0, 1.0, n_bins + 1)
+    ece = 0.0
+    n_samples = len(y)
+
+    for i in range(n_bins):
+        bin_lower = bin_boundaries[i]
+        bin_upper = bin_boundaries[i + 1]
+        in_bin = (p >= bin_lower) & (p < bin_upper) if i < n_bins - 1 else (p >= bin_lower) & (p <= bin_upper)
+        bin_size = np.sum(in_bin)
+
+        if bin_size > 0:
+            avg_confidence = np.mean(p[in_bin])
+            avg_accuracy = np.mean(y[in_bin])
+            ece += (bin_size / n_samples) * np.abs(avg_accuracy - avg_confidence)
+
+    return float(ece)
 
 
 def brier_score(y_true: Sequence[int], y_prob: Sequence[float]) -> float:
@@ -205,3 +267,160 @@ def evaluate_forecast(
         "brier": round(brier_score(y_true, y_prob), 4),
         "pr_auc": round(pr_auc(y_true, y_prob), 3),
     }
+
+
+def compute_contingency_scores(
+    y_true: Sequence[int],
+    y_prob: Sequence[float],
+    threshold: float = 0.5,
+) -> Dict[str, float]:
+    """Computes operational space weather verification metrics (TSS, HSS, POD, FAR)."""
+    y_t = np.asarray(y_true, dtype=int)
+    y_p = np.asarray(y_prob, dtype=float)
+    y_pred = (y_p >= threshold).astype(int)
+
+    tp = int(np.sum((y_pred == 1) & (y_t == 1)))
+    tn = int(np.sum((y_pred == 0) & (y_t == 0)))
+    fp = int(np.sum((y_pred == 1) & (y_t == 0)))
+    fn = int(np.sum((y_pred == 0) & (y_t == 1)))
+
+    pod = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+    pofd = fp / (fp + tn) if (fp + tn) > 0 else 0.0
+    far = fp / (tp + fp) if (tp + fp) > 0 else 0.0
+    tss = pod - pofd
+
+    num_hss = 2.0 * (tp * tn - fp * fn)
+    den_hss = (tp + fn) * (fn + tn) + (tp + fp) * (fp + tn)
+    hss = (num_hss / den_hss) if den_hss > 0 else 0.0
+
+    return {
+        "TSS": float(tss),
+        "HSS": float(hss),
+        "POD": float(pod),
+        "FAR": float(far),
+        "POFD": float(pofd),
+        "TP": tp,
+        "FP": fp,
+        "TN": tn,
+        "FN": fn,
+    }
+
+
+class LeadTimeEvaluator:
+    """
+    Evaluates exact chronological Lead Time (minutes prior to flare peak)
+    provided by the forecasting system over verified catalogue events.
+    """
+    def __init__(self, alert_threshold: float = 0.50):
+        self.threshold = alert_threshold
+
+    def evaluate_lead_times(
+        self,
+        timestamps: Sequence[datetime],
+        predicted_probs: Sequence[float],
+        catalogue_peak_times: Sequence[datetime],
+        window_minutes: float = 60.0,
+    ) -> List[Dict[str, Union[float, str, bool]]]:
+        ts_arr = pd.to_datetime(list(timestamps))
+        probs_arr = np.asarray(predicted_probs, dtype=float)
+        results = []
+
+        for p_t in catalogue_peak_times:
+            p_dt = pd.to_datetime(p_t)
+            pre_start = p_dt - pd.Timedelta(minutes=window_minutes)
+
+            mask = (ts_arr >= pre_start) & (ts_arr <= p_dt)
+            win_times = ts_arr[mask]
+            win_probs = probs_arr[mask]
+
+            if len(win_probs) == 0:
+                continue
+
+            alert_indices = np.where(win_probs >= self.threshold)[0]
+            first_alert_time = None
+
+            for idx in alert_indices:
+                if idx + 3 <= len(win_probs) and np.all(win_probs[idx:idx + 3] >= self.threshold):
+                    first_alert_time = win_times[idx]
+                    break
+
+            if first_alert_time is not None:
+                lead_min = (p_dt - first_alert_time).total_seconds() / 60.0
+                detected = True
+            else:
+                lead_min = 0.0
+                detected = False
+
+            results.append({
+                "peak_time": str(p_dt),
+                "alert_triggered": detected,
+                "lead_time_minutes": round(float(lead_min), 2),
+            })
+        return results
+
+
+def reliability_diagram(
+    y_true: Sequence[int],
+    y_prob: Sequence[float],
+    n_bins: int = 10,
+) -> Dict[str, Union[List[float], List[int], float]]:
+    """Compute reliability diagram bins and Brier score decomposition (Murphy 1973).
+
+    Returns:
+        bin_centers: Mean predicted probability in each bin
+        observed_freq: Actual fraction of positives in each bin
+        bin_counts: Number of samples in each bin
+        reliability: Weighted mean squared error between forecast and observed (lower is better)
+        resolution: Ability to resolve distinct probabilities from base rate (higher is better)
+        uncertainty: Inherent sample variance = base_rate * (1 - base_rate)
+    """
+    y = np.asarray(y_true, dtype=float)
+    p = np.asarray(y_prob, dtype=float)
+
+    bin_edges = np.linspace(0.0, 1.0, n_bins + 1)
+    bin_centers = []
+    obs_freqs = []
+    counts = []
+
+    n_total = len(y)
+    base_rate = float(np.mean(y)) if n_total > 0 else 0.0
+
+    rel = 0.0
+    res = 0.0
+
+    for i in range(n_bins):
+        low, high = bin_edges[i], bin_edges[i + 1]
+        if i == n_bins - 1:
+            mask = (p >= low) & (p <= high)
+        else:
+            mask = (p >= low) & (p < high)
+
+        n_k = int(np.sum(mask))
+        counts.append(n_k)
+
+        if n_k > 0:
+            p_k = float(np.mean(p[mask]))
+            o_k = float(np.mean(y[mask]))
+            bin_centers.append(round(p_k, 4))
+            obs_freqs.append(round(o_k, 4))
+
+            rel += (n_k / n_total) * ((p_k - o_k) ** 2)
+            res += (n_k / n_total) * ((o_k - base_rate) ** 2)
+        else:
+            mid = float((low + high) / 2.0)
+            bin_centers.append(round(mid, 4))
+            obs_freqs.append(0.0)
+
+    unc = base_rate * (1.0 - base_rate)
+    brier = rel - res + unc
+
+    return {
+        "bin_centers": bin_centers,
+        "observed_freq": obs_freqs,
+        "bin_counts": counts,
+        "reliability": round(float(rel), 5),
+        "resolution": round(float(res), 5),
+        "uncertainty": round(float(unc), 5),
+        "brier_decomposed": round(float(brier), 5),
+    }
+

@@ -11,7 +11,7 @@ Causality guarantees (WS3b contract):
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Sequence, Tuple
+from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -140,7 +140,7 @@ def build_causal_features(
 
 
 def alert_crossing_times(
-    prob: np.ndarray, times_sec: np.ndarray, thresholds: Sequence[float]
+    prob: np.ndarray, times_sec: np.ndarray, thresholds: Union[Sequence[float], np.ndarray]
 ) -> Dict[float, np.ndarray]:
     """Upward threshold crossings -> alert times per threshold (causal rule).
 
@@ -167,6 +167,8 @@ class PipelineReport:
     n_labelled: int = 0
     n_positives: int = 0
     n_catalogue_peaks: int = 0
+    detected_peaks: List[float] = field(default_factory=list)
+    truth_check: dict = field(default_factory=dict)
     horizon_min: int = 15
     chosen_threshold: float = 0.5
     oof: dict = field(default_factory=dict)

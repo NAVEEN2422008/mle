@@ -199,8 +199,8 @@ class LeadTimeReport:
 
 
 def lt_vs_far_curve(
-    peaks_s: Sequence[float],           # flare peak times (s, monotonically increasing)
-    alert_times_by_threshold: Dict[float, Sequence[float]],  # theta -> alert times (s)
+    peaks_s: Union[Sequence[float], np.ndarray],           # flare peak times (s, monotonically increasing)
+    alert_times_by_threshold: Dict[float, Union[Sequence[float], np.ndarray]],  # theta -> alert times (s)
     window_s: float = 1800.0,
 ) -> List[Dict[str, float]]:
     """Sweep probability threshold theta: for each, compute POD/FAR/median LT.

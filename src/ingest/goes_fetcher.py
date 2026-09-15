@@ -195,6 +195,8 @@ def _parse_goes_json(raw):
             continue
         try:
             ts = item.get("time_tag") or item.get("time")
+            if not ts or not isinstance(ts, str):
+                continue
             flux_short = float(item.get("flux_short", 0))
             flux_long = float(item.get("flux_long", 0))
             dt = datetime.strptime(ts, "%Y-%m-%dT%H:%M:%S")

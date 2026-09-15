@@ -77,14 +77,16 @@ def interpolate_pchip_series(series: pd.Series, max_gap_steps: int = 180) -> pd.
     Fills gaps <= max_gap_steps without introducing artificial oscillations or overshoots.
     Gaps larger than max_gap_steps are preserved as NaN to prevent fabricating data across outages.
     """
-    valid_mask = series.notna()
+    vals_arr = series.to_numpy(dtype=float)
+    valid_mask = ~np.isnan(vals_arr)
     if valid_mask.sum() < 2:
         return series
 
     # Identify contiguous gap lengths
-    gap_sizes = (~valid_mask).astype(int).groupby(valid_mask.cumsum()).transform("sum")
+    mask_series = pd.Series(valid_mask, index=series.index)
+    gap_sizes = (~mask_series).astype(int).groupby(mask_series.cumsum()).transform("sum").to_numpy()
     valid_idx = np.where(valid_mask)[0]
-    valid_vals = series.values[valid_mask]
+    valid_vals = vals_arr[valid_mask]
 
     pchip = PchipInterpolator(valid_idx, valid_vals, extrapolate=False)
     all_idx = np.arange(len(series))

@@ -15,7 +15,7 @@ NaN probabilities (untrained periods) never enter or sustain an alert.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Sequence
+from typing import Dict, List, Optional, Sequence, Union
 
 import math
 
@@ -55,9 +55,9 @@ class AlertEngine:
             float(theta_exit) if theta_exit is not None
             else max(0.0, float(theta_enter) * 0.6)
         )
-        self.k = int(k)
-        self.m = int(m)
-        self.exit_patience = int(exit_patience)
+        self.k = k
+        self.m = m
+        self.exit_patience = exit_patience
 
         self._recent: List[bool] = []   # last m ">= theta_enter" booleans
         self._exit_streak = 0
@@ -124,7 +124,7 @@ class AlertEngine:
 def alerts_by_theta_kofm(
     probs: np.ndarray,
     times_sec: np.ndarray,
-    thresholds: Sequence[float],
+    thresholds: Union[Sequence[float], np.ndarray],
     k: int = 2,
     m: int = 3,
     exit_frac: float = 0.6,

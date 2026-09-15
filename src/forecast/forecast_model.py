@@ -72,8 +72,8 @@ class FeatureExtractor:
         self.hxr_slope_ema = EMA(alpha=alpha)
         
         # Historical context
-        self.last_flare_time = 0
-        self.flare_history = []
+        self.last_flare_time: float = 0.0
+        self.flare_history: List[float] = []
     
     def update(self, sxr_flux: float, hxr_flux: float, timestamp: float) -> Features:
         """Update features with new sample."""
@@ -176,11 +176,10 @@ class LightGBMForecaster:
         labels_list = []
         
         for idx, row in df.iterrows():
-            feat = extract.update(
-                row['counts'] if 'counts' in row else row['flux_solexs'],
-                row.get('counts') if 'counts' in row else row['flux_hel1os'],
-                row.get('timestamp_epoch', 0)
-            )
+            s_val = float(row['counts'] if 'counts' in row else row.get('flux_solexs', 0.0))
+            h_val = float(row['counts'] if 'counts' in row else row.get('flux_hel1os', 0.0))
+            t_val = float(row.get('timestamp_epoch', 0.0))
+            feat = extract.update(s_val, h_val, t_val)
             features_list.append(feat.to_list())
             
             # Label: is there a flare within next N minutes?
@@ -277,12 +276,13 @@ class LightGBMForecaster:
 
 def forecast_flare_probability(features: np.ndarray, model: LightGBMForecaster,
                                 threshold: float = 0.5, horizon_min: int = 15,
-                                timestamp: float = 0) -> ForecastOutput:
+                                timestamp: float = 0.0) -> ForecastOutput:
     """Generate forecast output with calibrated probability."""
     prob = model.predict_calibrated(features)[0] if features.shape[0] > 0 else 0.05
+    ts = datetime.fromtimestamp(timestamp) if timestamp > 0 else datetime.now()
     
     return ForecastOutput(
-        timestamp=datetime.fromtimestamp(timestamp) if timestamp else None,
+        timestamp=ts,
         probability=float(prob),
         lead_time_s=horizon_min * 60,
         horizon_min=horizon_min,

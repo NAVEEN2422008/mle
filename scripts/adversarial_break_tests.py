@@ -99,7 +99,7 @@ def run_adversarial_break_tests():
     blackout_s = pd.Series([100.0]*50 + [np.nan]*360 + [100.0]*50)  # 360 mins of consecutive NaNs
     blackout_interp = interpolate_pchip_series(blackout_s, max_gap_steps=30)
     # The middle 300 minutes must remain strictly NaN
-    att2_pass = blackout_interp.iloc[60:380].isna().all()
+    att2_pass = bool(blackout_interp.iloc[60:380].isna().all())
     report_attack(
         2, "Prolonged ISTRAC Telemetry Loss-of-Signal (6h Continuous Blackout)",
         att2_pass, "HIGH (GROUND SEGMENT OUTAGE)",
@@ -119,7 +119,7 @@ def run_adversarial_break_tests():
     
     cleaned_stream = despike_mad_series(pd.Series(corrupted_signal), window_size=7, threshold_sigma=3.5)
     remaining_spikes = (cleaned_stream > 1000.0).sum()
-    att3_pass = remaining_spikes <= 8  # >90% of heavy ion hits removed
+    att3_pass = bool(remaining_spikes <= 8)  # >90% of heavy ion hits removed
     report_attack(
         3, "Cosmic-Ray Heavy Ion Shower (15% High-Frequency Spike Density)",
         att3_pass, "HIGH (RADIATION BELT CROSSING)",
@@ -139,7 +139,7 @@ def run_adversarial_break_tests():
     })
     flat_feat = compute_physics_features(flat_df)
     excess_min = float(flat_feat["f04_soft_excess"].min())
-    att4_pass = excess_min >= 0.0 and not np.isnan(flat_feat[f_cols].to_numpy()).any()
+    att4_pass = bool(excess_min >= 0.0 and not np.isnan(flat_feat[f_cols].to_numpy()).any())
     report_attack(
         4, "Deep Solar Minimum Background (Sub-A Class Quiescence)",
         att4_pass, "MEDIUM (SOLAR MINIMUM QUIET SUN)",
@@ -158,7 +158,7 @@ def run_adversarial_break_tests():
     adv_feat = compute_physics_features(adversarial_df)
     adv_nans = np.isnan(adv_feat[f_cols].to_numpy()).sum()
     adv_infs = np.isinf(adv_feat[f_cols].to_numpy()).sum()
-    att5_pass = (adv_nans == 0) and (adv_infs == 0)
+    att5_pass = bool((adv_nans == 0) and (adv_infs == 0))
     report_attack(
         5, "Adversarial API Ingestion (Negative Fluxes, Infs, & Missing Channels)",
         att5_pass, "CRITICAL (MALFORMED TELEMETRY STREAM)",

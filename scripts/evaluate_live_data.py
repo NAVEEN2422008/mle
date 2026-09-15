@@ -9,7 +9,8 @@ import os
 sys.path.insert(0, ".")
 if sys.platform == "win32":
     try:
-        sys.stdout.reconfigure(encoding="utf-8")
+        if hasattr(sys.stdout, "reconfigure"):
+            getattr(sys.stdout, "reconfigure")(encoding="utf-8")
     except Exception:
         pass
 
@@ -59,8 +60,8 @@ def run_live_evaluation():
     print("\n[2/5] Running Multi-Band Preprocessing & Signal Calibration...")
     df_ts = df_xrs.set_index('timestamp')[['flux_long', 'flux_short']].resample('1min').mean().interpolate(method='linear').reset_index()
     
-    soft_flux = df_ts['flux_long'].values
-    hard_flux = df_ts['flux_short'].values
+    soft_flux = np.asarray(df_ts['flux_long'].to_numpy(dtype=float))
+    hard_flux = np.asarray(df_ts['flux_short'].to_numpy(dtype=float))
     
     # Scale to standard counts
     soft_norm = np.clip(soft_flux * 1e9, 0.0, None)

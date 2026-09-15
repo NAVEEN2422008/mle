@@ -214,12 +214,12 @@ class SolarFlareWindowDataset(Dataset):
     def __len__(self) -> int:
         return self.length
 
-    def __getitem__(self, idx: int) -> Dict[str, torch.Tensor]:
-        end = idx + self.window_len
+    def __getitem__(self, index: int) -> Dict[str, torch.Tensor]:
+        end = index + self.window_len
         return {
-            "sxr": self.sxr[idx:end],
-            "hxr": self.hxr[idx:end],
-            "dsxr_dt": self.dsxr_dt[idx:end],
+            "sxr": self.sxr[index:end],
+            "hxr": self.hxr[index:end],
+            "dsxr_dt": self.dsxr_dt[index:end],
             "label_15m": self.labels_15m[end - 1],
             "label_30m": self.labels_30m[end - 1],
             "label_60m": self.labels_60m[end - 1],

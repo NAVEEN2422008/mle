@@ -11,7 +11,7 @@ way solar-flare ML papers overfit):
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List, Optional, Sequence, Tuple
+from typing import List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -100,7 +100,7 @@ def train_with_cv(
     y_raw: np.ndarray,
     folds: List[Tuple[np.ndarray, np.ndarray, float]],
     use_lightgbm: bool = True,
-    threshold_grid: Optional[Sequence[float]] = None,
+    threshold_grid: Optional[Union[Sequence[float], np.ndarray]] = None,
 ) -> dict:
     """Walk-forward CV over full-timeline arrays.
 

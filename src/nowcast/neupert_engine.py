@@ -97,7 +97,7 @@ class NeupertCorrelator:
         hxr_peak_idx = np.argmax(hxr)
         sxr_peak_idx = np.argmax(sxr)
         
-        self.hxr_leads = hxr_peak_idx < sxr_peak_idx
+        self.hxr_leads = bool(hxr_peak_idx < sxr_peak_idx)
         self.peak_lag_s = float((sxr_peak_idx - hxr_peak_idx) * 1.0)  # 1 Hz assumption
         
         return {

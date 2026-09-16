@@ -510,19 +510,58 @@ async def infer(model_path: str = "models/lightgbm.pkl", data: List[dict] = []):
 async def get_forecast(horizons: List[int] = [15, 30, 60]):
     """
     Get forecasted probabilities for specified horizons.
-    
+
     Args:
         horizons: List of horizon lengths in minutes
-    
+
     Returns:
-        Forecast probabilities for each horizon
+        Forecast probabilities for each horizon plus current telemetry state
     """
+    eng = get_engine()
+    latest = getattr(eng, "latest", None) or {}
+
+    # Pull current telemetry from the live engine when available
+    current_sxr = latest.get("soft")
+    current_hxr = latest.get("hard")
+    current_neupert = None
+    if latest.get("neupert"):
+        current_neupert = latest["neupert"].get("neupert_corr")
+
+    # Coronal temperature proxy from PINN alpha/beta balance
+    current_te = None
+    if latest.get("pinn"):
+        alpha = latest["pinn"].get("alpha", 0.0081)
+        beta = latest["pinn"].get("beta", 0.0026)
+        # T_proxy scales with heating/decay ratio (isothermal approx)
+        current_te = round(1.5 + 2.5 * min(1.0, alpha / max(beta, 1e-4) * 0.35), 2)
+
+    lead_time_min = None
+    if latest.get("multi_horizon"):
+        lead_time_min = latest["multi_horizon"].get("estimated_lead_time_min")
+
+    # Fall back to engine probabilities when available
+    probs = []
+    for h in horizons:
+        if h <= 15:
+            p = latest.get("prob", 0.75 if h <= 15 else 0.45)
+        elif h <= 30:
+            p = latest.get("multi_horizon", {}).get("prob_30m", 0.45)
+        else:
+            p = latest.get("multi_horizon", {}).get("prob_60m", 0.25)
+        probs.append({"minutes": h, "probability": round(float(p), 3)})
+
     return {
         "horizons": horizons,
-        "probabilities": [
-            {"minutes": h, "probability": 0.75 if h <= 15 else 0.45 if h <= 30 else 0.25}
-            for h in horizons
-        ]
+        "probabilities": probs,
+        "current_sxr": current_sxr,
+        "current_hxr": current_hxr,
+        "current_te": current_te,
+        "current_neupert": current_neupert,
+        "lead_time_min": lead_time_min,
+        "nowcast_status": latest.get("state", "QUIET SUN"),
+        "flare_class": latest.get("flare_class", "A1.0"),
+        "threat_pulse": latest.get("threat_pulse", 5),
+        "timestamp": latest.get("ts"),
     }
 
 

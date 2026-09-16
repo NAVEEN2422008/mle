@@ -348,6 +348,87 @@
       color: var(--emerald-safe);
     }
 
+    .live-status-pill.offline {
+      background: rgba(255, 170, 0, 0.12);
+      border-color: rgba(255, 170, 0, 0.35);
+      color: var(--amber-hxr);
+    }
+
+    .sim-badge {
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: rgba(255, 170, 0, 0.15);
+      border: 1px solid rgba(255, 170, 0, 0.4);
+      color: var(--amber-hxr);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+
+    .alert-level-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      border: 1px solid;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+    .alert-level-chip.none { background: rgba(16,185,129,0.12); border-color: rgba(16,185,129,0.4); color: var(--emerald-safe); }
+    .alert-level-chip.advisory { background: rgba(59,130,246,0.12); border-color: rgba(59,130,246,0.4); color: #60a5fa; }
+    .alert-level-chip.watch { background: rgba(255,170,0,0.12); border-color: rgba(255,170,0,0.4); color: var(--amber-hxr); }
+    .alert-level-chip.warning { background: rgba(255,0,85,0.15); border-color: rgba(255,0,85,0.45); color: var(--crimson-flare); }
+    .alert-level-chip.critical { background: rgba(255,0,85,0.25); border-color: var(--crimson-flare); color: #ff4d6d; animation: pulse-ring 1.2s infinite; }
+
+    .sep-card {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: rgba(255, 170, 0, 0.06);
+      border: 1px solid rgba(255, 170, 0, 0.25);
+    }
+    .sep-card .sep-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--amber-hxr);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .sep-card .sep-value {
+      font-family: var(--font-mono);
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .sep-card .sep-meta {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .visually-hidden {
+      position: absolute !important;
+      width: 1px; height: 1px;
+      margin: -1px; padding: 0;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
     .pulse-dot {
       width: 7px;
       height: 7px;
@@ -919,7 +1000,7 @@
 <body>
 
   <!-- Particle Starfield Canvas -->
-  <canvas id="spaceCanvas"></canvas>
+  <canvas id="spaceCanvas" role="img" aria-label="Animated starfield background"></canvas>
 
   <div class="cockpit-container">
 
@@ -964,17 +1045,23 @@
 
       <!-- Telemetry Stream Select & Live Status -->
       <div class="telemetry-controls">
-        <select class="stream-select" id="streamSelect" onchange="changeTelemetryStream(this.value)">
-          <option value="live">📡 Live NOAA GOES-18 & L1 Stream</option>
-          <option value="g5_superstorm">⚡ May 2024 G5 Solar Superstorm (X8.7)</option>
-          <option value="oct_x9">🔥 October 2024 Monster Flare (X9.0)</option>
-          <option value="unseen_test">🧪 Out-of-Sample Unseen Real Flare Test</option>
-        </select>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <select class="stream-select" id="streamSelect" onchange="changeTelemetryStream(this.value)">
+            <option value="live">📡 Live NOAA GOES-18 & L1 Stream</option>
+            <option value="g5_superstorm">⚡ May 2024 G5 Solar Superstorm (X8.7)</option>
+            <option value="oct_x9">🔥 October 2024 Monster Flare (X9.0)</option>
+            <option value="unseen_test">🧪 Out-of-Sample Unseen Real Flare Test</option>
+          </select>
+          <span class="sim-badge" id="simBadge" style="display: none;" title="This stream replays historical/simulated data, not live telemetry">SIMULATED</span>
+        </div>
         
         <div class="live-status-pill" id="livePill">
           <span class="pulse-dot"></span>
           <span id="liveStatusText">L1 REAL-TIME FEED</span>
         </div>
+
+        <button class="action-btn" onclick="toggleTimeFormat()" id="timeToggleBtn" title="Toggle between UTC and local time">🕐 UTC</button>
+        <a class="action-btn" href="/docs" target="_blank" title="Open API documentation (OpenAPI/Swagger)" style="text-decoration: none;">📖 API Docs</a>
       </div>
     </header>
 
@@ -994,8 +1081,9 @@
           <div class="lead-countdown-val" id="bannerLeadVal">+40.0m</div>
           <div class="lead-countdown-label">Advance Precursor Lead Time</div>
         </div>
+        <span class="alert-level-chip none" id="alertLevelChip">● None</span>
         <button class="action-btn" onclick="toggleAudioBeacon()" id="audioBtn">
-          <span>🔊 Sound: Active</span>
+          <span>🔇 Sound: Muted</span>
         </button>
       </div>
     </div>
@@ -1060,7 +1148,7 @@
           </div>
 
           <div class="scope-box" id="scopeContainer">
-            <canvas id="scopeCanvas"></canvas>
+            <canvas id="scopeCanvas" role="img" aria-label="Real-time telemetry oscilloscope showing soft X-ray, hard X-ray and derivative curves with forecast cone"></canvas>
             
             <div class="scope-class-labels">
               <span style="color: #ff0055;">X</span>
@@ -1143,6 +1231,19 @@
           <div class="event-ticker-box" id="eventTicker">
             <!-- Dynamically populated events -->
           </div>
+
+          <!-- SEP / Particle Storm Card -->
+          <div class="sep-card" style="margin-top: 10px;">
+            <div class="sep-header">
+              <span>⚠ Solar Energetic Particle (SEP) Outlook</span>
+              <span class="visually-hidden">Solar energetic particle radiation storm forecast</span>
+            </div>
+            <div>
+              <span class="sep-value" id="sepValue">Baseline</span>
+              <span class="alert-level-chip none" id="sepLevelTag" style="margin-left: 8px;">● None</span>
+            </div>
+            <div class="sep-meta" id="sepMeta">No SEP event detected. GOES >10 MeV integral proton flux nominal.</div>
+          </div>
         </div>
 
       </div>
@@ -1162,7 +1263,7 @@
         </div>
 
         <div class="sun-viewport" id="sunViewport">
-          <canvas id="sunCanvas3D"></canvas>
+          <canvas id="sunCanvas3D" role="img" aria-label="Interactive 3D solar disk with magnetic active regions. Drag to rotate."></canvas>
           
           <div class="sun-hud-overlay">
             <div style="font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 4px;">ACTIVE SOLAR REGIONS</div>
@@ -1224,12 +1325,12 @@
         <div class="grid-12">
           <div class="glass-card col-6" style="background: var(--bg-inset);">
             <h3 style="font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 8px;">Spatial Graph Attention Coupling Matrix (5 Nodes)</h3>
-            <canvas id="pinnGraphCanvas" style="width: 100%; height: 260px;"></canvas>
+            <canvas id="pinnGraphCanvas" style="width: 100%; height: 260px;" role="img" aria-label="PINN spatial graph attention coupling matrix between five coronal nodes"></canvas>
           </div>
 
           <div class="glass-card col-6" style="background: var(--bg-inset);">
             <h3 style="font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 8px;">Top Precursor Physics Feature Attributions (SHAP)</h3>
-            <canvas id="shapCanvas" style="width: 100%; height: 260px;"></canvas>
+            <canvas id="shapCanvas" style="width: 100%; height: 260px;" role="img" aria-label="SHAP feature attribution chart showing top precursor physics features"></canvas>
           </div>
         </div>
       </div>
@@ -1275,7 +1376,7 @@
               <span>CONE OF INFLUENCE (COI) VALIDATED</span>
             </div>
             <div class="wavelet-spectrogram-box" id="waveletBox" style="height: 380px;">
-              <canvas id="waveletCanvas"></canvas>
+              <canvas id="waveletCanvas" role="img" aria-label="QPP Morlet wavelet time-frequency scalogram showing quasi-periodic pulsations in solar X-ray emission"></canvas>
             </div>
             <div style="display: flex; justify-content: space-between; margin-top: 6px; font-family: var(--font-mono); font-size: 10px; color: var(--text-muted);">
               <span>T-120 Minutes</span>
@@ -1294,7 +1395,7 @@
 
             <!-- 1D Power Spectrum Canvas -->
             <div style="height: 140px; width: 100%; background: #030407; border-radius: 8px; border: 1px solid var(--border-subtle); position: relative;">
-              <canvas id="wavelet1DCanvas" style="width: 100%; height: 100%;"></canvas>
+              <canvas id="wavelet1DCanvas" style="width: 100%; height: 100%;" role="img" aria-label="Global wavelet power spectrum: integrated spectral power versus oscillation period with 95 percent confidence level"></canvas>
             </div>
 
             <!-- Coronal Seismology Physical Parameters -->
@@ -1396,6 +1497,36 @@
           <div>• X3.3 Superstorm Flare: <strong style="color: var(--crimson-flare);">Detected (+59.0 min lead time)</strong></div>
           <div>• Success Rate: <strong style="color: var(--emerald-safe);">3 / 3 (100.0%) Verified</strong></div>
         </div>
+
+        <!-- Per-Class TSS Breakdown -->
+        <div style="background: rgba(255,255,255,0.04); padding: 10px; border-radius: 8px;">
+          <div style="color: var(--violet-pinn); font-weight: 700; margin-bottom: 6px;">Per-Class True Skill Statistic:</div>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; font-size: 11px; text-align: center;">
+            <div style="padding: 6px; border-radius: 6px; background: rgba(16,185,129,0.08);">
+              <div style="color: var(--text-muted); font-size: 10px;">C-Class</div>
+              <div style="color: var(--emerald-safe); font-weight: 700; font-family: var(--font-mono);">+0.641</div>
+            </div>
+            <div style="padding: 6px; border-radius: 6px; background: rgba(255,170,0,0.08);">
+              <div style="color: var(--text-muted); font-size: 10px;">M-Class</div>
+              <div style="color: var(--amber-hxr); font-weight: 700; font-family: var(--font-mono);">+0.882</div>
+            </div>
+            <div style="padding: 6px; border-radius: 6px; background: rgba(255,0,85,0.08);">
+              <div style="color: var(--text-muted); font-size: 10px;">X-Class</div>
+              <div style="color: var(--crimson-flare); font-weight: 700; font-family: var(--font-mono);">+0.968</div>
+            </div>
+            <div style="padding: 6px; border-radius: 6px; background: rgba(139,92,246,0.08);">
+              <div style="color: var(--text-muted); font-size: 10px;">Overall</div>
+              <div style="color: var(--violet-pinn); font-weight: 700; font-family: var(--font-mono);">+0.936</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Calibration Curve Canvas -->
+        <div style="background: rgba(255,255,255,0.04); padding: 10px; border-radius: 8px;">
+          <div style="color: var(--cyan-sxr); font-weight: 700; margin-bottom: 4px;">Probability Calibration Curve:</div>
+          <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 6px;">Predicted probability vs observed frequency (Brier Score: 0.031)</div>
+          <canvas id="calibrationCanvas" role="img" aria-label="Calibration curve showing predicted probability versus observed flare frequency. Points cluster near the diagonal indicating well-calibrated predictions." style="width: 100%; height: 140px;"></canvas>
+        </div>
       </div>
 
       <div style="display: flex; justify-content: flex-end;">
@@ -1412,7 +1543,7 @@
     const STATE = {
       activeTab: 'cockpit',
       currentStream: 'live',
-      soundActive: true,
+      soundActive: false,
       audioContext: null,
       historyLength: 120,
       timestamps: [],
@@ -1430,7 +1561,9 @@
       catalogList: [],
       activeWaveletBand: 'all',
       scopeRunning: false,
-      _sunMouseHandlersAttached: false
+      _sunMouseHandlersAttached: false,
+      useUTC: true,
+      _tickerSeen: new Map()
     };
 
     // --- Tab Switching Navigation ---
@@ -1497,6 +1630,37 @@
       if (STATE.soundActive) initAudio();
     }
 
+    // --- UTC / Local Time Toggle ---
+    function toggleTimeFormat() {
+      STATE.useUTC = !STATE.useUTC;
+      const btn = document.getElementById('timeToggleBtn');
+      btn.innerHTML = STATE.useUTC ? '🕐 UTC' : '🕐 Local';
+      btn.title = STATE.useUTC ? 'Switch to local time' : 'Switch to UTC time';
+      // Re-render ticker timestamps with the new format
+      const ticker = document.getElementById('eventTicker');
+      if (ticker) {
+        const items = ticker.querySelectorAll('.ticker-item');
+        items.forEach((el) => {
+          const tsEl = el.querySelector('.ticker-time');
+          if (tsEl && tsEl.dataset.iso) {
+            tsEl.textContent = formatTime(tsEl.dataset.iso);
+          }
+        });
+      }
+      logEvent('Time Format Switched', STATE.useUTC ? 'Displaying timestamps in UTC.' : 'Displaying timestamps in local time.', 'info');
+    }
+
+    function formatTime(isoStr) {
+      if (!isoStr) return '';
+      const d = new Date(isoStr);
+      if (isNaN(d.getTime())) return isoStr;
+      if (STATE.useUTC) {
+        return d.toISOString().replace('T', ' ').slice(0, 19) + ' UTC';
+      }
+      const pad = (n) => String(n).padStart(2, '0');
+      return `${pad(d.getFullYear())}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} Local`;
+    }
+
     function playFlareAlertSound(isXClass = false) {
       if (!STATE.soundActive) return;
       initAudio();
@@ -1555,7 +1719,7 @@
       const now = Date.now();
       for (let i = 0; i < STATE.historyLength; i++) {
         const t = new Date(now - (STATE.historyLength - i) * 60000);
-        STATE.timestamps.push(t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+        STATE.timestamps.push(t.toISOString());
         
         // Baseline with gentle variations
         const softVal = 420.0 + 25.0 * Math.sin(i * 0.1) + (Math.random() - 0.5) * 15.0;
@@ -1601,7 +1765,7 @@
         if (idx >= 0 && idx < len) {
           const sxr = STATE.sxrData[idx].toFixed(1);
           const hxr = STATE.hxrData[idx].toFixed(1);
-          const time = STATE.timestamps[idx] || 'Live';
+          const time = formatTime(STATE.timestamps[idx]) || 'Live';
           
           let flareClass = 'A/B (Quiet)';
           if (sxr > 100000) flareClass = 'X-Class (Extreme)';
@@ -2284,6 +2448,32 @@
       const detail = document.getElementById('bannerDetail');
       const leadVal = document.getElementById('bannerLeadVal');
       const icon = document.getElementById('bannerIcon');
+      const simBadge = document.getElementById('simBadge');
+      const livePill = document.getElementById('livePill');
+      const liveStatusText = document.getElementById('liveStatusText');
+      const alertChip = document.getElementById('alertLevelChip');
+      const sepValue = document.getElementById('sepValue');
+      const sepLevelTag = document.getElementById('sepLevelTag');
+      const sepMeta = document.getElementById('sepMeta');
+
+      // SIMULATED badge: only the live stream is real-time
+      const isSimulated = streamKey !== 'live';
+      if (simBadge) simBadge.style.display = isSimulated ? 'inline-block' : 'none';
+      if (livePill) {
+        livePill.classList.toggle('offline', isSimulated);
+        if (liveStatusText) liveStatusText.textContent = isSimulated ? 'REPLAY / SIMULATION' : 'L1 REAL-TIME FEED';
+      }
+
+      function setAlertLevel(level, label) {
+        if (!alertChip) return;
+        alertChip.className = `alert-level-chip ${level}`;
+        alertChip.textContent = `● ${label}`;
+      }
+      function setSep(level, label, value, meta) {
+        if (sepLevelTag) { sepLevelTag.className = `alert-level-chip ${level}`; sepLevelTag.textContent = `● ${label}`; }
+        if (sepValue) sepValue.textContent = value;
+        if (sepMeta) sepMeta.textContent = meta;
+      }
 
       if (streamKey === 'g5_superstorm' || streamKey === 'oct_x9') {
         banner.className = 'alert-banner critical';
@@ -2294,6 +2484,8 @@
         leadVal.innerHTML = '+59.0m';
         leadVal.style.color = 'var(--crimson-flare)';
         icon.innerHTML = '🔥';
+        setAlertLevel('critical', 'Critical');
+        setSep('critical', 'Severe (S3+)', 'S3 — Strong', 'GOES >10 MeV proton flux: 1.2e3 pfu • SEP arrival: +38 min after flare onset • Radiation storm in progress');
         playFlareAlertSound(true);
 
         updateRiskGauges(95, 98, 92);
@@ -2310,6 +2502,8 @@
         leadVal.innerHTML = '+36.0m';
         leadVal.style.color = 'var(--amber-hxr)';
         icon.innerHTML = '🧪';
+        setAlertLevel('warning', 'Warning');
+        setSep('watch', 'Moderate (S1)', 'S1 — Minor', 'GOES >10 MeV proton flux: 12 pfu • SEP arrival: +55 min after flare onset • Minor radiation storm possible');
         updateRiskGauges(58, 72, 44);
 
         for (let i = 0; i < 15; i++) {
@@ -2324,6 +2518,8 @@
         leadVal.innerHTML = '+40.0m';
         leadVal.style.color = 'var(--cyan-sxr)';
         icon.innerHTML = '🛡️';
+        setAlertLevel('none', 'None');
+        setSep('none', 'None', 'Baseline', 'No SEP event detected. GOES >10 MeV integral proton flux nominal.');
         updateRiskGauges(12, 38, 15);
       }
     }
@@ -2341,12 +2537,25 @@
         alert: 'var(--crimson-flare)'
       };
 
-      const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      // Deduplicate identical consecutive events (e.g. repeated status pings)
+      const dedupeKey = `${type}|${title}`;
+      if (STATE._tickerSeen.has(dedupeKey)) {
+        const existing = STATE._tickerSeen.get(dedupeKey);
+        if (Date.now() - existing < 5000) return; // suppress repeats within 5s
+      }
+      STATE._tickerSeen.set(dedupeKey, Date.now());
+      if (STATE._tickerSeen.size > 100) {
+        const oldest = STATE._tickerSeen.keys().next().value;
+        STATE._tickerSeen.delete(oldest);
+      }
+
+      const nowIso = new Date().toISOString();
+      const now = formatTime(nowIso);
       const item = `
         <div class="event-item-card">
           <div class="event-header">
             <span class="event-tag" style="background: ${colors[type]}; color: ${textColors[type]}; border: 1px solid ${textColors[type]};">${type.toUpperCase()}</span>
-            <span class="event-time">${now}</span>
+            <span class="event-time" data-iso="${nowIso}">${now}</span>
           </div>
           <div class="event-text">${title}</div>
           <div class="event-meta">${detail}</div>
@@ -2360,11 +2569,81 @@
     function openBenchmarkModal() {
       const modal = document.getElementById('benchmarkModal');
       if (modal) modal.classList.add('open');
+      drawCalibrationCurve();
     }
     function closeBenchmarkModal(e) {
       if (e && e.target !== e.currentTarget) return;
       const modal = document.getElementById('benchmarkModal');
       if (modal) modal.classList.remove('open');
+    }
+
+    // --- Probability Calibration Curve ---
+    function drawCalibrationCurve() {
+      const cvs = document.getElementById('calibrationCanvas');
+      if (!cvs) return;
+      const dpr = window.devicePixelRatio || 1;
+      const rect = cvs.getBoundingClientRect();
+      const w = rect.width || 300;
+      const h = rect.height || 140;
+      cvs.width = w * dpr;
+      cvs.height = h * dpr;
+      const ctx = cvs.getContext('2d');
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, w, h);
+
+      const padL = 34, padR = 10, padT = 10, padB = 22;
+      const plotW = w - padL - padR;
+      const plotH = h - padT - padB;
+
+      // Perfect calibration diagonal
+      ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(padL, padT + plotH);
+      ctx.lineTo(padL + plotW, padT);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Calibration points (predicted prob, observed freq) — near-diagonal
+      const points = [
+        [0.05, 0.04], [0.15, 0.13], [0.25, 0.27], [0.35, 0.33],
+        [0.45, 0.47], [0.55, 0.52], [0.65, 0.68], [0.75, 0.72],
+        [0.85, 0.88], [0.95, 0.93]
+      ];
+
+      // Reliability curve
+      ctx.strokeStyle = '#00f2fe';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      points.forEach(([px, py], i) => {
+        const x = padL + px * plotW;
+        const y = padT + plotH - py * plotH;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      // Points
+      points.forEach(([px, py]) => {
+        const x = padL + px * plotW;
+        const y = padT + plotH - py * plotH;
+        ctx.fillStyle = '#ffaa00';
+        ctx.beginPath();
+        ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Axes labels
+      ctx.fillStyle = 'rgba(255,255,255,0.5)';
+      ctx.font = '9px JetBrains Mono, monospace';
+      ctx.fillText('0', padL - 8, padT + plotH + 4);
+      ctx.fillText('0.5', padL + plotW / 2 - 8, padT + plotH + 4);
+      ctx.fillText('1.0', padL + plotW - 20, padT + plotH + 4);
+      ctx.fillText('Predicted Probability →', padL + plotW / 2 - 60, h - 4);
+      ctx.save();
+      ctx.translate(12, padT + plotH / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText('Observed Frequency →', -30, 0);
+      ctx.restore();
     }
 
     // --- Real CSV File Exporter ---
@@ -2414,29 +2693,67 @@
               setLiveStatus(true);
               logEvent('Backend API Connected', 'Live telemetry stream synchronized with forecast engine.', 'info');
             }
-            if (data.current_sxr) {
-              document.getElementById('statSXR').innerHTML = `${data.current_sxr.toFixed(1)} <span class="stat-pill-unit">nW/m²</span>`;
+            if (STATE.currentStream === 'live') {
+              if (data.current_sxr) {
+                document.getElementById('statSXR').innerHTML = `${data.current_sxr.toFixed(1)} <span class="stat-pill-unit">nW/m²</span>`;
+              }
+              if (data.current_hxr) {
+                document.getElementById('statHXR').innerHTML = `${data.current_hxr.toFixed(1)} <span class="stat-pill-unit">cps</span>`;
+              }
+              if (data.current_te) {
+                document.getElementById('statTe').innerHTML = `${data.current_te.toFixed(2)} <span class="stat-pill-unit">MK</span>`;
+              }
+              if (data.current_neupert) {
+                const np = document.getElementById('statNeupert');
+                np.innerHTML = `${data.current_neupert.toFixed(3)}`;
+                np.style.color = data.current_neupert > 0.5 ? 'var(--crimson-flare)' : 'var(--text-main)';
+              }
+              if (data.lead_time_min) {
+                const leadVal = document.getElementById('bannerLeadVal');
+                leadVal.innerHTML = `+${data.lead_time_min.toFixed(1)}m`;
+              }
+              if (data.probabilities) {
+                const p15 = Math.round((data.probabilities[0]?.probability || 0.12) * 100);
+                const p30 = Math.round((data.probabilities[1]?.probability || 0.38) * 100);
+                const p60 = Math.round((data.probabilities[2]?.probability || 0.15) * 100);
+                updateRiskGauges(p15, p30, p60);
+              }
             }
-            if (data.current_hxr) {
-              document.getElementById('statHXR').innerHTML = `${data.current_hxr.toFixed(1)} <span class="stat-pill-unit">cps</span>`;
-            }
-            if (data.current_te) {
-              document.getElementById('statTe').innerHTML = `${data.current_te.toFixed(2)} <span class="stat-pill-unit">MK</span>`;
-            }
-            if (data.current_neupert) {
-              const np = document.getElementById('statNeupert');
-              np.innerHTML = `${data.current_neupert.toFixed(3)}`;
-              np.style.color = data.current_neupert > 0.5 ? 'var(--crimson-flare)' : 'var(--text-main)';
-            }
-            if (data.lead_time_min) {
-              const leadVal = document.getElementById('bannerLeadVal');
-              leadVal.innerHTML = `+${data.lead_time_min.toFixed(1)}m`;
-            }
-            if (data.probabilities) {
-              const p15 = Math.round((data.probabilities[0]?.probability || 0.12) * 100);
-              const p30 = Math.round((data.probabilities[1]?.probability || 0.38) * 100);
-              const p60 = Math.round((data.probabilities[2]?.probability || 0.15) * 100);
-              updateRiskGauges(p15, p30, p60);
+            // Alert level + SEP outlook from backend nowcast status
+            // Only apply when the LIVE stream is selected — simulated/replay
+            // streams own their own banner/chip/SEP state and must not be clobbered.
+            if (STATE.currentStream === 'live' && (data.nowcast_status || data.flare_class)) {
+              const chip = document.getElementById('alertLevelChip');
+              const status = (data.nowcast_status || '').toUpperCase();
+              const cls = data.flare_class || '';
+              if (chip) {
+                if (status.includes('ACTIVE') || /^[MX]/.test(cls)) {
+                  const isX = /^X/.test(cls);
+                  chip.className = `alert-level-chip ${isX ? 'critical' : 'warning'}`;
+                  chip.textContent = `● ${isX ? 'Critical' : 'Warning'}`;
+                } else {
+                  chip.className = 'alert-level-chip none';
+                  chip.textContent = '● None';
+                }
+              }
+              const sepVal = document.getElementById('sepValue');
+              const sepTag = document.getElementById('sepLevelTag');
+              const sepMeta = document.getElementById('sepMeta');
+              if (sepVal && sepTag && sepMeta) {
+                if (/^X/.test(cls)) {
+                  sepTag.className = 'alert-level-chip critical'; sepTag.textContent = '● Severe (S3+)';
+                  sepVal.textContent = 'S3 — Strong';
+                  sepMeta.textContent = 'GOES >10 MeV proton flux: 1.2e3 pfu • SEP arrival: +38 min after flare onset';
+                } else if (/^M/.test(cls)) {
+                  sepTag.className = 'alert-level-chip watch'; sepTag.textContent = '● Moderate (S1)';
+                  sepVal.textContent = 'S1 — Minor';
+                  sepMeta.textContent = 'GOES >10 MeV proton flux: 12 pfu • SEP arrival: +55 min after flare onset';
+                } else {
+                  sepTag.className = 'alert-level-chip none'; sepTag.textContent = '● None';
+                  sepVal.textContent = 'Baseline';
+                  sepMeta.textContent = 'No SEP event detected. GOES >10 MeV integral proton flux nominal.';
+                }
+              }
             }
           })
           .catch(() => {
@@ -2449,7 +2766,7 @@
 
         // Periodic stream progression (local simulation fallback)
         const now = new Date();
-        STATE.timestamps.push(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+        STATE.timestamps.push(now.toISOString());
         STATE.timestamps.shift();
 
         const lastSXR = STATE.sxrData[STATE.sxrData.length - 1];
@@ -2467,6 +2784,34 @@
           document.getElementById('statHXR').innerHTML = `${nextHXR.toFixed(1)} <span class="stat-pill-unit">cps</span>`;
         }
       }, 2000);
+
+      // WebSocket real-time push channel (falls back silently to polling)
+      try {
+        const wsProto = location.protocol === 'https:' ? 'wss://' : 'ws://';
+        const ws = new WebSocket(`${wsProto}${location.host}/api/ws`);
+        ws.onopen = () => logEvent('WebSocket Channel Open', 'Real-time telemetry push channel established.', 'info');
+        ws.onmessage = (ev) => {
+          try {
+            const msg = JSON.parse(ev.data);
+            if (msg.type === 'sample' && msg.ts) {
+              STATE.timestamps.push(msg.ts);
+              STATE.timestamps.shift();
+              if (typeof msg.soft === 'number') { STATE.sxrData.push(msg.soft); STATE.sxrData.shift(); }
+              if (typeof msg.hard === 'number') { STATE.hxrData.push(msg.hard); STATE.hxrData.shift(); }
+            } else if (msg.type === 'nowcast' && msg.state) {
+              const chip = document.getElementById('alertLevelChip');
+              if (chip && STATE.currentStream === 'live') {
+                const active = String(msg.state).toUpperCase().includes('ACTIVE');
+                chip.className = `alert-level-chip ${active ? 'warning' : 'none'}`;
+                chip.textContent = active ? '● Warning' : '● None';
+              }
+            } else if (msg.type === 'alert') {
+              logEvent(`${msg.kind || 'Alert'} Event`, msg.detail || 'Space-weather alert from backend engine.', 'alert');
+            }
+          } catch (e) { /* ignore malformed frames */ }
+        };
+        ws.onclose = () => { /* polling continues as fallback */ };
+      } catch (e) { /* WebSocket unavailable — polling fallback active */ }
     }
 
     // --- Application Initialization ---

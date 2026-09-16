@@ -408,7 +408,7 @@ def get_engine() -> LiveEngine:
 # ------------------------------------------------------------------
 
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request, Response, WebSocket, WebSocketDisconnect
 from fastapi.responses import StreamingResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -653,6 +653,26 @@ async def stream(request: Request):
             b.unregister(q)
 
     return StreamingResponse(gen(), media_type="text/event-stream")
+
+
+@app.websocket("/api/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    """WebSocket mirror of the SSE stream for real-time telemetry push."""
+    await websocket.accept()
+    b = get_broadcaster()
+    q = await b.register()
+    try:
+        await websocket.send_text(json.dumps({"type": "connected", "ts": datetime.now(timezone.utc).isoformat()}))
+        while True:
+            try:
+                item = await asyncio.wait_for(q.get(), timeout=15.0)
+                await websocket.send_text(item)
+            except asyncio.TimeoutError:
+                await websocket.send_text(json.dumps({"type": "keepalive"}))
+    except Exception:
+        pass
+    finally:
+        b.unregister(q)
 
 
 if Path(DASHBOARD_DIR).exists():

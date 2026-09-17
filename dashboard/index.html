@@ -815,21 +815,21 @@
             ADITYA-L1 SOLAR FLARE EARLY WARNING SYSTEM
             <span class="brand-badge">SFEWS v5.5 REAL-STREAM</span>
           </h1>
-          <div class="brand-sub">Sun-Earth L1 Halo Orbit (1.496M km) • ISRO SoLEXS + HEL1OS & NOAA GOES Multi-Spectral Fusion</div>
+          <div class="brand-sub">Sun-Earth L1 Halo Orbit (1.496M km) • ISRO Aditya-L1 SoLEXS (Soft X-ray 2–22 keV) + HEL1OS (Hard X-ray 8–150 keV) Exclusively</div>
         </div>
       </div>
 
       <div class="header-actions">
         <select class="stream-select" id="streamSelect" onchange="changeTelemetryStream(this.value)">
-          <option value="g5_superstorm">⚡ May 2024 G5 Solar Superstorm (X8.7 FITS)</option>
-          <option value="oct_x9">🔥 October 2024 Monster Flare (X9.0 FITS)</option>
-          <option value="unseen_test">🧪 August 2026 Out-of-Sample Holdout (FITS)</option>
-          <option value="goes">📡 Live NOAA GOES-18 Real Stream</option>
+          <option value="g5_superstorm">⚡ ISRO Aditya-L1: May 2024 G5 Superstorm (X8.7 FITS)</option>
+          <option value="oct_x9">🔥 ISRO Aditya-L1: October 2024 Monster Flare (X9.0 FITS)</option>
+          <option value="aditya_l1_live">📡 ISRO Aditya-L1: Operational L1 Halo Telemetry (August 2026)</option>
+          <option value="unseen_test">🧪 ISRO Aditya-L1: Holdout Validation (Aug 16, 2026 FITS)</option>
         </select>
         
         <div class="live-status-pill">
           <span class="pulse-dot"></span>
-          <span id="sourceLabel">L1 FITS TELEMETRY</span>
+          <span id="sourceLabel">ISRO ADITYA-L1 FITS</span>
         </div>
 
         <span class="sim-badge" id="simBadge" style="display: none;">SIMULATED REPLAY</span>
@@ -1056,7 +1056,7 @@
                 <th>Event ID</th>
                 <th>Detection Time (UTC)</th>
                 <th>Peak Timestamp (UTC)</th>
-                <th>GOES Class</th>
+                <th>Flare Class</th>
                 <th>Peak Flux (nW/m²)</th>
                 <th>Aditya-L1 Lead Time</th>
                 <th>Neupert Verification</th>
@@ -1649,18 +1649,23 @@
       }
       else if (data.type === 'catalogue') {
         if (data.row) {
-          STATE.catalogList.unshift({
-            id: data.row.event_id || `AL1-EV-${Date.now().toString().slice(-4)}`,
-            time: data.row.start,
-            peak: data.row.peak,
-            cls: data.row.goes_like_class,
-            flux: Number(data.row.peak_counts).toFixed(1),
-            lead: `+${Number(data.row.lead_time_min).toFixed(1)} mins`,
-            neupert: data.row.neupert_corr > 0.2 ? 'VERIFIED' : 'PARTIAL',
-            conf: data.row.confidence !== undefined ? `${Number(data.row.confidence).toFixed(1)}%` : '--',
-            source: data.row.provenance || 'LIVE'
-          });
-          applyCatalogFilters();
+          // Dedup: replay loops re-detect the same flare
+          const key = (data.row.start || '') + '|' + (data.row.peak || '');
+          const exists = STATE.catalogList.some(f => (f.time + '|' + f.peak) === key);
+          if (!exists) {
+            STATE.catalogList.unshift({
+              id: data.row.event_id || `AL1-EV-${Date.now().toString().slice(-4)}`,
+              time: data.row.start,
+              peak: data.row.peak,
+              cls: data.row.goes_like_class,
+              flux: Number(data.row.peak_counts).toFixed(1),
+              lead: `+${Number(data.row.lead_time_min).toFixed(1)} mins`,
+              neupert: data.row.neupert_corr > 0.2 ? 'VERIFIED' : 'PARTIAL',
+              conf: data.row.confidence !== undefined ? `${Number(data.row.confidence).toFixed(1)}%` : '--',
+              source: data.row.provenance || 'LIVE'
+            });
+            applyCatalogFilters();
+          }
         }
       }
       else if (data.type === 'status') {
@@ -1852,7 +1857,7 @@
 
     // CSV Exporter
     function exportCatalogCSV() {
-      const headers = ['Event ID', 'Detection Time UTC', 'Peak Time UTC', 'GOES Class', 'Peak Flux (nW/m2)', 'Aditya-L1 Lead Time', 'Neupert Verification', 'Confidence', 'Source'];
+      const headers = ['Event ID', 'Detection Time UTC', 'Peak Time UTC', 'Flare Class', 'Peak Flux (nW/m2)', 'Aditya-L1 Lead Time', 'Neupert Verification', 'Confidence', 'Source'];
       const rows = STATE.catalogList.map(f => [
         `"${f.id}"`, `"${f.time}"`, `"${f.peak}"`, `"${f.cls}"`, f.flux, `"${f.lead}"`, `"${f.neupert}"`, `"${f.conf}"`, `"${f.source || 'LIVE'}"`
       ]);

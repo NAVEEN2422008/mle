@@ -1,8 +1,8 @@
 """Multi-Mission Satellite Dataset Ingestion & Archive Installer.
 
 Installs and expands comprehensive real-world formatted Level-1 datasets for both:
-1. ISRO Aditya-L1 SoLEXS (Soft X-Ray Spectrometer, 1-30 keV, SDD1 + SDD2 detectors)
-2. ISRO Aditya-L1 HEL1OS (Hard X-Ray Spectrometer, 10-150 keV, CdTe + CZT detectors)
+1. ISRO Aditya-L1 SoLEXS (Soft X-Ray Spectrometer, 2-22 keV, SDD1 + SDD2 detectors)
+2. ISRO Aditya-L1 HEL1OS (Hard X-Ray Spectrometer, 8-150 keV, CdTe + CZT detectors)
 3. NOAA GOES-16/18 XRS Real-Time & Historical Solar Telemetry
 
 Generates authentic FITS Binary Table ZIP archives (*.lc.gz / *.fits.gz) for:

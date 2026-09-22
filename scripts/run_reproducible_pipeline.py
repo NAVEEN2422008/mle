@@ -50,7 +50,7 @@ def generate_neupert_consistent_dataset(
 ) -> pd.DataFrame:
     """
     Generates a physically realistic multi-spectral dataset representing
-    Aditya-L1 SoLEXS (1-30 keV) and HEL1OS (10-150 keV) observations with
+    Aditya-L1 SoLEXS (2-22 keV) and HEL1OS (8-150 keV) observations with
     embedded pre-flare thermal preheating, impulsive non-thermal HXR bursts,
     chromospheric evaporation, and exponential cooling.
     """

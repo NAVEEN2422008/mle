@@ -36,7 +36,7 @@ def main():
     # COMPONENT 1: Data Ingestion & Pre-processing Pipeline
     # -------------------------------------------------------------------------
     print("\n[COMPONENT 1] Data Ingestion & Multi-Instrument Alignment")
-    print("  - Downloading / Parsing SoLEXS (Soft X-Ray 1-30 keV) & HEL1OS (Hard X-Ray 10-150 keV)...")
+    print("  - Downloading / Parsing SoLEXS (Soft X-Ray 2-22 keV) & HEL1OS (Hard X-Ray 8-150 keV)...")
     
     n_samples = 3600
     t0 = datetime(2024, 7, 15, 0, 0, 0)

@@ -101,12 +101,23 @@ def train_with_cv(
     folds: List[Tuple[np.ndarray, np.ndarray, float]],
     use_lightgbm: bool = True,
     threshold_grid: Optional[Union[Sequence[float], np.ndarray]] = None,
+    val_frac: float = 0.2,
+    fixed_threshold: float = 0.5,
 ) -> dict:
     """Walk-forward CV over full-timeline arrays.
 
     y_raw may contain -1 for masked (in-flare) samples: they are excluded from
     fitting and scoring. Fold index arrays are given in full-timeline space and
     are mapped onto the retained subset internally.
+
+    LEAKAGE-FREE THRESHOLD SELECTION (fixes threshold-on-test bias):
+    - Within each fold, the training block is split temporally into fit + validation
+      (last `val_frac` of the block, respecting walk-forward order).
+    - The operating threshold is tuned ONLY on the validation slice.
+    - The test fold is evaluated at that validation-tuned threshold.
+    - The aggregate OOF result is reported at a FIXED pre-registered threshold
+      (`fixed_threshold`, default 0.5) — the honest, reproducible number.
+      The median fold-tuned threshold result is also returned for transparency.
     """
     from .metrics import evaluate_forecast
 
@@ -135,29 +146,55 @@ def train_with_cv(
         tr_v, te_v = restrict(tr), restrict(te)
         if len(te_v) < 5:
             continue
+
+        # --- temporal fit/validation split of the training block ---
+        n_tr = len(tr_v)
+        n_val = max(5, int(n_tr * val_frac))
+        if n_tr - n_val < 10:
+            n_val = max(0, n_tr - 10)
+        fit_v = tr_v[: n_tr - n_val] if n_val > 0 else tr_v
+        val_v = tr_v[n_tr - n_val :] if n_val > 0 else np.array([], dtype=int)
+
         model = model_factory()
-        model.fit(X[valid_pos][tr_v], y[tr_v])
+        model.fit(X[valid_pos][fit_v], y[fit_v])
+
+        # --- tune threshold on VALIDATION ONLY ---
+        if len(val_v) >= 5:
+            val_prob = np.asarray(model.predict_proba(X[valid_pos][val_v]))[:, 1]
+            best_val = max(
+                (evaluate_forecast(y[val_v], val_prob, th) for th in thresholds),
+                key=lambda r: r["tss"],
+            )
+            th = float(best_val["threshold"])
+        else:
+            th = fixed_threshold
+
+        # --- evaluate test fold at the validation-tuned threshold ---
         prob = np.asarray(model.predict_proba(X[valid_pos][te_v]))[:, 1]
         oof_prob[te_v] = prob
-        best = max(
-            (evaluate_forecast(y[te_v], prob, th) for th in thresholds),
-            key=lambda r: r["tss"],
+        per_fold.append(
+            {
+                "fold": fi,
+                "embargo_s": emb,
+                "val_threshold": th,
+                **evaluate_forecast(y[te_v], prob, th),
+            }
         )
-        per_fold.append({"fold": fi, "embargo_s": emb, **best})
 
     fitted_mask = ~np.isnan(oof_prob)
-    oof_best = max(
-        (
-            evaluate_forecast(y[fitted_mask], oof_prob[fitted_mask], th)
-            for th in thresholds
-        ),
-        key=lambda r: r["tss"],
-    )
+    # Honest primary result: fixed pre-registered threshold.
+    oof_fixed = evaluate_forecast(y[fitted_mask], oof_prob[fitted_mask], fixed_threshold)
+    # Transparency: aggregate at the median fold-tuned threshold.
+    fold_ths = [f["val_threshold"] for f in per_fold]
+    median_th = float(np.median(fold_ths)) if fold_ths else fixed_threshold
+    oof_tuned = evaluate_forecast(y[fitted_mask], oof_prob[fitted_mask], median_th)
 
     return {
         "folds": per_fold,
-        "oof": oof_best,
-        "chosen_threshold": oof_best["threshold"],
+        "oof": oof_fixed,
+        "oof_tuned_threshold": oof_tuned,
+        "chosen_threshold": median_th,
+        "fixed_threshold": fixed_threshold,
         "n_labelled": int(fitted_mask.sum()),
         "base_rate": float(np.mean(y == 1)),
     }

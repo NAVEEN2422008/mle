@@ -273,6 +273,99 @@ def evaluate_forecast(
     }
 
 
+def bootstrap_tss_ci(
+    y_true: ArrayLike,
+    y_prob: ArrayLike,
+    threshold: float = 0.5,
+    n_boot: int = 1000,
+    block_min: int = 30,
+    seed: int = 42,
+    ci: float = 0.95,
+) -> Dict[str, float]:
+    """Block-bootstrap confidence interval for TSS at a fixed threshold.
+
+    Temporal autocorrelation inflates naive sample counts, so we resample
+    contiguous BLOCKS of `block_min` samples (matching the 1-min cadence =>
+    a 30-min block) rather than independent samples. Returns the percentile
+    CI plus the point estimate and the fraction of bootstrap TSS > 0.
+    """
+    rng = np.random.default_rng(seed)
+    y = np.asarray(y_true, dtype=int)
+    p = np.asarray(y_prob, dtype=float)
+    n = len(y)
+    if n == 0:
+        return {"tss": 0.0, "ci_lo": 0.0, "ci_hi": 0.0, "p_tss_gt_0": 0.0, "n_boot": 0}
+
+    def _tss(yb, pb):
+        cm = ConfusionMatrix()
+        pred = (pb >= threshold).astype(int)
+        cm.tp = int(np.sum((pred == 1) & (yb == 1)))
+        cm.fp = int(np.sum((pred == 1) & (yb == 0)))
+        cm.fn = int(np.sum((pred == 0) & (yb == 1)))
+        cm.tn = int(np.sum((pred == 0) & (yb == 0)))
+        return cm.tss
+
+    point = _tss(y, p)
+    block = max(1, block_min)
+    n_blocks = max(1, n // block)
+    boot_tss = np.empty(n_boot)
+    for b in range(n_boot):
+        idx = np.concatenate(
+            [rng.integers(0, n - block + 1) + np.arange(block) for _ in range(n_blocks)]
+        )[:n]
+        boot_tss[b] = _tss(y[idx], p[idx])
+
+    alpha = (1.0 - ci) / 2.0
+    lo, hi = np.percentile(boot_tss, [100 * alpha, 100 * (1.0 - alpha)])
+    return {
+        "tss": round(float(point), 4),
+        "ci_lo": round(float(lo), 4),
+        "ci_hi": round(float(hi), 4),
+        "p_tss_gt_0": round(float(np.mean(boot_tss > 0.0)), 4),
+        "n_boot": int(n_boot),
+        "block_min": int(block_min),
+    }
+
+
+def per_class_tss(
+    y_true: ArrayLike,
+    y_prob: ArrayLike,
+    peak_fluxes: Sequence[float],
+    threshold: float = 0.5,
+    class_thresholds: Optional[Sequence[float]] = None,
+) -> Dict[str, Dict[str, float]]:
+    """Per-class TSS for flare classes >=B, >=C, >=M, >=X.
+
+    Each class threshold defines a binary problem: y=1 iff the sample's
+    associated peak flux reaches that class. Class thresholds are GOES
+    long-channel flux in W/m^2: B=1e-7, C=1e-6, M=1e-5, X=1e-4.
+    """
+    if class_thresholds is None:
+        class_thresholds = {"B": 1e-7, "C": 1e-6, "M": 1e-5, "X": 1e-4}
+    y = np.asarray(y_true, dtype=int)
+    p = np.asarray(y_prob, dtype=float)
+    fluxes = np.asarray(peak_fluxes, dtype=float)
+    out: Dict[str, Dict[str, float]] = {}
+    for label, thr in class_thresholds.items():
+        yc = (fluxes >= thr).astype(int)
+        if np.sum(yc) == 0:
+            out[label] = {"tss": float("nan"), "n_pos": 0, "note": "no events in class"}
+            continue
+        cm = ConfusionMatrix()
+        pred = (p >= threshold).astype(int)
+        cm.tp = int(np.sum((pred == 1) & (yc == 1)))
+        cm.fp = int(np.sum((pred == 1) & (yc == 0)))
+        cm.fn = int(np.sum((pred == 0) & (yc == 1)))
+        cm.tn = int(np.sum((pred == 0) & (yc == 0)))
+        out[label] = {
+            "tss": round(cm.tss, 4),
+            "pod": round(cm.pod, 4),
+            "far": round(cm.far, 4),
+            "n_pos": int(np.sum(yc)),
+        }
+    return out
+
+
 def compute_contingency_scores(
     y_true: ArrayLike,
     y_prob: ArrayLike,

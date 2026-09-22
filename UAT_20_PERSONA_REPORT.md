@@ -175,7 +175,7 @@
 
 ### 📊 PERSONA 17 — Data Scientist / ML Engineer
 **Rating: 6/10**
-- **Works:** TSS +0.936, POD 99%, FAR 12.4% are strong headline numbers. The benchmark modal is a nice touch.
+- **Works:** The benchmark modal is a nice touch. (Note: the "+0.936 / POD 99% / FAR 12.4%" figures cited during UAT were benchmark-demo values; the verified TSS is +0.218 live / +0.296 GOES validation — see integrity note updated 2026-09-22.)
 - **Broken:** No calibration curve (predicted prob vs observed freq) — a TSS without calibration is incomplete. No per-class breakdown (C/M/X) — the aggregate hides that B/A-class dominates the feed. The "confidence" column is a made-up formula.
 - **Add:** Calibration curve, per-class TSS, confusion matrix, reliability diagram.
 - **Remove:** The fake confidence values.

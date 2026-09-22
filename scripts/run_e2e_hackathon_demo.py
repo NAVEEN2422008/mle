@@ -123,7 +123,7 @@ def main():
     
     print(f"  [OK] Probability Forecast: P(C-Class)={p_c*100:.1f}%, P(M-Class)={p_m*100:.1f}%, P(X-Class)={p_x*100:.1f}%")
     print(f"  [OK] Pre-Peak Early Warning Lead Time: +{lead_time_minutes:.1f} minutes")
-    print(f"  [OK] Validation Contingency Scores: TSS = +0.9905, POD = 100.0%, FAR = 0.8%")
+    print(f"  [OK] Validation Contingency Scores (live NOAA eval, 15-22 Sep 2026): TSS = +0.218, POD = 42.3%, FAR = 76.6%")
 
     # -------------------------------------------------------------------------
     # COMPONENT 4: Visualizing User Interface (UI Dashboard)

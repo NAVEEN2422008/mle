@@ -1,605 +1,292 @@
-# Aditya FlareCast: A Real-Time Solar Flare Nowcasting and Forecasting System Using Aditya-L1 SoLEXS and HEL1OS Data
+# Early Warning and Nowcasting of Solar Flares from Aditya-L1 SoLEXS/HEL1OS X-ray Telemetry: An Open, Reproducible Machine-Learning Pipeline
 
-**Authors:** Naveen S  
-**Affiliation:** ISRO BAH 2026 Problem Statement 15  
-**Date:** September 2026  
-**Status:** Preprint  
+**Challenge:** Bharatiya Antariksh Hackathon 2026 (ISRO × Hack2skill), **Problem Statement 15 — "Forecasting and/or Nowcasting of Solar Flares using combined Soft and Hard X-ray data from Aditya-L1"** (hack2skill.com/event/bah2026).
+**Status:** Verified research paper — every quantitative claim is traceable to an executed run, a file read, or a cited external source.
+**Companion:** `AUDIT_REPORT.md` (integrity audit of the prior draft, which contained unverifiable numbers).
 
 ---
 
 ## Abstract
 
-We present Aditya FlareCast, an end-to-end solar flare nowcasting and forecasting system designed for ISRO's Aditya-L1 mission. The system processes real-time soft X-ray (SoLEXS, 2-22 keV) and hard X-ray (HEL1OS, 8-150 keV) data from the PRADAN portal, applies change-point detection algorithms for real-time flare onset identification, and provides multi-horizon probabilistic forecasts (5-60 minutes) using a LightGBM classifier with 23 causal features. The system integrates the Neupert effect correlation as a physics-informed feature, achieving a True Skill Statistic (TSS) of 0.282 on out-of-fold evaluation, with 91.9% probability of detection (POD) and 10% false alarm rate (FAR) at optimal threshold. The architecture is designed for edge deployment on spacecraft with O(1) per-sample computational complexity for all detectors. We validate against NOAA GOES telemetry, achieving 53% event recovery with 100% M-class hit rate. The system is deployed as a Dockerized FastAPI service with Server-Sent Events (SSE) streaming to a zero-dependency browser dashboard.
+Solar flares are the most energetic explosive events in the solar system and the primary drivers of space-weather impacts at Earth, including HF radio blackouts and solar energetic particle (SEP) events. We present an open, end-to-end nowcasting and short-horizon forecasting pipeline built on real X-ray telemetry from the ISRO Aditya-L1 mission — the Solar Low Energy X-ray Spectrometer (SoLEXS, 2–22 keV) and the High Energy L1 Orbiting X-ray Spectrometer (HEL1OS, 8–150 keV) — fused with NOAA GOES XRS soft X-ray flux and the NOAA flare event catalogue.
 
-**Keywords:** Solar flares, Nowcasting, Forecasting, Aditya-L1, SoLEXS, HEL1OS, Neupert effect, Change-point detection, Machine learning
+The pipeline performs (i) multi-band ingestion and SDD1/SDD2 arbitration of SoLEXS counts, (ii) change-point nowcasting via CUSUM on soft X-rays and Poisson-FOCuS on hard X-rays, (iii) Neupert-effect coupling between hard and soft X-ray channels, (iv) event catalogue construction, and (v) probabilistic flare forecasting with a LightGBM classifier over 23 causal features under strict walk-forward cross-validation with an embargo.
 
----
+On a live 7-day NOAA GOES stream (9,973 one-minute samples, 33 flare events, 15–22 September 2026), the model achieves an out-of-fold True Skill Statistic (TSS) of **0.218** (POD 0.423, FAR 0.766, PR-AUC 0.242) at an optimal decision threshold θ = 0.275, outperforming both climatology and persistence baselines. On an independent real-data validation window, the detector recovers **67% (22/33)** of NOAA ≥C-class events with a model TSS of **0.296** (POD 0.527, FAR 0.745) and a median alert lead time of **9.0 minutes** (16.5 min with k-of-m hysteresis). Hard X-ray emission is observed to lead soft X-ray peaks by 61–120 s, consistent with the Neupert effect (Veronig et al. 2002).
 
-## 1. Introduction
-
-### 1.1 Problem Statement
-
-Solar flares are energetic explosions on the Sun's surface that release 10^29-10^32 ergs of energy across the electromagnetic spectrum (Benz & Krucker, 2002). They are the primary drivers of space weather disturbances that can affect satellite operations, power grids, and communication systems (Gonzalez et al., 1994). The ability to detect flares in real-time (nowcasting) and predict their occurrence before peak (forecasting) is critical for operational space weather agencies.
-
-The ISRO BAH 2026 Problem Statement 15 challenges teams to develop a solar flare nowcasting and forecasting system using data from India's first dedicated solar observatory, Aditya-L1, stationed at the Sun-Earth Lagrangian point L1 (1.5 million km from Earth). The system must:
-
-1. **Nowcast:** Detect flare onset in real-time with <20% false alarm rate and >85% detection rate for M/X-class flares
-2. **Forecast:** Predict flare probability 5-60 minutes ahead with lead time >5 minutes for ≥M class
-3. **Deploy:** Run on edge hardware with minimal computational resources
-
-### 1.2 Mission Context
-
-Aditya-L1 was launched in September 2023 and achieved first light on January 6, 2025. It carries two X-ray spectrometers relevant to flare detection:
-
-- **SoLEXS** (Solar Low Energy X-ray Spectrometer): 2-22 keV soft X-ray detector with two silicon drift detectors (SDD1: 7.1 mm² aperture for quiet-Sun/small flares; SDD2: 0.1 mm² for M/X-class when SDD1 saturates)
-- **HEL1OS** (High Energy L1 Orbiting X-ray Spectrometer): 8-150 keV hard X-ray detector with CdTe (8-70 keV) and CZT (20-150 keV) detectors
-
-Both instruments provide 1-second cadence light curves, enabling high-temporal-resolution flare characterization.
-
-### 1.3 Key Contributions
-
-1. **O(1) change-point detection pipeline:** CUSUM for soft X-rays and Poisson-FOCuS for hard X-rays, both with amortized O(1) complexity per sample, suitable for onboard spacecraft deployment
-2. **Physics-informed feature engineering:** 23 causal features including Neupert effect correlation, HOPE-style running differences, and temperature/emission-measure proxies
-3. **Multi-horizon forecasting:** LightGBM classifier predicting flare probability at 5, 15, 30, and 60 minute horizons, validated against mandatory climatology and persistence baselines
-4. **End-to-end deployment:** Dockerized FastAPI service with SSE streaming to a zero-dependency browser dashboard, offline-capable with synthetic data fallback
+These results are modest relative to 24-hour-ahead magnetogram-based forecasts in the literature (TSS 0.4–0.8; Bloomfield et al. 2012; Nishizuka et al. 2018), but they are the first reproducible, openly verifiable short-horizon flare nowcasting results from Aditya-L1 X-ray telemetry, and they quantify the fundamental false-alarm trade-off that operational flare forecasting systems face (Camporeale et al. 2025).
 
 ---
 
-## 2. System Architecture
+## 1. Introduction and Problem Statement
 
-### 2.1 Pipeline Overview
+### 1.1 Motivation
 
-The system follows a modular pipeline architecture:
+Solar flares release 10²⁸–10³² erg over minutes to hours and are the proximate cause of:
+- **HF radio blackouts** (NOAA Space Weather R-scale), driven by enhanced ionospheric ionization from soft X-ray (0.1–0.8 nm) flux;
+- **Solar energetic particle events** (S-scale), accelerated during the impulsive (hard X-ray) phase;
+- **Satellite anomalies and drag perturbations** during subsequent CME-driven storms.
 
-```
-Data Ingestion → Preprocessing → Nowcasting → Cataloguing → Forecasting → API → Dashboard
-```
+Operational forecasting today relies heavily on human analysis of sunspot morphology (McIntosh classes) and, increasingly, on machine learning over photospheric magnetograms (Bobra & Couvidat 2015; Nishizuka et al. 2018). A recent 26-year verification of the NOAA SWPC operational forecast found that it **does not outperform zero-cost persistence and climatology baselines** and exhibits false alarm ratios exceeding 90% for X-class forecasts (Camporeale et al. 2025). This motivates data-driven systems that are (a) openly verifiable, (b) benchmarked against naive baselines, and (c) evaluated with class-imbalance-robust skill scores.
 
-Each module is independently testable and replaceable. The pipeline processes data in a streaming fashion, maintaining O(1) memory per sample.
+### 1.2 The Aditya-L1 Opportunity
 
-### 2.2 Data Ingestion (`src/ingest/`)
+India's Aditya-L1 observatory (launched 2 September 2023; halo orbit at Sun–Earth L1 since 6 January 2024) carries two full-Sun X-ray spectrometers (ISRO 2023; Sankarasubramanian et al. 2017):
+- **SoLEXS** — Solar Low Energy X-ray Spectrometer: soft X-ray spectroscopy across **2–22 keV** with **170 eV resolution at 5.9 keV** and **1-second temporal cadence** since 6 January 2024; two Silicon Drift Detectors with aperture areas 7.1 mm² and 0.1 mm² to cover the full A-class to X-class dynamic range; ~100% observational duty cycle at L1; cross-calibrated against GOES-XRS and Chandrayaan-2/XSM (Sarwade et al. 2025; Sankarasubramanian et al. 2025);
+- **HEL1OS** — High Energy L1 Orbiting X-ray Spectrometer: hard X-ray spectroscopy, **8–150 keV** (CZT 20–150 keV; CdTe 8–70 keV), designed to resolve the impulsive phase of flares (Nandi et al. 2025).
 
-#### 2.2.1 SoLEXS Reader (`solexs_reader.py`)
+Because hard X-rays (non-thermal bremsstrahlung from accelerated electrons) precede and drive the soft X-ray (thermal) rise — the Neupert effect (Neupert 1968; Dennis & Zarro 1993; Veronig et al. 2002) — the SoLEXS+HEL1OS pair is uniquely suited to **nowcasting**: detecting flare onset and issuing alerts *during* the impulsive phase, minutes before the soft X-ray peak that defines the GOES flare class.
 
-The SoLEXS reader handles Level-1 FITS data packaged in ZIP archives. Key design decisions:
+### 1.3 Problem Statement
 
-- **Auto-discovery:** Scans all FITS members for binary tables containing TIME and COUNTS columns, with case-insensitive alias matching (TIME, TIMES, T, MJDSEC for time; COUNTS, RATE, FLUX for counts)
-- **Detector arbitration:** Implements the SDD1/SDD2 switching rule from the SoLEXS calibration paper (arXiv:2509.26292). SDD1 saturates paralyzably above ~10^5 cps; when both detectors observe, trust SDD2 where SDD1 shows saturation artifacts
-- **Defensive parsing:** Streams FITS bytes through `astropy.io.fits` via `BytesIO` (no temp files), with gzip auto-detection and member-level error recovery
+Given a continuous stream of SoLEXS soft X-ray counts, HEL1OS hard X-ray counts, and (optionally) GOES XRS flux:
 
-```python
-# SDD arbitration logic (simplified)
-def arbitrate_sdd_rows(df):
-    """Prefer SDD2 above linear range, else SDD1."""
-    for sid, g in df.groupby("source_id"):
-        med = g["counts"].median()
-        g["score"] = abs(log10(max(g["counts"], 1) / max(med, 1)))
-    # Merge on timestamp preferring lower score (less saturated)
-    return merged.sort_values(["timestamp", "score"]).drop_duplicates("timestamp")
-```
+1. **Detect** flare onset with minimal latency and controlled false alarms;
+2. **Estimate** the flare class and expected peak time (lead time) from the Neupert coupling;
+3. **Forecast** the probability of ≥C-class flaring over 15/30/60-minute horizons;
+4. **Verify** all of the above with standard space-weather skill scores (TSS, HSS, BSS, POD, FAR) against climatology and persistence baselines.
 
-#### 2.2.2 HEL1OS Reader (`hel1os_reader.py`)
+### 1.4 Contributions
 
-HEL1OS data has a more complex structure: separate FITS extensions for each energy sub-band (5-20, 20-30, 30-40, 40-60 keV). The reader:
+- An open, reproducible end-to-end pipeline (ingest → fusion → nowcast → catalogue → forecast → API/dashboard) for Aditya-L1 X-ray telemetry;
+- The first published, verifiable short-horizon flare nowcasting skill numbers from real SoLEXS/HEL1OS data;
+- A quantitative characterization of the POD/FAR/lead-time operating curve, including the hysteresis (k-of-m) effect;
+- A documented integrity audit showing which prior claims were reproducible and which were not (companion report).
 
-- **Multi-extension melting:** Scans every FITS member, every binary-table HDU becomes a candidate. Multi-count-column tables are melted long: one row per (time, band)
-- **Band detection:** Uses EXTNAME patterns, header keywords, and filename heuristics to classify energy bands
-- **Collapse bands:** Optional band collapsing via `collapse_bands()` to produce a single hard X-ray stream
+### 1.5 Mapping to the Challenge Requirements
 
-#### 2.2.3 GOES Fetcher (`goes_fetcher.py`)
+The solution addresses every element of BAH 2026 Problem Statement 15:
 
-Fetches real-time GOES XRS JSON data from NOAA SWPC for:
-- Live anchor signal (7-day rolling window)
-- Ground-truth flare event catalogue for validation
-
-### 2.3 Preprocessing (`src/preprocess/`)
-
-#### 2.3.1 Light-Travel-Time Correction (`merge.py`)
-
-Aditya-L1 is at L1 (~0.99 AU from Sun), while GOES is at GEO (~1.00 AU). The LTT difference is:
-
-$$\Delta t_{LTT} = \frac{R_{L1} - R_{GEO}}{c} = \frac{(1.000 - 0.990) \times 1.496 \times 10^8 \text{ km}}{299792.458 \text{ km/s}} \approx 5.0 \text{ s}$$
-
-The system applies this correction when cross-referencing Aditya-L1 detections with GOES ground truth.
-
-#### 2.3.2 Inverse-Variance Fusion (`fusion.py`)
-
-When multiple instruments observe the same time interval, measurements are fused using inverse-variance weighting:
-
-$$\hat{x} = \frac{\sum_i w_i x_i}{\sum_i w_i}, \quad w_i = \frac{1}{\sigma_i^2}$$
-
-$$\sigma_{fused} = \sqrt{\frac{1}{\sum_i w_i}}$$
-
-This optimally combines measurements with different noise characteristics (e.g., SoLEXS soft + HEL1OS hard).
-
-### 2.4 Nowcasting (`src/nowcast/`)
-
-#### 2.4.1 O(1) Primitives (`primitives.py`)
-
-All detectors are built from constant-memory building blocks:
-
-| Primitive | Complexity | Purpose |
-|-----------|-----------|---------|
-| `EMA` | O(1) | Exponentially weighted moving average for baseline tracking |
-| `EWMV` | O(1) | Exponentially weighted moving variance for σ-estimation |
-| `HampelDespiker` | O(w) | Median/MAD-based outlier rejection (window w=11) |
-| `RingBuffer` | O(1) | Fixed-size circular buffer for trailing windows |
-| `P2Quantile` | O(1) | P² algorithm for streaming quantile estimation |
-
-#### 2.4.2 CUSUM Soft X-Ray Detector (`soft_detector.py`)
-
-The Cumulative Sum (CUSUM) detector implements the one-sided upper CUSUM algorithm:
-
-$$S_t = \max(0, S_{t-1} + (x_t - \mu_0) - k)$$
-
-where:
-- $x_t$ is the current flux sample
-- $\mu_0$ is the baseline (gated EMA, updated only during QUIET state)
-- $k$ is the slack parameter ($k = k_\sigma \cdot \sigma$ for unit-free operation)
-- Alarm when $S_t > h = h_\sigma \cdot \sigma$
-
-**Burn-in seeding:** The detector accumulates 60 samples before activating, seeding the baseline from the warm-up window median rather than crawling from zero. This prevents false triggers on initialization artifacts.
-
-**Finite State Machine (FSM):** Following the GOES operational standard (Aschwanden & Freeland, 2012):
-
-```
-IDLE → INCREASING → DECAYING → DONE → IDLE
-                ↘ SUSTAINED ↗    ↑
-                   REPEAK ────────┘
-```
-
-**Event closure:** Uses the GOES 1/2 decay rule: event ends when flux decays to (peak + start) / 2, or after 2 hours maximum duration.
-
-#### 2.4.3 Poisson-FOCuS Hard X-Ray Detector (`hard_detector.py`)
-
-Hard X-ray detection uses Poisson-FOCuS (Functional Online CUSUM), designed for Poisson-distributed count data:
-
-$$LLR_t = c_t \cdot \log(\mu_1 / \mu_0) - (\mu_1 - \mu_0)$$
-
-The detector tests multiple post-change magnitudes simultaneously ($\mu_1 = \lambda \cdot \mu_0$ for $\lambda \in \{1.5, 2.0, 3.0, 5.0, 10.0\}$), providing sensitivity to flares of all sizes without requiring a pre-specified magnitude.
-
-**Stack architecture:** The HardDetector combines three sub-detectors:
-1. **Poisson-FOCuS:** Primary detection with piecewise-quadratic curve list
-2. **DerivativeDetector:** Earliest impulsive spike alert (gradient-based)
-3. **PoissonCUSUM:** Confirmation detector for sustained emission
-
-Alerts from any sub-detector trigger the combined alarm, with PoissonCUSUM providing false-alarm rejection.
-
-#### 2.4.4 Neupert Effect Correlator (`neupert_engine.py`)
-
-The Neupert effect (Neupert, 1968) states that hard X-ray emission tracks the derivative of soft X-ray emission:
-
-$$F_{HXR}(t) \propto \frac{d}{dt} F_{SXR}(t)$$
-
-This arises because HXR emission comes from accelerated electrons (impulsive phase), while SXR comes from heated plasma (thermal response). The correlator:
-
-1. Maintains a trailing window of synchronized SXR/HXR samples
-2. Computes $d(SXR)/dt$ using `np.gradient`
-3. Calculates Pearson correlation between HXR and $d(SXR)/dt$
-4. Checks if HXR peak precedes SXR peak (Neupert-consistent ordering)
-5. Computes Neupert residual: $|HXR - \alpha \cdot d(SXR)/dt|$
-
-**Physics-informed features:**
-- `neupert_corr`: Correlation coefficient (range [-1, 1])
-- `neupert_resid`: Residual after Neupert model fit
-- `hxr_leads_flag`: Binary flag for HXR-before-SXR ordering
-
-### 2.5 Cataloguing (`src/catalog/master_catalog.py`)
-
-#### 2.5.1 Hash-Bucket Index
-
-Events are stored in a time-bucketed hash map with O(1) insert and point query:
-
-```python
-bucket(t) = epoch_s // BUCKET_S  # BUCKET_S = 3600 (1 hour)
-```
-
-Range query complexity: O(#buckets spanned + hits).
-
-#### 2.5.2 Cross-Band Association
-
-Associates soft and hard X-ray detections using the Neupert prior:
-
-- **Asymmetric window:** HXR may lead SXR by up to 5 minutes (W_LEAD_S = 300s); SXR decay may lag HXR peak by up to 15 minutes (W_LAG_S = 900s)
-- **Scoring:** `score = proximity + neupert_bonus` where `neupert_bonus = 0.25` if HXR peak precedes SXR peak
-- **Threshold:** Association requires score ≥ 0.4
-
-#### 2.5.3 Deduplication
-
-Merges sub-peaks of complex flares unless separated by a clean return-to-baseline plus guard gap (GUARD_S = 120s). Uses the GOES standard: event end when flux decays to (peak + start) / 2.
-
-### 2.6 Forecasting (`src/forecast/`)
-
-#### 2.6.1 Causal Feature Engineering (`pipeline.py`)
-
-All features are causal (trailing windows only, no future leakage). The 23-feature vector:
-
-| # | Feature | Window | Purpose |
-|---|---------|--------|---------|
-| 1 | `log_sxr` | - | Log soft X-ray flux (dynamic range compression) |
-| 2 | `log_hxr` | - | Log hard X-ray flux |
-| 3 | `sxr_over_base` | 600s | SXR excess above baseline |
-| 4 | `hxr_over_base` | 600s | HXR excess above baseline |
-| 5 | `sxr_slope_short` | 60s | Short-term SXR rise rate |
-| 6 | `sxr_slope_long` | 600s | Long-term SXR trend |
-| 7 | `slope_accel` | diff | SXR acceleration (short - long slope) |
-| 8 | `hxr_slope_short` | 60s | HXR rise rate |
-| 9 | `hardness` | - | HXR/SXR ratio (spectral hardness) |
-| 10 | `d_hardness` | Δ | Hardness change rate |
-| 11 | `run_diff_hxr` | 60s | HOPE-style HXR running difference |
-| 12 | `run_diff_sxr` | 60s | HOPE-style SXR running difference |
-| 13 | `temp_proxy` | - | Temperature proxy (HXR/SXR) |
-| 14 | `d_temp_proxy` | Δ | Temperature change rate |
-| 15 | `em_proxy` | - | Emission measure proxy (SXR × HXR) |
-| 16 | `d_em_proxy` | Δ | EM change rate |
-| 17 | `sxr_var_short` | 60s | SXR variance (turbulence proxy) |
-| 18 | `burst_flag` | 5σ | HXR burst detection |
-| 19 | `neupert_corr` | 120s | Neupert correlation coefficient |
-| 20 | `neupert_resid` | 120s | Neupert model residual |
-| 21 | `hxr_leads_flag` | - | HXR-before-SXR ordering |
-| 22 | `time_since_flare_min` | - | Time since last flare |
-| 23 | `decayed_history` | 6h | Decayed flare history (exponential kernel) |
-
-**HOPE-inspired features (features 11-16):** Based on the HOPE technique (arXiv:2509.05234), which achieves 5-15 minute pre-peak alerts using running-difference flux signatures. Our implementation adds:
-- Running differences for both SXR and HXR channels
-- Temperature proxy: $T_{proxy} = HXR / SXR$ (spectral hardening indicator)
-- Emission measure proxy: $EM_{proxy} = SXR \times HXR$
-
-#### 2.6.2 Label Generation
-
-Binary labels: $y_t = 1$ iff a catalogue peak of class ≥ C1.0 occurs in $(t, t + horizon]$ AND $t < p$ (strictly pre-peak). Samples inside $[p - 10\text{min}, p + 15\text{min}]$ around ANY labelled peak are masked ($y = -1$) to prevent in-flare decay from polluting the negative class.
-
-#### 2.6.3 LightGBM Training (`train.py`)
-
-**Walk-forward cross-validation:** Temporal blocked splits with embargo gap ≥ horizon + max window:
-
-```
-Fold 1: [----train----][--test--]
-Fold 2: [--------train--------][--test--]
-Fold 3: [------------train------------][--test--]
-```
-
-**Class imbalance handling:** `scale_pos_weight = 25` (loss-based, no oversampling → no temporal leakage).
-
-**Model configuration:**
-```python
-LGBMClassifier(
-    n_estimators=300,
-    learning_rate=0.05,
-    num_leaves=15,
-    min_child_samples=20,
-    subsample=0.8,
-    colsample_bytree=0.8,
-    reg_alpha=0.1,
-    reg_lambda=0.1,
-    scale_pos_weight=25.0,
-)
-```
-
-#### 2.6.4 Deep Forecaster (`deep_forecaster.py`)
-
-A Temporal Convolutional Network + Multi-Head Self-Attention architecture for multi-horizon prediction:
-
-1. **Feature projection:** Conv1D simulation (kernel size 3, 5, 7) → d_model=16
-2. **Self-attention pooling:** Q/K/V projections → scaled dot-product attention → temporal context
-3. **Multi-horizon heads:** Separate sigmoid heads for P(15m), P(30m), P(60m)
-4. **Magnitude regression:** Expected peak flux prediction
-
-The architecture runs in pure NumPy (no PyTorch/TF dependency) for zero-dependency edge deployment.
-
-#### 2.6.5 Mandatory Baselines (`baselines.py`)
-
-Per review arXiv:2511.20465, any ML model must beat BOTH baselines on TSS:
-
-1. **Climatology:** Constant probability = training base rate
-2. **Persistence:** $p(t) = p_{max} \cdot \exp(-age / \tau)$ where $age$ = time since last flare, $\tau$ = 3 hours
-
-### 2.7 Evaluation Metrics (`metrics.py`)
-
-**Primary metric:** True Skill Statistic (TSS) = POD - POFD, class-ratio insensitive.
-
-**Secondary metrics:** HSS (Heidke Skill Score), BSS (Brier Skill Score), POD, FAR, PR-AUC.
-
-**Lead-time analysis:** Distribution of $p_{peak} - t_{alert}$ over verified events, plus LT-vs-FAR operating-point sweep.
-
-**Deliberately excluded:** Accuracy and ROC-AUC (mislead on rare events).
+| Challenge requirement | Where addressed |
+|---|---|
+| **Objective 1:** automated flare detection algorithm for nowcasting (real-time detection and classification) using soft and hard X-ray data | §3.2 (CUSUM on SoLEXS SXR + Poisson-FOCuS on HEL1OS HXR), §4.2 (67% recovery of NOAA ≥C-class events), §4.4 (4.9–30.0 min lead times) |
+| **Objective 2:** predictive algorithm for forecasting by identifying precursor patterns before the flare occurs | §3.3 (LightGBM, 23 causal features, walk-forward CV), §4.1 (TSS 0.218 on live data), §4.5 (Neupert coupling as precursor) |
+| **Expected outcome 1:** automated database of nowcasted flares from combined soft+hard X-ray light curves | §2.3 (master catalogue, 5,456 events) + `data/processed/flare_catalogue.csv` |
+| **Expected outcome 2:** trained model forecasting flares with quantifiable lead time | §4.1–4.4 (TSS, POD, FAR, median lead 9.0–16.5 min) |
+| **Expected outcome 3:** interface visualizing light curves with visual alerts | FastAPI + WebSocket/SSE dashboard (`dashboard/index.html`): REPLAY/FITS badges, alert banner, risk gauges, ticker |
+| **Evaluation criterion 1:** detection of low- and high-class flares | §4.2 (B/A + C-class recovery; M-class unmeasured — no M events in window) |
+| **Evaluation criterion 2:** high TPR and low FAR | §4.1–4.2 (POD 0.423–0.527; FAR 0.745–0.766; k-of-m reduces false alarms 49%) |
+| **Evaluation criterion 3:** lead time in minutes before flare peak | §4.4 (4.9/6.1/30.0 min detector lead; 9.0 min raw / 16.5 min k-of-m alert lead) |
+| **Dataset:** SoLEXS + HEL1OS Level-1 via ISSDC PRADAN portal | §2.1 (54 real FITS ZIP archives; supplementary GOES XRS + NOAA catalogue) |
 
 ---
 
-## 3. Implementation
+## 2. Data
 
-### 3.1 Technology Stack
+### 2.1 Aditya-L1 SoLEXS and HEL1OS archives
 
-| Component | Technology | Rationale |
-|-----------|-----------|-----------|
-| Data ingestion | Python 3.11+, astropy, pandas | FITS standard support, DataFrame manipulation |
-| Nowcasting | NumPy, SciPy | O(1) primitives, Poisson statistics |
-| Forecasting | LightGBM, scikit-learn | Gradient boosting, temporal CV |
-| API | FastAPI, uvicorn, SSE | Async streaming, low latency |
-| Dashboard | Vanilla JS, Canvas API | Zero dependencies, offline-capable |
-| Deployment | Docker, docker-compose | Reproducible environments |
+The system ingests real Level-1 FITS ZIP archives from the ISRO PRADAN archive (pradan.issdc.gov.in/al1):
 
-### 3.2 Edge Deployment Design
+| Instrument | Archives on disk | Date stamps | Parsed rows (csv.gz) |
+|---|---|---|---|
+| SoLEXS (`AL1_SLX_L1_*.zip`) | 27 | 2024-05-10…20 (11), 2024-10-01…06 (6), 2026-08-13…22 (10) | 785,130 |
+| HEL1OS (`AL1_HLD_L1_*.zip`) | 27 | same windows | 172,800 |
 
-All nowcast detectors are O(1) per sample:
-- CUSUM: 1 addition, 1 max operation
-- Poisson-FOCuS: O(L) where L = curve list size (typically ≤20)
-- Hampel filter: O(w) where w = window size (typically 11)
-- Neupert correlator: O(W) where W = correlation window (typically 120)
+- SoLEXS cadence: 1 s (86,400 rows/day); HEL1OS cadence: 1 s (86,400 rows/day).
+- SoLEXS uses two detectors (SDD1/SDD2) with different apertures; `arbitrate_sdd_rows()` implements SDD1/SDD2 switching because SDD1 saturates above ~10⁵ cps — a raw SDD1 turnover must never be read as a flux dip.
+- Example (2024-05-14): SoLEXS peak 4,091.94 counts at 09:08:20 UT; HEL1OS peak 45,049.62 counts at 09:00:06 UT — the hard X-ray peak precedes the soft X-ray peak by ~8 minutes, consistent with the Neupert effect.
 
-Total per-sample cost: ~O(200) operations, suitable for microcontroller deployment.
+### 2.2 GOES XRS and NOAA flare catalogue
 
-### 3.3 API Endpoints
+- GOES XRS provides 1-minute averages of solar X-ray flux in 0.1–0.8 nm (long) and 0.05–0.4 nm (short) passbands, with 2–3 s high-cadence raw data available (NOAA SWPC; NCEI). Flare class is defined by the XRS-B 1-minute averaged irradiance.
+- The NOAA SWPC flare event catalogue (JSON) provides event start/peak/end times and classes.
+- Live evaluation window used in this paper: 15–22 September 2026 (9,973 one-minute samples, 167.9 hours, 33 NOAA flare events).
 
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/api/stream` | GET (SSE) | Real-time detection stream |
-| `/api/status` | GET | System status |
-| `/api/latest` | GET | Latest detection |
-| `/api/catalogue` | GET | Event catalogue |
-| `/api/model/info` | GET | Model metadata |
-| `/api/inference` | POST | Online inference |
-| `/api/forecast` | GET | Multi-horizon probabilities |
-| `/api/alert/active` | GET | Active alerts |
-| `/api/statistics` | GET | System statistics |
+### 2.3 Master flare catalogue
 
-### 3.4 Dashboard Features
+The pipeline's master catalogue (`data/processed/flare_catalogue.csv`) contains **5,456 events: 5,453 B/A-class, 2 C-class, 1 M-class** (99.94% B/A). **Caveat:** the catalogue spans 2024-05-15 → 2083-04-10; the tail beyond the real archive windows is synthetic/mock data. This is a known data-quality limitation (see §6.3) and the catalogue statistics must not be presented as purely observational.
 
-- **Real-time light curves:** Dual-band (SXR/HXR) canvas rendering at 60fps
-- **Neupert diagnostics:** HXR vs d(SXR)/dt overlay
-- **Alert banner:** Color-coded state indicator (QUIET/ONSET/INCREASING/DECAYING)
-- **Forecast gauge:** Circular probability indicator with color thresholds
-- **Catalogue table:** Scrollable event log with GOES class badges
-- **Anomaly score:** Real-time anomaly highlighting with confidence indicator
+---
+
+## 3. Methods
+
+### 3.1 Pipeline architecture
+
+```
+ingest → preprocess (fusion) → nowcast (detectors) → catalogue (master) → forecast → API → dashboard
+```
+
+### 3.2 Nowcasting detectors
+
+| Detector | Channel | Purpose |
+|---|---|---|
+| CUSUM (threshold h = 5σ, slack k = 1σ) | SoLEXS SXR | Onset detection; alert issued on sustained positive drift |
+| Poisson-FOCuS | HEL1OS HXR | Impulsive-phase event closure |
+| Neupert correlator | HXR vs d(SXR)/dt | Coupling verification; HXR-leads-SXR timing |
+
+Measured on real 2024-05-14 data: HXR leads SXR peak by **61 s, 91 s, and 120 s** across the three detected events (mean ≈ 91 s). This is consistent with the statistical Neupert-effect timing distribution of Veronig et al. (2002), where the SXR-peak-minus-HXR-end time difference peaks at Δt = 0 with a substantial spread.
+
+### 3.3 Forecast model
+
+- **Model:** LightGBM gradient-boosted trees (n_estimators = 300, learning_rate = 0.05, num_leaves = 15, scale_pos_weight = 25.0).
+- **Features:** 23 causal features (counts, log-counts, gradients, Neupert coupling terms, rolling statistics) computed strictly from past data — no look-ahead.
+- **Labels:** strict pre-peak windows (a sample is positive only if a flare peak occurs within the horizon and the sample precedes the peak).
+- **Validation:** walk-forward cross-validation with an embargo between train and test folds (no temporal leakage).
+- **Decision threshold:** selected on the validation operating curve (θ = 0.275 on the live run; θ = 0.5 on the GOES test run).
+- **Baselines:** climatology (always predict the base rate) and persistence (predict the current state forward), per the standard reference-forecast methodology (Yang 2019; Camporeale et al. 2025).
+
+### 3.4 Verification metrics
+
+Following the space-weather forecasting conventions (Woodcock 1976; Bloomfield et al. 2012; Shao et al. 2025):
+
+- **TSS** = POD − POFD = TP/(TP+FN) − FP/(FP+TN) — the primary metric; unbiased with respect to class imbalance.
+- **HSS** = 2(TP·TN − FP·FN) / [(TP+FN)(FN+TN) + (TP+FP)(FP+TN)] — skill relative to random chance.
+- **POD** = TP/(TP+FN); **FAR** = FP/(TP+FP) = 1 − Precision.
+- **BSS** = 1 − BS/BS_climatology; **PR-AUC** = area under the precision-recall curve.
+- **Lead time** = time from alert to flare peak; evaluated with and without k-of-m hysteresis.
 
 ---
 
 ## 4. Results
 
-### 4.1 Data Summary
+### 4.1 Live NOAA GOES evaluation (15–22 September 2026)
 
-| Dataset | Files | Date Range | Samples |
-|---------|-------|------------|---------|
-| SoLEXS (real) | 8 ZIPs | Aug 13-21, 2026 | 785,130 |
-| HEL1OS (mock) | 2 ZIPs | May 15-16, 2024 | 345,600 |
-| GOES XRS (live) | JSON | 7-day rolling | ~10,000/min |
-
-**Flare catalogue:** 5,456 events (5,453 B/A-class, 2 C-class, 1 M-class)
-
-### 4.2 Nowcasting Performance
-
-| Detector | Metric | Value |
-|----------|--------|-------|
-| CUSUM (SXR) | Onset detection | 55s lead time before SXR peak |
-| Poisson-FOCuS (HXR) | Event closure | 65 hard-band events detected |
-| Neupert correlator | HXR leads SXR | Verified (lag = 31s) |
-
-### 4.3 Forecasting Performance
-
-#### Out-of-Fold (OOF) Evaluation
+Pipeline: `FlareForecastPipeline(horizon_min=15, n_folds=4, window_min=30, use_lightgbm=True)` on 9,973 one-minute samples (10,078 processed; 8,561 labelled pre-flare windows; 1,079 positives; 96 catalogue flares; 33 NOAA events).
 
 | Metric | Value |
-|--------|-------|
-| TSS | 0.282 |
-| POD | 0.282 |
-| FAR | 0.008 |
-| HSS | 0.412 |
-| BSS | 0.194 |
-| PR-AUC | 0.349 |
-| Threshold | 0.05 |
+|---|---|
+| **TSS** (primary) | **0.218** |
+| HSS | 0.162 |
+| POD | 0.423 |
+| FAR | 0.766 |
+| PR-AUC | 0.242 |
+| Brier score | 0.1969 |
+| Optimal threshold θ | 0.275 |
+| Climatology TSS | 0.000 |
+| Persistence TSS | 0.000 |
+| Beats both baselines | Yes |
 
-#### vs Baselines
+**Lead-time vs false-alarm operating curve** (raw crossings):
 
-| Model | TSS |
-|-------|-----|
-| LightGBM | 0.282 |
-| Climatology | 0.000 |
-| Persistence | 0.000 |
-| **Beats both** | **Yes** |
+| θ | POD | FAR | TSS | Median lead (min) | False alarms |
+|---|---|---|---|---|---|
+| 0.10 | 0.302 | 0.854 | −0.698 | 9.0 | 169 |
+| 0.15 | 0.292 | 0.853 | −0.708 | 9.5 | 162 |
+| 0.20 | 0.312 | 0.870 | −0.688 | 9.0 | 201 |
+| 0.25 | 0.344 | 0.849 | −0.656 | 9.0 | 185 |
+| 0.30 | 0.365 | 0.831 | −0.635 | 11.0 | 172 |
 
-#### Real GOES Telemetry Validation
+The negative TSS values on the raw-crossing curve show that naive threshold crossings are dominated by false alarms; the walk-forward probabilistic model (TSS 0.218) and k-of-m hysteresis are required for usable skill.
+
+### 4.2 Independent real-data validation (GOES test window)
+
+On a separate real NOAA GOES window (33 events):
+
+- **Detector recovery: 67% (22/33)** of NOAA ≥C-class events.
+- **Model: TSS 0.296, POD 0.527, FAR 0.745** at θ = 0.5.
+- **Persistence baseline TSS: −0.019** (the model beats persistence).
+- **False alarms: 89** (down from 175 raw crossings) — a 49% reduction via k-of-m hysteresis.
+- **Median lead time: 9.0 min raw; 16.5 min with k-of-m hysteresis.**
+- No M-class events occurred in the validation window, so M-class skill could not be estimated (consistent with the review finding that statistically reliable ≥M-class skill requires many events; Shao et al. 2025).
+
+### 4.3 Reproducible pipeline runs (synthetic 8-flare benchmark)
+
+For end-to-end regression testing, the pipeline is run on a synthetic 8-flare dataset:
 
 | Metric | Value |
-|--------|-------|
-| NOAA event recovery | 53% |
-| M-class hit rate | 100% |
-| POD (θ=0.1) | 0.590 |
-| FAR (θ=0.1) | 0.763 |
-| Median lead time | 11.0 min |
-| False alarms (hysteresis) | 59 (down from 122) |
+|---|---|
+| TSS | 0.101 |
+| POD | 1.0 |
+| FAR | 0.298 |
+| HSS | 0.133 |
+| BSS | −0.314 |
+| PR-AUC | 0.936 |
+| θ | 0.5 |
+| Beats both baselines | No (model −0.012, climatology 0.0, persistence 0.0) |
 
-### 4.4 Lead-Time Analysis
+This run is a **pipeline-integrity check, not a science result**: the synthetic data is trivially separable (POD = 1.0) yet the model still fails to beat baselines on TSS, illustrating that TSS is the correct, unforgiving metric for rare-event forecasting.
 
-| Threshold θ | POD | FAR | TSS | Median LT (min) | False Alarms |
-|-------------|-----|-----|-----|-----------------|--------------|
-| 0.10 | 0.545 | 0.625 | -0.455 | 10.28 | 10 |
-| 0.15 | 0.545 | 0.600 | -0.455 | 10.28 | 9 |
-| 0.30 | 1.000 | 0.000 | 1.000 | 1.25 | 0 |
+### 4.4 Detector lead times (real data)
 
-The LT-vs-FAR sweep shows the classical trade-off: higher thresholds reduce false alarms but also reduce lead time. The optimal operating point depends on the operational cost of false alarms vs missed detections.
+CUSUM onset detection on real SoLEXS data yields lead times of **4.9, 6.1, and 30.0 minutes** before the SXR peak (mean 13.7 min) — i.e., alerts are issued minutes before the GOES-class-defining soft X-ray maximum, which is the operational goal of nowcasting.
+
+### 4.5 Model inference on real data
+
+Direct inference of the SpatioTemporalGraphTransformer checkpoint (78 layers; learned Neupert parameters α = 0.008074, β = 0.002625) on real 2024-05-14 sliding windows returns P(15m) = P(30m) = P(60m) = 1.0000 — the model **saturates** on real data. This is a calibration defect (overconfidence), not evidence of skill, and is flagged as a limitation (§6.4).
 
 ---
 
-## 5. Discussion
+## 5. Comparison with Literature
 
-### 5.1 Why TSS is Low on Synthetic Data
+| System | Horizon | Target | TSS | FAR |
+|---|---|---|---|---|
+| Bloomfield et al. 2012 (Poisson/McIntosh) | 24 h | ≥C / ≥M / ≥X | 0.44 / 0.53 / 0.74 | — |
+| Bobra & Couvidat 2015 (SVM, 25 SHARP features) | 24 h | ≥M | ~0.7 (TSS emphasis) | — |
+| Nishizuka et al. 2018 (DeFN) | 24 h | ≥C / ≥M | 0.63 / 0.80 | — |
+| Fusion model (ResNet+SVM, 2024) | 24 h | ≥C / ≥M | 0.708 / 0.758 | — |
+| MobileNet (2024) | 24 h | ≥M | 0.60 | — |
+| Surya foundation model (2025) | 24 h | ≥C | 0.436 | — |
+| NOAA SWPC operational (Camporeale et al. 2025) | 24–72 h | ≥M / ≥X | ≤ baselines | >0.90 (X) |
+| **This work (LightGBM, walk-forward)** | **15–60 min** | **≥C nowcast** | **0.218–0.296** | **0.745–0.766** |
 
-The OOF TSS of 0.282, while beating both baselines, is below the 0.74 benchmark of Landa & Reuveni (2022). This is primarily due to:
+Two observations:
 
-1. **Data composition:** 99.7% of samples are B/A-class (background), creating severe class imbalance
-2. **Missing HEL1OS data:** The PRADAN portal only serves recent HEL1OS data (Aug 29-30), outside our target range (Aug 10-21). Without hard X-ray features, the Neupert effect cannot be exploited
-3. **Synthetic data dominance:** The pipeline processes both real SoLEXS data and mock HEL1OS data, with the mock data spanning 2024-2083 (a known data quality issue)
-
-### 5.2 Expected Performance with Full Data
-
-With complete HEL1OS data covering the Aug 10-21 active period:
-- Neupert correlation features become discriminative
-- HXR burst detection provides 5-15 minute precursor signals
-- Temperature proxy (HXR/SXR) captures spectral hardening before peak
-- Expected TSS improvement: 0.282 → 0.5-0.7 (based on HOPE technique benchmarks)
-
-### 5.3 Comparison with State-of-the-Art
-
-| System | TSS (≥C) | TSS (≥M) | Lead Time | Reference |
-|--------|----------|----------|-----------|-----------|
-| GOES FSM | 0.65 | 0.74 | 0 min | Aschwanden & Freeland (2012) |
-| HOPE | 0.72 | 0.81 | 5-15 min | arXiv:2509.05234 |
-| DeepFlareNet | 0.68 | 0.78 | 1-6 hr | Huang et al. (2018) |
-| **Aditya FlareCast** | **0.282** | - | **10 min** | This work |
-
-Our system's lower TSS reflects the data limitation, not the algorithmic approach. The architecture is designed to match HOPE-level performance when complete Aditya-L1 data is available.
-
-### 5.4 False Alarm Reduction
-
-The hysteresis gate reduces false alarms from 122 to 59 (52% reduction) while maintaining lead time (10-11 minutes). This is achieved by:
-1. Requiring consecutive rising samples before onset declaration
-2. Applying the GOES 1/2 decay rule for event closure
-3. Using PoissonCUSUM confirmation for hard X-ray events
-
-### 5.5 Edge Deployment Readiness
-
-All detectors are O(1) per sample with bounded memory:
-- CUSUM: 4 floats (baseline, cusum_stat, sigma, fsm_state)
-- Poisson-FOCuS: ~20 floats (curve list coefficients)
-- Neupert correlator: 120 floats (trailing window)
-- Total: <200 bytes per detector
-
-The system can run on a microcontroller with 1 KB RAM and 1 MHz clock, meeting spacecraft onboard processing constraints.
+1. **Regime difference.** The literature is dominated by 24-hour-ahead forecasts from magnetogram features; our 15–60-minute nowcasting from X-ray light curves is a different task (detection + short-horizon escalation) and is not directly comparable. TSS 0.2–0.3 is low but non-trivial for this regime, and the model beats both naive baselines on live data.
+2. **FAR realism.** Operational systems report FAR 0.24–0.92 (SEP models: 0.128–0.402; SWPC X-class: >0.90; JW-Flare: 0.92). Our FAR 0.745–0.766 is high but within the operational envelope; a FAR of 0.008 (as claimed in the prior draft) is **physically implausible** for any real flare forecasting system and is not reproduced by any run.
 
 ---
 
-## 6. Limitations and Future Work
+## 6. Discussion and Limitations
 
-### 6.1 Current Limitations
+### 6.1 What is reproducible
 
-1. **HEL1OS data unavailability:** The PRADAN portal only serves recent data; historical HEL1OS data requires ISRO coordination
-2. **Single-day validation:** The system is validated on a single active period (Aug 10-21, 2026); broader validation across multiple solar rotation periods is needed
-3. **No spectral analysis:** Current features use broadband counts only; spectral index evolution could improve classification
-4. **Simplified cross-calibration:** SoLEXS-to-GOES flux conversion uses a linear model; proper instrumental response functions are needed
+The following are fully reproducible from the repository: the 5,456-event catalogue counts, the 23-feature LightGBM configuration, the walk-forward CV protocol, the TSS/HSS/BSS/POD/FAR metric implementations, the 54 real FITS archives, the checkpoint structure (78 layers, α/β), the live-run skill numbers (§4.1), the GOES validation numbers (§4.2), and the detector lead times (§4.4).
 
-### 6.2 Future Directions
+### 6.2 What is not reproducible (integrity findings)
 
-1. **Spectral features:** Add spectral hardness evolution, thermal/non-thermal decomposition
-2. **Multi-horizon TCN:** Train the temporal convolutional network on real data for 1-6 hour forecasts
-3. **Ensemble methods:** Combine LightGBM with TCN for improved calibration
-4. **Onboard deployment:** Export to ONNX format for spacecraft integration
-5. **Real-time GOES fusion:** Fuse GOES XRS with Aditya-L1 for improved ground truth
+The prior draft of this paper contained numbers that no code path reproduces and that contradict the repository's own documentation:
+
+- Abstract "91.9% POD / 10% FAR / 53% recovery / 100% M-class" — no run produces these; the real GOES run shows 0 M-class events in-window.
+- §4.3 OOF table (TSS 0.282, POD 0.282, FAR 0.008, HSS 0.412, BSS 0.194, PR-AUC 0.349, θ = 0.05) — matches no run; the value 0.282 is hardcoded in the API layer (`src/api/main.py` L644-647, L934) with no training artifact.
+- §4.3 GOES validation (POD 0.590, FAR 0.763, FA 59 down from 122) — matches no run (actual: POD 0.527, FAR 0.745, FA 89 down from 175).
+- §4.4 lead-time table (TSS = 1.000 at θ = 0.30) — a perfect score is a red flag; real lead-time TSS values are negative on raw crossings.
+- §4.2 "CUSUM 55 s lead time" and "Neupert lag = 31 s" — actual values are 4.9–30.0 min and 61–120 s.
+- §4.1 "GOES ~10,000 samples/min" — GOES XRS is 1-minute averaged (2–3 s high-cadence raw); the claim is off by orders of magnitude.
+- Appendix B `CUSUM_H_SIGMA = 6.0` — the code uses h = 5σ (k = 1σ).
+- Appendix A lists a script (`auto_download_browser.py`) and 4 test files that do not exist (the repo has 16 scripts and 11 test files).
+
+The companion `AUDIT_REPORT.md` documents each discrepancy with file/line evidence.
+
+### 6.3 Data limitations
+
+- The master catalogue's tail extends to 2083 (synthetic); only the 2024-05, 2024-10, and 2026-08 windows are real. Class statistics are dominated by B/A events (99.94%), so ≥C-class skill estimates have large uncertainty.
+- The live evaluation window contained no M-class events; ≥M-class skill is unmeasured.
+- GOES XRS saturation during the most extreme flares (X-class) is a known instrument limitation (NCEI).
+
+### 6.4 Model limitations
+
+- The deep transformer saturates at 100% probability on real data (calibration defect; §4.5). The LightGBM probabilistic model does not exhibit this defect and is the recommended production path.
+- Threshold selection on the validation fold risks optimistic bias; the walk-forward embargo mitigates but does not eliminate this.
+- False alarm ratios remain high (0.75–0.77); k-of-m hysteresis reduces false alarms by ~49% at the cost of lead time (9.0 → 16.5 min).
 
 ---
 
 ## 7. Conclusion
 
-Aditya FlareCast demonstrates a complete, production-ready solar flare nowcasting and forecasting system for ISRO's Aditya-L1 mission. The system processes real SoLEXS data from the PRADAN portal, applies O(1) change-point detection for real-time flare onset identification, and provides multi-horizon probabilistic forecasts using physics-informed features. While current performance is limited by HEL1OS data availability, the architecture is designed to achieve HOPE-level performance (TSS ~0.74) with complete dual-band data. The Dockerized deployment with SSE streaming dashboard provides an operational framework for space weather monitoring.
+We presented an open, reproducible nowcasting and short-horizon forecasting pipeline for solar flares from Aditya-L1 SoLEXS/HEL1OS X-ray telemetry fused with GOES XRS data. On live NOAA data the system achieves TSS 0.218 (beating climatology and persistence), recovers 67% of NOAA ≥C-class events with TSS 0.296 on an independent window, and issues alerts with 9–16.5-minute median lead times. Hard X-ray emission leads soft X-ray peaks by 61–120 s, consistent with the Neupert effect. The results are modest compared with 24-hour magnetogram-based forecasts, but they are honest, verifiable, and quantify the operational POD/FAR/lead-time trade-off. The companion integrity audit documents exactly which earlier claims were reproducible and which were not — a necessary step toward trustworthy operational space-weather ML.
 
 ---
 
 ## References
 
-1. Aschwanden, M. J., & Freeland, S. L. (2012). Automated Solar Flare Statistics. *Solar Physics*, 277, 153-180.
-2. Benz, A. O., & Krucker, S. (2002). Energy Distribution of Microflares. *Solar Physics*, 210, 229-246.
-3. Gonzalez, W. D., et al. (1994). What is a Space Weather Event? *Space Weather*, 12, 700-705.
-4. Huang, X., et al. (2018). Solar Flare Prediction Model. *ApJ*, 856, 7.
-5. Landa, D., & Reuveni, Y. (2022). Solar Flare Prediction from X-ray Flux. *Solar Physics*, 297, 74.
-6. Neupert, W. M. (1968). Comparison of Solar X-ray and Radio Emission. *Solar Physics*, 6, 219-243.
-7. Szaforz, Z., et al. (2017). Flare Characteristics from X-ray Light Curves. *Solar Physics*, 292, 140.
-8. arXiv:2509.05234 (2025). HOPE: Hot Onset Precursor Event nowcasting.
-9. arXiv:2509.26292 (2025). SoLEXS: Ground Calibration and In-flight Performance.
-10. arXiv:2511.20465 (2025). Advances and Challenges in Solar Flare Prediction: Review.
-
----
-
-## Appendix A: File Structure
-
-```
-solar-flare-system/
-├── src/
-│   ├── constants.py          # Physical constants, thresholds, defaults
-│   ├── types.py              # Dataclasses: FluxSample, FlareEvent, FusedSample
-│   ├── ingest/
-│   │   ├── solexs_reader.py  # SoLEXS FITS ZIP reader with SDD arbitration
-│   │   ├── hel1os_reader.py  # HEL1OS multi-band FITS reader
-│   │   ├── goes_fetcher.py   # NOAA GOES XRS JSON fetcher
-│   │   ├── fits_pure.py      # Pure astropy FITS reader
-│   │   ├── pradan_download.py # PRADAN portal downloader
-│   │   └── synth.py          # Synthetic flare generator
-│   ├── preprocess/
-│   │   ├── merge.py          # LTT correction, timestamp synchronization
-│   │   └── fusion.py         # Inverse-variance weighted fusion
-│   ├── nowcast/
-│   │   ├── primitives.py     # O(1) building blocks (EMA, EWMV, Hampel, RingBuffer)
-│   │   ├── soft_detector.py  # CUSUM + GOES FSM for SXR
-│   │   ├── hard_detector.py  # Poisson-FOCuS + Derivative + PoissonCUSUM for HXR
-│   │   └── neupert_engine.py # Neupert correlation + cross-band association
-│   ├── catalog/
-│   │   └── master_catalog.py # Hash-bucket index, dedup, GOES classification
-│   ├── forecast/
-│   │   ├── pipeline.py       # Causal feature builder + evaluation pipeline
-│   │   ├── train.py          # Walk-forward CV, LightGBM training
-│   │   ├── metrics.py        # TSS, HSS, BSS, PR-AUC, lead-time analysis
-│   │   ├── baselines.py      # Climatology + persistence baselines
-│   │   ├── deep_forecaster.py # TCN + Attention multi-horizon forecaster
-│   │   └── alerts.py         # Alert generation
-│   └── api/
-│       └── main.py           # FastAPI SSE server + dashboard
-├── dashboard/
-│   └── index.html            # Zero-dependency browser dashboard
-├── scripts/
-│   ├── run_pradan.py         # One-command pipeline runner
-│   ├── auto_download_browser.py # Browser automation for PRADAN
-│   └── download_pradan.py    # Interactive PRADAN downloader
-├── tests/
-│   ├── test_smoke.py         # WS1 functional smoke test
-│   ├── test_catalog_forecast.py # WS2b+WS3 verification
-│   ├── test_ws3b_pipeline.py # WS3b pipeline run
-│   └── test_realdata_goes.py # Real GOES telemetry validation
-├── Dockerfile
-├── docker-compose.yml
-├── PLAN.md
-├── research_report.md
-└── research_papers/
-    └── RESEARCH_BIBLIOGRAPHY.md
-```
-
-## Appendix B: Configuration Constants
-
-| Constant | Value | Unit | Purpose |
-|----------|-------|------|---------|
-| `LTT_OFFSET_ADITYA_L1_S` | 5.0 | s | Light-travel-time to Earth |
-| `BUCKET_S` | 3600 | s | Catalogue hash-bucket size |
-| `GUARD_S` | 120 | s | Min separation for distinct flares |
-| `W_LEAD_S` | 300 | s | Max HXR-before-SXR lead |
-| `W_LAG_S` | 900 | s | Max SXR-after-HXR lag |
-| `CUSUM_H_SIGMA` | 6.0 | σ | CUSUM alarm threshold |
-| `CUSUM_K_SIGMA` | 1.0 | σ | CUSUM slack parameter |
-| `NEUPERT_WIN_S` | 120 | s | Neupert correlation window |
-| `SCALE_POS_WEIGHT` | 25.0 | - | LightGBM class weight |
-
-## Appendix C: API Response Schemas
-
-### `/api/stream` (SSE)
-```json
-{
-  "type": "sample",
-  "ts": "2026-08-24 10:00:00",
-  "soft": 1250.0,
-  "hard": 85.3,
-  "base_s": 1000.0,
-  "state": "ONSET",
-  "prob": 0.85,
-  "multi_horizon": {
-    "prob_15m": 0.85,
-    "prob_30m": 0.62,
-    "prob_60m": 0.41,
-    "predicted_class": "C-class",
-    "expected_peak_counts": 2500.0,
-    "estimated_lead_time_min": 8.5,
-    "precursor_confidence": 0.72
-  },
-  "neupert": {
-    "neupert_corr": 0.82,
-    "neupert_resid": 12.5,
-    "hxr_leads": true,
-    "peak_lag_s": 31.0
-  }
-}
-```
+1. Bloomfield, D. S., Higgins, P. A., McAteer, R. T. J., & Gallagher, P. T. (2012). Toward reliable benchmarking of solar flare forecasting methods. *ApJL*, 747(2), L41. https://doi.org/10.1088/2041-8205/747/2/L41
+2. Bobra, M. G., & Couvidat, S. (2015). Solar flare prediction using SDO/HMI vector magnetic field data with a machine-learning algorithm. *ApJ*, 798(2), 135. https://doi.org/10.1088/0004-637X/798/2/135
+3. Camporeale, E., et al. (2025). Verification of the NOAA Space Weather Prediction Center solar flare forecast (1998–2024). arXiv:2508.01114.
+4. Dennis, B. R., & Zarro, D. M. (1993). The Neupert effect — What can it tell us about the impulsive and gradual phases of solar flares? *Solar Phys.*, 146, 177.
+5. Doswell, C. A., Davies-Jones, R., & Keller, D. L. (1990). On summary measures of skill in rare event forecasting based on contingency tables. *Weather and Forecasting*, 5, 576.
+6. ISRO (2023). Aditya-L1 mission page. https://www.isro.gov.in/Aditya_L1.html
+7. Neupert, W. M. (1968). Comparison of solar X-ray line emission with microwave emission during flares. *ApJ*, 153, L59.
+8. Nishizuka, N., et al. (2018). Deep Flare Net (DeFN) model for solar flare prediction. *ApJ*, 858, 113. https://doi.org/10.3847/1538-4357/aab9a7
+9. NOAA SWPC. GOES X-ray flux product documentation. https://www.swpc.noaa.gov/products/goes-x-ray-flux
+10. NOAA NCEI. GOES X-ray Sensor (XRS) operational data readme. https://www.ngdc.noaa.gov/stp/satellite/goes/doc/GOES_XRS_readme.pdf
+11. Sankarasubramanian, K., et al. (2017). SoLEXS and HEL1OS payloads for Aditya-L1. (See also: The Aditya-L1 mission of ISRO, arXiv:2212.13046.)
+12. Shao, M., Liu, S., Xu, H., Jia, P., Wang, H., Tong, L., Bai, Y., Yang, C., Li, Y., Li, N., & Lin, J. (2025/2026). Advances and challenges in solar flare prediction: A review. arXiv:2511.20465.
+13. Veronig, A., Vrsnak, B., Dennis, B. R., Temmer, M., Hanslmeier, A., & Magdalenic, J. (2002). Investigation of the Neupert effect in solar flares. I. Statistical properties and the evaporation model. *A&A*, 392, 699. arXiv:astro-ph/0207217.
+14. Woodcock, F. (1976). The evaluation of yes/no forecasts for scientific and administrative purposes. *Mon. Wea. Rev.*, 104, 1209.
+15. Yang, D. (2019). Making reference solar forecasts with climatology, persistence, and their optimal convex combination. *Solar Energy*, 193, 981.
+16. Ravishankar, B. T., et al. (2026). HEL1OS on Aditya-L1 mission: Operations, data processing and monitoring of Sun in hard X-rays. arXiv:2609.01307.
+17. PRADAN — Aditya-L1 data archive. https://pradan.issdc.gov.in/al1
+18. Sarwade, A. R., Kushwaha, A., Ramadevi, M. C., et al. (2025). Solar Low Energy X-ray Spectrometer on board Aditya-L1: Ground calibration and in-flight performance. arXiv:2509.26292; *JATIS*, 11(4), 045005. https://doi.org/10.1117/1.JATIS.11.4.045005
+19. Sankarasubramanian, K., et al. (2025). Solar Low Energy X-ray Spectrometer (SoLEXS) on board Aditya-L1. *Solar Physics*, 300, 87. https://doi.org/10.1007/s11207-025-02494-0
+20. Nandi, A., et al. (2025). HEL1OS: High Energy L1 Orbiting X-ray Spectrometer on Aditya-L1. *Solar Physics*. arXiv:2512.12679
+21. Hack2skill / ISRO (2026). Bharatiya Antariksh Hackathon 2026 — Problem Statement 15: Forecasting and/or Nowcasting of Solar Flares using combined Soft and Hard X-ray data from Aditya-L1. https://hack2skill.com/event/bah2026

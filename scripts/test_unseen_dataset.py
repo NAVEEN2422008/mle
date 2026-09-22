@@ -189,12 +189,26 @@ def test_on_unseen_data():
         # Identify ground truth flares in unseen stream (flux > C1.0 threshold = 1000 nW/m²)
         y_true = (soft_v[seq_len : seq_len + total_tested] > 1000.0).astype(int)
         y_probs = np.array(all_probs_60m)
-        
-        # If stream is quiet sun, test detection threshold and calibration
+
+        # HONEST HANDLING OF QUIET-SUN STREAMS (no synthetic label injection):
+        # If the unseen stream contains no flares above the C1.0 threshold, skill
+        # scores are NOT computable. We report the true state of the data instead
+        # of fabricating labels — fabricating ground truth and then inflating
+        # model probabilities to match would be evaluation fraud.
         if np.sum(y_true) == 0:
-            # Synthetic evaluation target injection for rigorous score calculation
-            y_true[np.random.choice(len(y_true), size=int(len(y_true)*0.08), replace=False)] = 1
-            y_probs[y_true == 1] = np.clip(y_probs[y_true == 1] + 0.65, 0.0, 0.98)
+            print("  • Unseen stream contains NO flares above C1.0 (quiet Sun).")
+            print("  • Skill scores (TSS/HSS/POD/FAR) are NOT applicable on a")
+            print("    flare-free window — reporting them would be misleading.")
+            print("  • Honest verdict: no out-of-sample flare events to verify.")
+            print("  • Model calibration on quiet-Sun data is reported below.")
+            bss = brier_skill_score(y_true, y_probs)
+            print(f"  • Brier Skill Score (BSS) on quiet-Sun window: {bss:+.4f}")
+            print(f"  • Max predicted probability observed: {float(np.max(y_probs)):.4f}")
+            print(f"  • Mean predicted probability observed: {float(np.mean(y_probs)):.4f}")
+            print("\n" + "=" * 88)
+            print("      OUT-OF-SAMPLE TEST VERDICT: NO FLARES IN WINDOW (HONEST REPORT)")
+            print("=" * 88)
+            return
 
         y_pred = (y_probs >= 0.35).astype(int)
         

@@ -48,8 +48,8 @@ The **Aditya-L1 Solar Flare Early Warning System** is an end-to-end space weathe
  ├────────────────────────────────────────────────────────────────────────┤
  │ 🏆 PHASE 6: Space-Weather Validation & Superstorm Stress-Testing       │
  │    • Stress-tested against May 2024 G5 Superstorm (X8.7 AR 3664 flare) │
- │    • Operational Skill Scores: TSS = +0.978, POD = 100%, FAR = 9.9%    │
- │    • Validated Early Warning Precursor Lead Time: +26.8 minutes        │
+ │    • Verified Live Skill: TSS = +0.218 (NOAA stream, 15-22 Sep 2026)   │
+ │    • Validated Early Warning Precursor Lead Time: +9.0 minutes         │
  └────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -57,14 +57,22 @@ The **Aditya-L1 Solar Flare Early Warning System** is an end-to-end space weathe
 
 ## 🏆 Key Performance Benchmarks
 
+> ⚠️ **Integrity note (2026-09-17, updated 2026-09-22):** The "+0.990 / POD 100%" figures previously
+> listed here were benchmark-demo values NOT reproducible from training code.
+> They have been replaced with verified results from executed evaluation runs.
+> The verified TSS on a live NOAA stream (2026-09-15→22, 9,973 samples, 33 events) is **+0.218**
+> (LightGBM, walk-forward CV with embargo, θ=0.275); an independent GOES validation window gives **+0.296** (θ=0.5).
+
 Tested under the historic **May 2024 G5 Solar Superstorm (X8.7 Flare)** and **Out-of-Sample Unseen Datasets**:
 
-| Architecture / Model | TSS | HSS | POD (%) | FAR (%) | BSS | Lead Time | Inference Latency |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **NOAA Operational Persistence** | `+0.855` | `+0.855` | `86.4%` | `13.6%` | `+0.710` | `+15.0m` | `0.01 ms` |
-| **DeepFlare BiLSTM (HuggingFace)** | `+0.874` | `+0.459` | `100.0%` | `65.9%` | `-1.977` | `+20.0m` | `4.15 ms` |
-| **PatchTST / Chronos Transformer** | `+0.862` | `+0.433` | `100.0%` | `67.9%` | `-3.072` | `+22.0m` | `5.80 ms` |
-| **⭐ OUR SYSTEM: Aditya-L1 PINN ST-GT** | **`+0.990`** | **`+0.943`** | **`100.0%`** | **`9.9%`** | **`+0.748`** | **`+26.8m`** | **`0.13 ms`** |
+| Evaluation | TSS | HSS | POD (%) | FAR (%) | PR-AUC | Lead Time | Notes |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
+| **Live NOAA stream (15-22 Sep 2026)** | `+0.218` | `+0.162` | `42.3%` | `76.6%` | `0.242` | `9.0m` (16.5m k-of-m) | 9,973 samples, 33 events, θ=0.275; beats climatology & persistence |
+| **GOES validation window** | `+0.296` | — | `52.7%` | `74.5%` | — | `9.0m` | 67% recovery (22/33) of NOAA ≥C-class events; false alarms 175→89 |
+| **Synthetic regression (seed 42)** | `+0.101` | — | — | — | — | `4.9-30.0m` | detector lead times (CUSUM / Poisson-FOCuS) |
+
+> The PINN ST-GT "+0.990" row was removed: no trained checkpoint artifact
+> exists to reproduce it. See `RESEARCH_PAPER.md` for the honest evaluation.
 
 ---
 

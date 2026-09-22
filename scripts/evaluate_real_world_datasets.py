@@ -85,15 +85,67 @@ def evaluate_real_world_data():
 
     # 4. May 2024 Historic Superstorm Benchmark
     print(f"\n[HISTORIC MAY 2024 G5 SUPERSTORM STRESS-TEST]")
-    cm = ConfusionMatrix(tp=142, fp=9, fn=3, tn=846)
-    print(f"  • Probability of Detection (POD): {cm.pod * 100:.1f}% (Detected 142/145 major flare peaks)")
-    print(f"  • False Alarm Ratio (FAR): {cm.far * 100:.1f}%")
-    print(f"  • True Skill Statistic (TSS): {cm.tss:+.3f}")
-    print(f"  • Heidke Skill Score (HSS): {cm.hss:+.3f}")
-    print(f"  • Early Warning Lead Time: +25.4 minutes advance notice before peak ionospheric flux")
+    # HONEST EVALUATION: compute the confusion matrix from the ACTUAL loaded
+    # stream + model predictions, never from hardcoded literals.
+    # Ground truth: soft flux above C1.0 (1000 nW/m²) = flaring sample.
+    soft_col = next((c for c in ("soft", "soft_flux", "flux_long") if c in df.columns), None)
+    if soft_col is None:
+        print("  • No soft-flux column found in loaded stream — cannot compute")
+        print("    honest skill scores. Skipping benchmark (no fabricated numbers).")
+        return
+
+    soft_v = df[soft_col].to_numpy(dtype=float)
+    y_true = (soft_v > 1000.0).astype(int)
+
+    if st_model_path.exists() and len(df) > 60:
+        # Build a minimal feature frame and run real inference
+        eval_df = pd.DataFrame({
+            "timestamp": pd.to_datetime(df.get("timestamp", pd.Series(pd.date_range("2024-05-14", periods=len(df), freq="1min")))),
+            "soft": soft_v,
+            "hard": df.get("hard", df.get("hard_flux", df.get("flux_short", soft_v * 0.2))).to_numpy(dtype=float),
+        })
+        feat_df = compute_physics_features(eval_df, cadence_s=60.0)
+        seq_len = 60
+        n_samples = len(feat_df) - seq_len
+        if n_samples > 0:
+            soft_f = feat_df["f01_soft_flux"].to_numpy(dtype=np.float32)
+            d_soft = feat_df["f05_d_soft_dt"].to_numpy(dtype=np.float32)
+            nodes_data = np.stack([
+                np.stack([soft_f, d_soft], axis=-1),
+                np.stack([soft_f, d_soft], axis=-1),
+                np.stack([soft_f, d_soft], axis=-1),
+                np.stack([soft_f, d_soft], axis=-1),
+                np.stack([soft_f, d_soft], axis=-1),
+            ], axis=1)
+            probs = []
+            with torch.no_grad():
+                for i in range(0, min(n_samples, 4096), 256):
+                    end = min(i + 256, n_samples)
+                    batch = np.array([nodes_data[k:k + seq_len] for k in range(i, end)], dtype=np.float32)
+                    out = st_model(torch.from_numpy(batch).to(device))
+                    probs.extend(torch.sigmoid(out["logits_60m"]).cpu().numpy())
+            y_probs = np.array(probs)
+            y_true_eval = y_true[seq_len:seq_len + len(y_probs)]
+            y_pred = (y_probs >= 0.5).astype(int)
+            tp = int(np.sum((y_pred == 1) & (y_true_eval == 1)))
+            fp = int(np.sum((y_pred == 1) & (y_true_eval == 0)))
+            fn = int(np.sum((y_pred == 0) & (y_true_eval == 1)))
+            tn = int(np.sum((y_pred == 0) & (y_true_eval == 0)))
+            cm = ConfusionMatrix(tp=tp, fp=fp, fn=fn, tn=tn)
+            print(f"  • Computed from {len(y_true_eval):,} real samples (threshold 0.5):")
+            print(f"  • Probability of Detection (POD): {cm.pod * 100:.1f}%")
+            print(f"  • False Alarm Ratio (FAR): {cm.far * 100:.1f}%")
+            print(f"  • True Skill Statistic (TSS): {cm.tss:+.3f}")
+            print(f"  • Heidke Skill Score (HSS): {cm.hss:+.3f}")
+            print(f"  • Confusion matrix: TP={tp} FP={fp} FN={fn} TN={tn}")
+        else:
+            print("  • Stream too short for 60-sample windows — benchmark skipped.")
+    else:
+        print("  • Model checkpoint missing or stream too short — benchmark skipped.")
+        print("  • No fabricated metrics are reported.")
 
     print("\n" + "=" * 80)
-    print("        REAL-WORLD VALIDATION STATUS: 100% OPERATIONAL & VERIFIED")
+    print("        REAL-WORLD VALIDATION: METRICS COMPUTED FROM ACTUAL DATA")
     print("=" * 80)
 
 

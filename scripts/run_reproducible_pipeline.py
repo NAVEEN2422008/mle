@@ -268,15 +268,16 @@ def execute_reproducible_pipeline() -> None:
     # -------------------------------------------------------------
     print("\n[Stage 5] Scientific Ablation Study: Proving HEL1OS Value")
     print("-" * 72)
-    print("Condition                  | TSS   | HSS   | POD   | FAR   | Lead Time")
+    print("NOTE: A full per-configuration ablation (SoLEXS-only vs Dual-Stream vs")
+    print("PINN) requires retraining each configuration via scripts/train_deep_models.py.")
+    print("This pipeline evaluates the dual-stream configuration; its real scores are:")
     print("-" * 72)
-    print(f"1. SoLEXS Only (SXR alone) | 0.512 | 0.485 | 0.680 | 0.280 | 4.2 min")
-    print(f"2. Dual-Stream (SXR + HXR) | 0.745 | 0.690 | 0.865 | 0.142 | 11.8 min")
-    print(f"3. Full PINN-PatchTST     | 0.812 | 0.764 | 0.910 | 0.095 | 14.5 min")
+    print(f"  Dual-Stream (SXR + HXR) | TSS {metrics['TSS']:.3f} | HSS {metrics['HSS']:.3f} | "
+          f"POD {metrics['POD']:.3f} | FAR {metrics['FAR']:.3f} | Lead {avg_lt:.1f} min")
     print("-" * 72)
-    print("Key Finding: Combining HEL1OS with SoLEXS provides an average of +7.6 to +10.3 minutes")
-    print("of additional warning time by capturing non-thermal electron beam deposition")
-    print("before chromospheric thermal expansion takes place.")
+    print("Key Finding: HEL1OS hard X-ray emission leads SoLEXS soft X-ray peaks by")
+    print("61-120 s (Neupert effect; Veronig et al. 2002), providing the physical basis")
+    print("for pre-peak warning. Quantified lead times above are from this run.")
     print("=" * 72)
 
 

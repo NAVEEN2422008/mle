@@ -51,3 +51,6 @@ data/cached/
 data/raw/*.zip
 data/processed/*.parquet
 data/processed/*.csv.gz
+
+# Runtime logs
+server.log

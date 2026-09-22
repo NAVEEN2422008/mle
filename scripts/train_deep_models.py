@@ -234,7 +234,10 @@ def main():
         target_mags[test_slice], times_sec=ts_rel[test_slice], window_len=60,
     )
 
-    train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
+    # Temporal blocked walk-forward splits ONLY — no random shuffles (the
+    # docstring at the top of this file mandates this; shuffle=True would
+    # break temporal ordering and leak future context into training batches).
+    train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=False)
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False)
 
     # 4. Clean out old model checkpoints before training new ones

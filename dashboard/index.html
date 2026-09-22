@@ -736,6 +736,20 @@
       background: rgba(255, 0, 85, 0.12);
     }
 
+    /* Authenticity disclosure banner */
+    .auth-disclosure {
+      background: linear-gradient(90deg, rgba(255, 170, 0, 0.15), rgba(255, 0, 85, 0.10));
+      border: 1px solid var(--amber-hxr);
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin: 10px 16px;
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--text-primary);
+      box-shadow: 0 2px 8px rgba(255, 170, 0, 0.15);
+    }
+    .auth-disclosure strong { color: var(--amber-hxr); }
+
     /* SEP Outlook pill */
     .sep-pill {
       border: 1px solid var(--violet-pinn);
@@ -821,10 +835,10 @@
 
       <div class="header-actions">
         <select class="stream-select" id="streamSelect" onchange="changeTelemetryStream(this.value)">
-          <option value="g5_superstorm">⚡ ISRO Aditya-L1: May 2024 G5 Superstorm (X8.7 FITS)</option>
-          <option value="oct_x9">🔥 ISRO Aditya-L1: October 2024 Monster Flare (X9.0 FITS)</option>
-          <option value="aditya_l1_live">📡 ISRO Aditya-L1: Operational L1 Halo Telemetry (August 2026)</option>
-          <option value="unseen_test">🧪 ISRO Aditya-L1: Holdout Validation (Aug 16, 2026 FITS)</option>
+          <option value="g5_superstorm">⚡ FITS Replay: ISRO Aditya-L1 May 2024 G5 Superstorm (X8.7)</option>
+          <option value="oct_x9">🔥 FITS Replay: ISRO Aditya-L1 October 2024 Monster Flare (X9.0)</option>
+          <option value="aditya_l1_live">📡 FITS Replay: ISRO Aditya-L1 Operational L1 Halo (August 2026)</option>
+          <option value="unseen_test">🧪 FITS Replay: ISRO Aditya-L1 Holdout Validation (Aug 16, 2026)</option>
         </select>
         
         <div class="live-status-pill">
@@ -832,8 +846,8 @@
           <span id="sourceLabel">ISRO ADITYA-L1 FITS</span>
         </div>
 
-        <span class="sim-badge" id="simBadge" style="display: none;">SIMULATED REPLAY</span>
-        <span class="freshness-badge" id="freshnessBadge">LIVE</span>
+        <span class="sim-badge" id="simBadge" style="display: inline;">FITS REPLAY</span>
+        <span class="freshness-badge" id="freshnessBadge" aria-live="polite">REPLAY</span>
 
         <button class="action-btn" onclick="openBenchmarkModal()">⚡ Benchmark Suite</button>
         <button class="action-btn" onclick="exportCatalogCSV()">📥 Export CSV</button>
@@ -842,8 +856,16 @@
       </div>
     </header>
 
-    <!-- Alert Banner -->
-    <div class="alert-banner" id="alertBanner">
+    <!-- Data Authenticity Disclosure -->
+    <div class="auth-disclosure" id="authDisclosure" role="note">
+      ⚠ <strong>REPLAY DATA:</strong> This dashboard replays archived Aditya-L1 SoLEXS &amp; HEL1OS Level-1 FITS
+      light curves (May 2024 G5 superstorm, October 2024 X9.0, August 2026 operational). Data latency is
+      <strong>24–48 hours</strong> — Aditya-L1 downlinks ~once/day and PRADAN release is not real-time.
+      GOES XRS live data is available but not yet integrated. Do not claim operational real-time capability.
+    </div>
+
+    <!-- Alert Banner (aria-live assertive: flare alerts are life-critical state changes) -->
+    <div class="alert-banner" id="alertBanner" role="status" aria-live="assertive" aria-atomic="true">
       <div class="banner-left">
         <div class="banner-icon-badge" id="bannerIcon">🛡️</div>
         <div>
@@ -867,7 +889,7 @@
           <span>Soft X-Ray (SXR)</span>
           <span style="color: var(--cyan-sxr);">● 1-8 Å (SoLEXS)</span>
         </div>
-        <div class="stat-pill-val" id="statSXR">-- <span class="stat-pill-unit">nW/m²</span></div>
+        <div class="stat-pill-val" id="statSXR" aria-live="polite">-- <span class="stat-pill-unit">nW/m²</span></div>
         <div class="stat-pill-sub" id="statSXRSub">ISRO SoLEXS SDD2</div>
       </div>
 
@@ -876,17 +898,17 @@
           <span>Hard X-Ray (HXR)</span>
           <span style="color: var(--amber-hxr);">● 10-150 keV (HEL1OS)</span>
         </div>
-        <div class="stat-pill-val" id="statHXR">-- <span class="stat-pill-unit">cps</span></div>
+        <div class="stat-pill-val" id="statHXR" aria-live="polite">-- <span class="stat-pill-unit">cps</span></div>
         <div class="stat-pill-sub" id="statHXRSub">ISRO HEL1OS CdTe Non-Thermal</div>
       </div>
 
       <div class="stat-pill violet">
         <div class="stat-pill-header">
-          <span>PINN Model Skill (TSS)</span>
-          <span style="color: var(--violet-pinn);">● True Skill Stat</span>
+          <span>Model Skill (OOF TSS)</span>
+          <span style="color: var(--violet-pinn);">● Walk-Forward CV</span>
         </div>
-        <div class="stat-pill-val">+0.936 <span class="stat-pill-unit">TSS</span></div>
-        <div class="stat-pill-sub">POD: 99.0% • FAR: 12.4%</div>
+        <div class="stat-pill-val">+0.218 <span class="stat-pill-unit">TSS</span></div>
+        <div class="stat-pill-sub">POD: 42.3% • FAR: 76.6% (live NOAA eval, Sep 2026)</div>
       </div>
 
       <div class="stat-pill crimson">
@@ -903,7 +925,7 @@
           <span>SEP / Particle Outlook</span>
           <span style="color: var(--violet-pinn);">● &gt;10 MeV Protons</span>
         </div>
-        <div class="stat-pill-val" id="statSEP">QUIET</div>
+        <div class="stat-pill-val" id="statSEP" aria-live="polite">QUIET</div>
         <div class="stat-pill-sub" id="statSEPSub">No SEP storm expected</div>
       </div>
     </div>
@@ -963,7 +985,7 @@
                 <circle class="risk-circle-bg" cx="40" cy="40" r="32" />
                 <circle class="risk-circle-val" id="riskArc15" cx="40" cy="40" r="32" stroke="var(--emerald-safe)" />
               </svg>
-              <div class="risk-percentage-center" id="riskPct15">--%</div>
+              <div class="risk-percentage-center" id="riskPct15" aria-live="polite">--%</div>
             </div>
             <div style="font-size: 10px; color: var(--text-sub);">P(Flare Event)</div>
           </div>
@@ -975,7 +997,7 @@
                 <circle class="risk-circle-bg" cx="40" cy="40" r="32" />
                 <circle class="risk-circle-val" id="riskArc30" cx="40" cy="40" r="32" stroke="var(--amber-hxr)" />
               </svg>
-              <div class="risk-percentage-center" id="riskPct30">--%</div>
+              <div class="risk-percentage-center" id="riskPct30" aria-live="polite">--%</div>
             </div>
             <div style="font-size: 10px; color: var(--text-sub);">P(Flare Event)</div>
           </div>
@@ -987,7 +1009,7 @@
                 <circle class="risk-circle-bg" cx="40" cy="40" r="32" />
                 <circle class="risk-circle-val" id="riskArc60" cx="40" cy="40" r="32" stroke="var(--cyan-sxr)" />
               </svg>
-              <div class="risk-percentage-center" id="riskPct60">--%</div>
+              <div class="risk-percentage-center" id="riskPct60" aria-live="polite">--%</div>
             </div>
             <div style="font-size: 10px; color: var(--text-sub);">P(Flare Event)</div>
           </div>
@@ -1004,7 +1026,7 @@
             </div>
             <span class="brand-badge">AUTONOMOUS</span>
           </div>
-          <div class="event-ticker-box" id="eventTicker"></div>
+          <div class="event-ticker-box" id="eventTicker" role="log" aria-live="polite" aria-relevant="additions"></div>
         </div>
 
         <!-- Spacecraft Telemetry & Model Metrics -->
@@ -1085,11 +1107,17 @@
       
       <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-sub); display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px;">
         <div style="background: rgba(255,255,255,0.04); padding: 10px; border-radius: 8px;">
-          <div style="color: var(--cyan-sxr); font-weight: 700; margin-bottom: 4px;">PINN SpatioTemporal Graph Transformer (Tier 3b Checkpoint):</div>
-          <div>• True Skill Statistic (TSS): <strong style="color: var(--emerald-safe);">+0.936</strong> (Benchmark Target: &gt; +0.700)</div>
-          <div>• Probability of Detection (POD): <strong style="color: var(--emerald-safe);">99.0%</strong> (Recall for M/X flares)</div>
-          <div>• Heidke Skill Score (HSS): <strong style="color: var(--emerald-safe);">+0.486</strong></div>
-          <div>• False Alarm Rate (FAR): <strong style="color: var(--emerald-safe);">12.4%</strong></div>
+          <div style="color: var(--cyan-sxr); font-weight: 700; margin-bottom: 4px;">Verified Live Evaluation (LightGBM, walk-forward CV, NOAA stream 15-22 Sep 2026):</div>
+          <div>• True Skill Statistic (TSS): <strong style="color: var(--amber-hxr);">+0.218</strong> (Benchmark Target: &gt; +0.700)</div>
+          <div>• Probability of Detection (POD): <strong style="color: var(--amber-hxr);">42.3%</strong></div>
+          <div>• False Alarm Ratio (FAR): <strong style="color: var(--amber-hxr);">76.6%</strong></div>
+          <div style="margin-top: 4px; color: var(--text-muted);">9,973 samples, 33 events, θ=0.275; beats climatology & persistence. GOES validation window: TSS +0.296, POD 52.7%, FAR 74.5%.</div>
+        </div>
+        <div style="background: rgba(255,255,255,0.04); padding: 10px; border-radius: 8px;">
+          <div style="color: var(--amber-hxr); font-weight: 700; margin-bottom: 4px;">⚠ Benchmark-demo values (NOT reproducible from training code):</div>
+          <div>• PINN ST-GT "TSS +0.936 / POD 99% / FAR 12.4%" — illustrative demo numbers only.</div>
+          <div>• These figures are not backed by a trained checkpoint artifact.</div>
+          <div>• Use the OOF numbers above for any publication or evaluation claim.</div>
         </div>
         <div style="background: rgba(255,255,255,0.04); padding: 10px; border-radius: 8px;">
           <div style="color: var(--amber-hxr); font-weight: 700; margin-bottom: 4px;">Out-of-Sample Unseen Real Flare Events:</div>
@@ -1123,11 +1151,12 @@
 
       <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-sub); display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px;">
         <div style="background: rgba(255,255,255,0.04); padding: 10px; border-radius: 8px;">
-          <div style="color: var(--cyan-sxr); font-weight: 700; margin-bottom: 4px;">Per-Class True Skill Statistic (TSS):</div>
-          <div>• C-Class (C1.0-C9.9): <strong style="color: var(--emerald-safe);">+0.812</strong> (POD 96.2% / FAR 15.8%)</div>
-          <div>• M-Class (M1.0-M9.9): <strong style="color: var(--emerald-safe);">+0.914</strong> (POD 98.7% / FAR 11.2%)</div>
-          <div>• X-Class (X1.0+): <strong style="color: var(--crimson-flare);">+0.947</strong> (POD 99.4% / FAR 8.1%)</div>
-          <div style="margin-top: 4px; color: var(--text-muted);">Aggregate TSS: +0.936 • Brier Score: 0.041 • Reliability: 0.012</div>
+          <div style="color: var(--amber-hxr); font-weight: 700; margin-bottom: 4px;">⚠ Per-class figures below are benchmark-demo values (not reproducible).</div>
+          <div style="color: var(--text-muted); margin-bottom: 4px;">Verified live aggregate TSS: +0.218 (LightGBM, walk-forward CV, θ=0.275); GOES validation: +0.296.</div>
+          <div>• C-Class (C1.0-C9.9): <strong style="color: var(--amber-hxr);">+0.812</strong> (POD 96.2% / FAR 15.8%) — demo</div>
+          <div>• M-Class (M1.0-M9.9): <strong style="color: var(--amber-hxr);">+0.914</strong> (POD 98.7% / FAR 11.2%) — demo</div>
+          <div>• X-Class (X1.0+): <strong style="color: var(--amber-hxr);">+0.947</strong> (POD 99.4% / FAR 8.1%) — demo</div>
+          <div style="margin-top: 4px; color: var(--text-muted);">Aggregate TSS: +0.936 • Brier Score: 0.041 • Reliability: 0.012 — demo values</div>
         </div>
       </div>
 
@@ -1154,6 +1183,13 @@
       lastSampleTs: null,
       minClassFilter: 'C'
     };
+
+    // XSS defense: escape any server-derived string before it touches innerHTML.
+    function escapeHtml(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[c]));
+    }
 
     // Audio Beacon
     function initAudio() {
@@ -1219,22 +1255,22 @@
       }
     }
 
-    // Data freshness badge
+    // Data freshness badge — reflects FITS replay, not live telemetry
     function startFreshnessTimer() {
       setInterval(() => {
         const badge = document.getElementById('freshnessBadge');
         if (!badge) return;
         if (STATE.lastSampleTs === null) {
-          badge.innerText = 'LIVE';
+          badge.innerText = 'REPLAY';
           badge.className = 'freshness-badge';
           return;
         }
         const ageSec = Math.round((Date.now() - STATE.lastSampleTs) / 1000);
         if (ageSec > 15) {
-          badge.innerText = `STALE ${ageSec}s`;
+          badge.innerText = `REPLAY ${ageSec}s`;
           badge.className = 'freshness-badge stale';
         } else {
-          badge.innerText = `LIVE ${ageSec}s ago`;
+          badge.innerText = `REPLAY ${ageSec}s ago`;
           badge.className = 'freshness-badge';
         }
       }, 1000);
@@ -1333,7 +1369,7 @@
           else if (sxr >= 1000) flareClass = 'C-Class (Moderate)';
 
           document.getElementById('cursorTracker').innerHTML = 
-            `Time: <strong style="color:#fff;">${time}</strong> • SXR: <strong style="color:var(--cyan-sxr);">${sxr} nW/m²</strong> • HXR: <strong style="color:var(--amber-hxr);">${hxr} cps</strong> [${flareClass}]`;
+            `Time: <strong style="color:#fff;">${escapeHtml(time)}</strong> • SXR: <strong style="color:var(--cyan-sxr);">${escapeHtml(sxr)} nW/m²</strong> • HXR: <strong style="color:var(--amber-hxr);">${escapeHtml(hxr)} cps</strong> [${escapeHtml(flareClass)}]`;
         }
       });
 
@@ -1470,28 +1506,44 @@
     }
 
     // Dynamic Risk Gauges
-    function updateRiskGauges(p15, p30, p60) {
+    function updateRiskGauges(p15, p30, p60, flareClass) {
       const circ = 201.06;
       const arc15 = document.getElementById('riskArc15');
       const arc30 = document.getElementById('riskArc30');
       const arc60 = document.getElementById('riskArc60');
 
-      if (arc15) {
-        arc15.style.strokeDashoffset = circ * (1.0 - p15 / 100);
-        arc15.style.stroke = p15 > 60 ? 'var(--crimson-flare)' : p15 > 30 ? 'var(--amber-hxr)' : 'var(--emerald-safe)';
-      }
-      if (arc30) {
-        arc30.style.strokeDashoffset = circ * (1.0 - p30 / 100);
-        arc30.style.stroke = p30 > 60 ? 'var(--crimson-flare)' : p30 > 30 ? 'var(--amber-hxr)' : 'var(--emerald-safe)';
-      }
-      if (arc60) {
-        arc60.style.strokeDashoffset = circ * (1.0 - p60 / 100);
-        arc60.style.stroke = p60 > 60 ? 'var(--crimson-flare)' : p60 > 30 ? 'var(--amber-hxr)' : 'var(--cyan-sxr)';
+      // Boost risk for X/M class flares regardless of model probability
+      let boost15 = p15, boost30 = p30, boost60 = p60;
+      if (flareClass && flareClass.startsWith('X')) {
+        boost15 = Math.max(boost15, 85);
+        boost30 = Math.max(boost30, 75);
+        boost60 = Math.max(boost60, 65);
+      } else if (flareClass && flareClass.startsWith('M')) {
+        boost15 = Math.max(boost15, 60);
+        boost30 = Math.max(boost30, 55);
+        boost60 = Math.max(boost60, 50);
+      } else if (flareClass && flareClass.startsWith('C')) {
+        boost15 = Math.max(boost15, 35);
+        boost30 = Math.max(boost30, 30);
+        boost60 = Math.max(boost60, 25);
       }
 
-      document.getElementById('riskPct15').innerText = `${p15}%`;
-      document.getElementById('riskPct30').innerText = `${p30}%`;
-      document.getElementById('riskPct60').innerText = `${p60}%`;
+      if (arc15) {
+        arc15.style.strokeDashoffset = circ * (1.0 - boost15 / 100);
+        arc15.style.stroke = boost15 > 60 ? 'var(--crimson-flare)' : boost15 > 30 ? 'var(--amber-hxr)' : 'var(--emerald-safe)';
+      }
+      if (arc30) {
+        arc30.style.strokeDashoffset = circ * (1.0 - boost30 / 100);
+        arc30.style.stroke = boost30 > 60 ? 'var(--crimson-flare)' : boost30 > 30 ? 'var(--amber-hxr)' : 'var(--emerald-safe)';
+      }
+      if (arc60) {
+        arc60.style.strokeDashoffset = circ * (1.0 - boost60 / 100);
+        arc60.style.stroke = boost60 > 60 ? 'var(--crimson-flare)' : boost60 > 30 ? 'var(--amber-hxr)' : 'var(--cyan-sxr)';
+      }
+
+      document.getElementById('riskPct15').innerText = `${boost15}%`;
+      document.getElementById('riskPct30').innerText = `${boost30}%`;
+      document.getElementById('riskPct60').innerText = `${boost60}%`;
     }
 
     // Switch Real Stream on Backend
@@ -1521,18 +1573,23 @@
       };
 
       const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      // escapeHtml on title/detail: they may carry server-derived strings.
       const item = `
         <div class="event-item-card">
           <div class="event-header">
             <span class="event-tag" style="background: ${colors[type]}; color: ${textColors[type]}; border: 1px solid ${textColors[type]};">${type.toUpperCase()}</span>
             <span class="event-time">${now}</span>
           </div>
-          <div class="event-text">${title}</div>
-          <div class="event-meta">${detail}</div>
+          <div class="event-text">${escapeHtml(title)}</div>
+          <div class="event-meta">${escapeHtml(detail)}</div>
         </div>
       `;
       const ticker = document.getElementById('eventTicker');
-      if (ticker) ticker.insertAdjacentHTML('afterbegin', item);
+      if (ticker) {
+        ticker.insertAdjacentHTML('afterbegin', item);
+        // Cap ticker growth: keep at most 50 entries (prevents unbounded DOM leak).
+        while (ticker.children.length > 50) ticker.lastElementChild.remove();
+      }
     }
 
     // Real Stream Connection: WebSocket first, SSE fallback
@@ -1600,7 +1657,7 @@
           const p15 = Math.round(data.multi_horizon.prob_15m * 100);
           const p30 = Math.round(data.multi_horizon.prob_30m * 100);
           const p60 = Math.round(data.multi_horizon.prob_60m * 100);
-          updateRiskGauges(p15, p30, p60);
+          updateRiskGauges(p15, p30, p60, data.flare_class);
 
           const leadVal = document.getElementById('bannerLeadVal');
           if (leadVal && data.multi_horizon.estimated_lead_time_min) {
@@ -1616,7 +1673,11 @@
         if (data.flare_class && (data.flare_class.startsWith('X') || data.flare_class.startsWith('M'))) {
           banner.className = 'alert-banner critical';
           headline.innerText = `⚡ CRITICAL SOLAR EVENT: ${data.flare_class} DETECTED (${data.state || 'ACTIVE FLARE'})`;
-          detail.innerText = `Hard X-Ray Neupert Reconnection Imminent • Real PyTorch Probability: ${(data.prob * 100).toFixed(1)}%`;
+          // Use multi-horizon probabilities for more accurate display
+          const p15 = data.multi_horizon?.prob_15m ?? data.prob ?? 0;
+          const p30 = data.multi_horizon?.prob_30m ?? 0;
+          const p60 = data.multi_horizon?.prob_60m ?? 0;
+          detail.innerText = `Hard X-Ray Neupert Reconnection Imminent • PyTorch P(15m): ${(p15 * 100).toFixed(1)}% • P(30m): ${(p30 * 100).toFixed(1)}% • P(60m): ${(p60 * 100).toFixed(1)}%`;
           icon.innerText = '🔥';
           if (data.flare_class.startsWith('X')) playFlareAlertSound(true);
         } else {
@@ -1662,8 +1723,11 @@
               lead: `+${Number(data.row.lead_time_min).toFixed(1)} mins`,
               neupert: data.row.neupert_corr > 0.2 ? 'VERIFIED' : 'PARTIAL',
               conf: data.row.confidence !== undefined ? `${Number(data.row.confidence).toFixed(1)}%` : '--',
-              source: data.row.provenance || 'LIVE'
+              source: data.row.provenance || 'FITS'
             });
+            // Cap the catalogue array (mirrors backend deque maxlen=500) to
+            // prevent unbounded memory growth on long-running sessions.
+            if (STATE.catalogList.length > 500) STATE.catalogList.length = 500;
             applyCatalogFilters();
           }
         }
@@ -1722,17 +1786,18 @@
     function populateCatalogDOM(items) {
       const tbody = document.getElementById('catalogTableBody');
       if (!tbody) return;
+      // escapeHtml on every server-derived field (XSS defense).
       tbody.innerHTML = items.map(f => `
         <tr>
-          <td style="font-family: var(--font-mono); font-weight: 700; color: #fff;">${f.id}</td>
-          <td>${formatTime(f.time)}</td>
-          <td>${formatTime(f.peak)}</td>
-          <td><span class="event-tag" style="background: ${f.cls.startsWith('X') ? 'rgba(255,0,85,0.2)' : f.cls.startsWith('M') ? 'rgba(255,170,0,0.2)' : 'rgba(16,185,129,0.2)'}; color: ${f.cls.startsWith('X') ? 'var(--crimson-flare)' : f.cls.startsWith('M') ? 'var(--amber-hxr)' : 'var(--emerald-safe)'}; border: 1px solid currentColor;">${f.cls}</span></td>
-          <td style="font-family: var(--font-mono);">${f.flux}</td>
-          <td style="font-family: var(--font-mono); font-weight: 700; color: var(--cyan-sxr);">${f.lead}</td>
-          <td style="color: var(--emerald-safe); font-weight: 600;">✓ ${f.neupert}</td>
-          <td style="font-family: var(--font-mono);">${f.conf}</td>
-          <td><span class="event-tag" style="background: ${f.source === 'LIVE' ? 'rgba(16,185,129,0.15)' : 'rgba(255,170,0,0.12)'}; color: ${f.source === 'LIVE' ? 'var(--emerald-safe)' : 'var(--amber-hxr)'}; border: 1px solid currentColor;">${f.source}</span></td>
+          <td style="font-family: var(--font-mono); font-weight: 700; color: #fff;">${escapeHtml(f.id)}</td>
+          <td>${escapeHtml(formatTime(f.time))}</td>
+          <td>${escapeHtml(formatTime(f.peak))}</td>
+          <td><span class="event-tag" style="background: ${f.cls.startsWith('X') ? 'rgba(255,0,85,0.2)' : f.cls.startsWith('M') ? 'rgba(255,170,0,0.2)' : 'rgba(16,185,129,0.2)'}; color: ${f.cls.startsWith('X') ? 'var(--crimson-flare)' : f.cls.startsWith('M') ? 'var(--amber-hxr)' : 'var(--emerald-safe)'}; border: 1px solid currentColor;">${escapeHtml(f.cls)}</span></td>
+          <td style="font-family: var(--font-mono);">${escapeHtml(f.flux)}</td>
+          <td style="font-family: var(--font-mono); font-weight: 700; color: var(--cyan-sxr);">${escapeHtml(f.lead)}</td>
+          <td style="color: var(--emerald-safe); font-weight: 600;">✓ ${escapeHtml(f.neupert)}</td>
+          <td style="font-family: var(--font-mono);">${escapeHtml(f.conf)}</td>
+          <td><span class="event-tag" style="background: ${f.source === 'LIVE' ? 'rgba(16,185,129,0.15)' : 'rgba(255,170,0,0.12)'}; color: ${f.source === 'LIVE' ? 'var(--emerald-safe)' : 'var(--amber-hxr)'}; border: 1px solid currentColor;">${escapeHtml(f.source)}</span></td>
         </tr>
       `).join('');
     }
@@ -1788,12 +1853,16 @@
       const first = focusables[0];
       const last = focusables[focusables.length - 1];
       first.focus();
-      modal.addEventListener('keydown', function handler(e) {
+      // Remove any previously attached trap handler on this modal (prevents
+      // stacked keydown listeners accumulating across repeated opens).
+      if (modal._trapHandler) modal.removeEventListener('keydown', modal._trapHandler);
+      modal._trapHandler = function handler(e) {
         if (e.key === 'Tab') {
           if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
           else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
         }
-      });
+      };
+      modal.addEventListener('keydown', modal._trapHandler);
       // Document-level Escape closes any open modal
       document.addEventListener('keydown', function escHandler(e) {
         if (e.key === 'Escape') {

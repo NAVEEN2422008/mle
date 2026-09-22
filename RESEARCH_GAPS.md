@@ -58,7 +58,7 @@
 | Mandatory baselines | ✅ Climatology + Persistence | Missing: persistence with class-dependent decay |
 | SDD arbitration | ✅ Implemented | Not validated on saturation events (no M/X data) |
 | GOES end-rule | ✅ Implemented | Missing: complex event sub-peak merging validation |
-| Benchmark to beat | ⚠️ TSS=0.282 vs target 0.74 | **HIGH** — 63% gap to target |
+| Benchmark to beat | ⚠️ TSS=0.218 live / 0.296 GOES vs target 0.74 | **HIGH** — 60-70% gap to target |
 
 ### 2.2 From ARCHITECTURE.md (Referenced in Bibliography)
 | Architecture Item | Status | Gap Description |
@@ -273,7 +273,7 @@
 | # | Gap | Category | Impact | Effort |
 |---|-----|----------|--------|--------|
 | 1 | **HEL1OS data unavailability** | Data | Cannot validate Neupert features | External (ISRO) |
-| 2 | **TSS=0.282 vs target 0.74** | Evaluation | 63% performance gap | Medium |
+| 2 | **TSS=0.218 live / 0.296 GOES vs target 0.74** | Evaluation | 60-70% performance gap | Medium |
 | 3 | **No spectral decomposition** | Physics | Missing thermal/non-thermal | High |
 | 4 | **No calibration curves** | Evaluation | Unknown probability quality | Low |
 | 5 | **No feature importance** | Interpretability | Black-box model | Low |

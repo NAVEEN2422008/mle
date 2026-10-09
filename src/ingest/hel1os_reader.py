@@ -23,7 +23,6 @@ from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
-from astropy.io import fits as _fits
 from .fits_pure import read_all_hdus
 
 from ..types import Instrument, QCFlag
@@ -183,7 +182,7 @@ def read_hel1os_zip(zip_path: str, members: Optional[List[str]] = None
 def read_hel1os_directory(directory: str) -> pd.DataFrame:
     frames = []
     for path in sorted(Path(directory).rglob("*")):
-        if path.suffix.lower() == ".zip" and "HLD" in path.name.upper():
+        if path.suffix.lower() == ".zip" and any(k in path.name.upper() for k in ("HLD", "HLS", "HEL1OS")):
             try:
                 frames.append(read_hel1os_zip(str(path)))
             except Exception as e:

@@ -22,7 +22,6 @@ from typing import List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
-from astropy.io import fits as _fits
 from .fits_pure import read_all_hdus
 
 from ..types import Instrument, QCFlag

@@ -31,15 +31,21 @@ class MultiHorizonForecast:
     expected_peak_counts: float
     estimated_lead_time_min: float
     precursor_confidence: float
+    lead_time_is_sentinel: bool = False
 
-    def to_dict(self) -> Dict[str, Union[float, str]]:
+    def to_dict(self) -> Dict[str, Union[float, str, bool, None]]:
         return {
             "prob_15m": round(float(self.prob_15m), 3),
             "prob_30m": round(float(self.prob_30m), 3),
             "prob_60m": round(float(self.prob_60m), 3),
             "predicted_class": self.predicted_class,
+            "class_basis": "raw_detector_counts_uncalibrated",
             "expected_peak_counts": round(float(self.expected_peak_counts), 1),
-            "estimated_lead_time_min": round(float(self.estimated_lead_time_min), 1),
+            # null (not a fabricated number) when no actionable lead time exists
+            "estimated_lead_time_min": (
+                None if self.lead_time_is_sentinel else round(float(self.estimated_lead_time_min), 1)
+            ),
+            "lead_time_is_sentinel": bool(self.lead_time_is_sentinel),
             "precursor_confidence": round(float(self.precursor_confidence), 3),
         }
 
@@ -320,7 +326,12 @@ class TemporalAttentionForecaster:
         cur_flux = float(x[-1, 0])
         expected_counts = max(cur_flux, cur_flux * (1.0 + 2.0 * excess_s))
 
-        # Predicted GOES flare classification
+        # Predicted GOES-like class. IMPORTANT: these are RAW DETECTOR COUNT
+        # thresholds, not GOES W/m^2 thresholds. No calibrated counts->irradiance
+        # transfer is available in this module (the API's SCALE_FACTORS are
+        # per-source-mode empirical values, Sarwade et al. 2025, and are not a
+        # universal calibration). The caller is told this explicitly via the
+        # `class_basis` field rather than by mangling the label.
         if expected_counts >= 100000 or (p_15 > 0.85 and last_sxr_excess >= 5.0):
             pred_class = "X-class"
         elif expected_counts >= 10000 or (p_15 > 0.70 and last_sxr_excess >= 2.5):
@@ -330,13 +341,18 @@ class TemporalAttentionForecaster:
         else:
             pred_class = "B/A-class"
 
-        # Estimated lead time
+        # Estimated lead time. Reported as an explicit LOW-RISK sentinel when
+        # the 15-min probability is below the C-class decision threshold: a
+        # numeric lead time at 2% risk reads as a real prediction but carries no
+        # information, so we surface it as null rather than inventing minutes.
+        lead_is_sentinel = False
         if p_15 > 0.70:
             est_lead = 6.0 + 4.0 * (1.0 - min(excess_s / 3.0, 1.0))
         elif p_15 > 0.35:
             est_lead = 12.0 + 6.0 * (1.0 - min(excess_s / 1.5, 1.0))
         else:
-            est_lead = 25.0
+            est_lead = 0.0
+            lead_is_sentinel = True
 
         confidence = float(np.mean(np.max(attn_weights, axis=-1)))
 
@@ -348,6 +364,7 @@ class TemporalAttentionForecaster:
             expected_peak_counts=expected_counts,
             estimated_lead_time_min=est_lead,
             precursor_confidence=confidence,
+            lead_time_is_sentinel=lead_is_sentinel,
         )
 
 

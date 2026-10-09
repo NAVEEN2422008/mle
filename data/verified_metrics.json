@@ -1,0 +1,313 @@
+{
+  "artifact": "verified_metrics",
+  "authority": "Single source of truth for every number in the paper and dashboard.",
+  "provenance": "Re-derived from raw PRADAN FITS archives and pipeline output, not copied from manuscript text.",
+  "last_verified": "post lag-mask bugfix",
+  "critical_correction": {
+    "id": "LAG-PADDING-BUG",
+    "severity": "high",
+    "what_was_wrong": "neupert_fit built the lagged SXR series by zero-padding its first `lag` samples, then scored the correlation over the FULL window mask instead of the lag-aware mask. Every candidate lag was therefore correlated partly against padding zeros.",
+    "effect": "Inflated the integral-model r and biased the winning lag.",
+    "old_median_r_integral": 0.819,
+    "new_median_r_integral": 0.811,
+    "old_median_lead_s": 210,
+    "new_median_lead_s": 175,
+    "conclusion_changed": false,
+    "note": "The 4/4 INTEGRAL verdict is unchanged; only the magnitude and lead time moved slightly.",
+    "fixed_in": [
+      "scripts/neupert_analysis.py",
+      "paper/generate_figures.py"
+    ],
+    "regression_tests": [
+      "tests/test_neupert_qc.py::test_lag_padding_is_excluded_from_correlation",
+      "tests/test_neupert_qc.py::test_lag_padding_fixture_actually_exposes_the_bug"
+    ]
+  },
+  "neupert": {
+    "source_script": "scripts/neupert_analysis.py",
+    "band_pinned": "CZT2_LC_BAND_40.00KEV_TO_60.00KEV (40-60 keV)",
+    "band_policy": "Same band for every event. Auto-selection previously picked 80-150 keV for 2024-05-11 and 40-60 keV for the others, which makes cross-event comparison invalid.",
+    "n_events_usable": 4,
+    "events": [
+      {
+        "utc": "2024-05-11T01:14:05Z",
+        "flare": "X5.8",
+        "r_direct": 0.226,
+        "r_integral": 0.919,
+        "lag_s": 200,
+        "zf_hxr": 0.33
+      },
+      {
+        "utc": "2024-05-14T16:46:22Z",
+        "flare": "X8.7",
+        "r_direct": 0.23,
+        "r_integral": 0.731,
+        "lag_s": 250,
+        "zf_hxr": 0.34
+      },
+      {
+        "utc": "2024-10-01T22:09:59Z",
+        "flare": "X7.1",
+        "r_direct": 0.141,
+        "r_integral": 0.891,
+        "lag_s": 150,
+        "zf_hxr": 0.27
+      },
+      {
+        "utc": "2024-10-03T12:13:57Z",
+        "flare": "X9.0",
+        "r_direct": 0.205,
+        "r_integral": 0.676,
+        "lag_s": 150,
+        "zf_hxr": 0.26
+      }
+    ],
+    "integral_wins": "4/4",
+    "direct_wins": "0/4",
+    "median_r_integral": 0.811,
+    "median_r_direct": 0.215,
+    "median_lead_s": 175,
+    "statistical_caveat": "n=4. The smallest two-sided sign-test p attainable when all 4 events agree is 0.125, so no result in this set can reach p<0.05. Wording must be 'consistent with' / 'exploratory', never 'demonstrates' or 'proves'."
+  },
+  "figure_generator_divergence": {
+    "severity": "medium",
+    "issue": "paper/generate_figures.py reimplements the Neupert chain instead of importing scripts/neupert_analysis.py, so it omits channel_quality/MIN_CHANNEL_STD health screening and the zero-inflation refusal gate.",
+    "example": {
+      "utc": "2024-05-14",
+      "canonical": {
+        "r_direct": 0.23,
+        "r_integral": 0.731
+      },
+      "figure_generator": {
+        "r_direct": 0.176,
+        "r_integral": 0.7245
+      }
+    },
+    "resolution": "Unify on scripts/neupert_analysis.py before publication. The direct-model r differs most, so the discrepancy is in HXR channel screening, not in the lag logic."
+  },
+  "ml_fixed_threshold": {
+    "source_script": "scripts/evaluate_aditya_real.py",
+    "threshold": 0.5,
+    "tss": 0.277,
+    "pod": 0.34,
+    "far": 0.897,
+    "hss": 0.13,
+    "bss": -2.169,
+    "brier": 0.0639,
+    "pr_auc": 0.345,
+    "verdict": "WORSE than a constant base-rate forecast (BSS < 0). ~90% of alarms are false."
+  },
+  "ml_tuned_threshold": {
+    "chosen_threshold": 0.45,
+    "tss": 0.336,
+    "pod": 0.391,
+    "far": 0.87,
+    "hss": 0.169,
+    "bss": -1.665,
+    "brier": 0.0537,
+    "pr_auc": 0.331,
+    "oof_coverage_frac": 0.719,
+    "verdict": "Still worse than base rate.",
+    "note": "This run is the origin of the manuscript's 'TSS 0.32 / tuned threshold 0.32' claim, which was never computed by any script."
+  },
+  "ml_baselines": {
+    "climatology": {
+      "tss": 0.0,
+      "pod": 0.0,
+      "far": 0.0
+    },
+    "persistence": {
+      "tss": 0.0,
+      "pod": 0.0,
+      "far": 0.0
+    },
+    "beats_baselines_flag": true,
+    "caveat": "Both baselines score 0 because at theta=0.45 they never predict positive. The 'beats baselines' flag is vacuous and must not be cited as evidence of skill."
+  },
+  "ml_dataset": {
+    "n_timesteps_1min": 169505,
+    "span_hours": 3521.1,
+    "days": [
+      "2024-05-10",
+      "2024-05-11",
+      "2024-05-14",
+      "2024-10-01",
+      "2024-10-03"
+    ],
+    "n_xclass_positives": 4,
+    "implied_positive_prevalence": 0.0206
+  },
+  "instrument_facts_verified_from_fits": {
+    "method": "EXTNAME strings read directly from lightcurve_cdte2.fits and lightcurve_czt1.fits",
+    "CDTE2_channels_keV": [
+      [
+        5,
+        20
+      ],
+      [
+        20,
+        30
+      ],
+      [
+        30,
+        40
+      ],
+      [
+        40,
+        60
+      ]
+    ],
+    "CDTE2_broadband_keV": [
+      1.8,
+      90
+    ],
+    "CZT1_channels_keV": [
+      [
+        20,
+        40
+      ],
+      [
+        40,
+        60
+      ],
+      [
+        60,
+        80
+      ],
+      [
+        80,
+        150
+      ]
+    ],
+    "CZT1_broadband_keV": [
+      18,
+      160
+    ],
+    "SoLEXS": {
+      "band_keV": [
+        2,
+        22
+      ],
+      "status": "design-spec constant from src/constants.py; NOT derivable from the L1 file",
+      "evidence": "AL1_SOLEXS_20240511_SDD2_L1.lc.fits has only INSTRUME='SoLEXS' and TIME/COUNTS columns, with no energy keywords. The 2-22 keV label matches published instrument spec but is unverified from data."
+    }
+  },
+  "blocking_integrity_findings": [
+    {
+      "id": "TSS-CONVENTION",
+      "severity": "high",
+      "detail": "metrics.py computes TSS = POD - POFD (Peirce score). Bloomfield et al. 2012, the cited benchmark, define TSS = HTR - FAR. On one illustrative matrix the same counts give +0.32 under one convention and -0.63 under the other.",
+      "required_action": "Either report both conventions, or restate TSS as HTR - FAR so the Bloomfield comparison is valid."
+    },
+    {
+      "id": "LT-FAR-TABLE-DEGENERATE",
+      "severity": "high",
+      "detail": "lt_far_table has 17 rows but POD=0.0, FAR=1.0, TSS=-1.0 and median_lead=0.0 at EVERY threshold, with 20081 total false alarms. The sweep produced no usable operating curve.",
+      "required_action": "Delete figure 9. Do not present any lead-time-vs-FAR curve until the sweep is rebuilt."
+    },
+    {
+      "id": "NO-ABLATION-CODE",
+      "severity": "high",
+      "detail": "No 'ablation' symbol exists anywhere in src/forecast/pipeline.py or train.py.",
+      "required_action": "Delete figure 4."
+    },
+    {
+      "id": "NO-IMPORTANCE-ARTIFACT",
+      "severity": "high",
+      "detail": "No feature-importance artifact exists on disk; the only JSON/CSV under data/ and models/ is noaa_xclass_labels.csv.",
+      "required_action": "Delete figure 5."
+    },
+    {
+      "id": "FIG7-FIG8-UNSOURCED",
+      "severity": "high",
+      "detail": "figure 7 ML comparison bars and figure 8 ROC/reliability use hardcoded values and np.random Beta draws with no saved predictions.",
+      "required_action": "Delete both until real out-of-fold predictions are persisted."
+    },
+    {
+      "id": "COVERAGE-CLAIM-STALE",
+      "severity": "low",
+      "detail": "oof_coverage_frac is 0.719; documents cite 76%."
+    },
+    {
+      "id": "FIG6-PEAK-TIME",
+      "severity": "low",
+      "detail": "Figure 6's '25 s' gap is measured against the NOAA-labelled 06:54:00 UTC peak, but the SoLEXS archive maximum is 06:50:45 UTC, 195 s earlier. The label must state which reference time it uses."
+    }
+  ],
+  "literature_grounding": {
+    "neupert_canonical": "https://ui.adsabs.harvard.edu/abs/1969ApJ...154L.389N",
+    "status": "SXR-follows-integral-HXR is established physics since 1969. This project re-verifies it instrument-side and must never be framed as a discovery.",
+    "sample_adequacy": "n=4 supports 'consistent with the Neupert effect', not 'demonstrates' it."
+  },
+  "figure_text_audit": {
+    "date": "2026-10-03",
+    "method": "AST extraction of every string literal rendered in each publishable figure, then each assertion audited against raw FITS / verified_metrics.json",
+    "figures_audited": [
+      "figure1_lightcurves",
+      "figure2_neupert_scatter",
+      "figure3_band_sweep",
+      "figure6_data_gap",
+      "figure10_energy_bands"
+    ],
+    "defects_found_and_fixed": [
+      {
+        "id": "FT-1",
+        "where": "paper.tex L290 + L285",
+        "claim": "Band sweep exception attributed to 2024-05-10",
+        "problem": "Arithmetically impossible: the sweep covers only the 4 usable events x 5 bands = 20 combos, so 2024-05-10 contributes zero combinations and cannot be the exception.",
+        "fix": "Restated: exception is one event-band pair among the four usable events; 2024-05-10 is absent from the sweep entirely (data gap).",
+        "severity": "high"
+      },
+      {
+        "id": "FT-2",
+        "where": "paper.tex L290",
+        "claim": "INTEGRAL wins across all genuine HXR bands",
+        "problem": "Overclaim: 19/20 is not all.",
+        "fix": "Restated as 19 of 20 event-band combinations.",
+        "severity": "medium"
+      },
+      {
+        "id": "FT-3",
+        "where": "paper.tex L282",
+        "claim": "earlier draft reported \\\\rint (macro = 0.811)",
+        "problem": "The retraction sentence quoted the NEW macro instead of the OLD value 0.819, so it did not actually record what the earlier draft claimed.",
+        "fix": "Replaced with literal 0.819.",
+        "severity": "medium"
+      },
+      {
+        "id": "FT-4",
+        "where": "paper.tex L307 + L295 + generate_figures.py L750/L774",
+        "claim": "HEL1OS starts 25s after SXR peak",
+        "problem": "Ambiguous reference time. 25 s is vs the NOAA catalogue peak (06:54:00); the SoLEXS-observed maximum is 06:50:45, i.e. 195 s earlier, so the true missed interval is 220 s. Also the 19,937 cts/s peak was attributed to 06:54:00, which is not where the archive maximum occurs.",
+        "fix": "All three sites now name the NOAA catalogue peak explicitly and state the 220 s figure measured against the observed SXR maximum.",
+        "severity": "high"
+      },
+      {
+        "id": "FT-5",
+        "where": "paper.tex L534",
+        "claim": "Six measurement bugs",
+        "problem": "Appendix lists F5.1-F5.7 (seven rows) after the lag-mask defect was appended, so the caption undercounted.",
+        "fix": "Caption now reads Seven.",
+        "severity": "low"
+      }
+    ],
+    "claims_confirmed_true": [
+      "Figure 1: SoLEXS 2-22 keV + HEL1OS CZT 40-60 keV, four X-class flares X5.8/X8.7/X7.1/X9.0 - matches NOAA catalogue and FITS EXTNAMEs.",
+      "Figure 2: Direct vs integral model scatter with per-panel r and lag - verified by scripts/check_figure2_lag.py.",
+      "Figure 10: energy bands/overlap - all channel edges taken from FITS EXTNAME strings, cross-checked against this manifest."
+    ]
+  },
+  "metric_convention_correction": {
+    "date": "2026-10-03",
+    "previous_claim": "Manuscript and evaluator asserted Bloomfield et al. 2012 define TSS as HTR-FAR and that our POD-POFD values were therefore NOT comparable.",
+    "status": "THAT CLAIM WAS WRONG - retracted",
+    "verified_fact": "Bloomfield et al. 2012 (ApJ 747, L41) adopt the Hanssen-Kuipers discriminant, TSS = (ad-bc)/[(a+c)(b+d)], which is algebraically identical to POD - POFD (Peirce score). It is recommended there precisely because it is invariant to the event/no-event sample ratio.",
+    "sources": [
+      "https://iopscience.iop.org/article/10.1088/2041-8205/747/2/L41",
+      "https://ui.adsabs.harvard.edu/abs/2012ApJ...747L..41B/abstract",
+      "https://www.spaceweather.gov/sites/default/files/images/u30/Forecast%20Verification%20Glossary.pdf"
+    ],
+    "impact": "No change to any measured number. The comparison is now stated correctly, and the paper notes the absolute skill is far below the published 24-h optima (TSS 0.46 for >=C1.0, 0.74 for X-class).",
+    "residual_caution": "Some papers use the label TSS loosely for HTR-FAR; those values are not comparable. Woodcock 1976 is now cited for the metric definition."
+  }
+}

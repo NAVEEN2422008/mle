@@ -1,0 +1,10 @@
+# Known X-class flares during Aditya-L1 HEL1OS coverage
+# Format: peak_time_utc, peak_flux_wm2, class_type, source
+# peak_flux_wm2: GOES 1-8A flux in W/m^2 (C1.0 = 1e-6)
+# Source: NOAA SWPC event reports / HEK
+
+2024-05-10T06:54:00Z,1.0e-4,X3.9,NOAA
+2024-05-11T01:23:00Z,5.8e-4,X5.8,NOAA
+2024-05-14T16:51:00Z,8.7e-4,X8.7,NOAA
+2024-10-01T22:20:00Z,7.1e-4,X7.1,NOAA
+2024-10-03T12:18:00Z,9.0e-4,X9.0,NOAA

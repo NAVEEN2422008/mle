@@ -59,13 +59,26 @@ def run_live_evaluation():
     # 2. Resample & prepare continuous time series
     print("\n[2/5] Running Multi-Band Preprocessing & Signal Calibration...")
     df_ts = df_xrs.set_index('timestamp')[['flux_long', 'flux_short']].resample('1min').mean().interpolate(method='linear').reset_index()
-    
+
+    # CHANNEL PROVENANCE (read before trusting any "hard X-ray" claim here):
+    #   flux_long  = GOES XRS 0.1-0.8 nm  -> SOFT X-ray
+    #   flux_short = GOES XRS 0.05-0.4 nm -> SOFT X-ray (a *harder* soft band,
+    #                                               NOT hard X-ray)
+    # GOES XRS has NO hard-X-ray channel. Hard X-ray (8-150 keV, the band the
+    # Neupert effect actually requires) is only available from HEL1OS. On this
+    # GOES-only stream the second column is therefore a spectral-hardness
+    # proxy, and every HXR-derived feature is a SOFT-band proxy. Results from
+    # this script must not be described as hard+soft X-ray coupling.
     soft_flux = np.asarray(df_ts['flux_long'].to_numpy(dtype=float))
-    hard_flux = np.asarray(df_ts['flux_short'].to_numpy(dtype=float))
-    
-    # Scale to standard counts
+    hard_band_flux = np.asarray(df_ts['flux_short'].to_numpy(dtype=float))  # NOT HXR
+
+    # Scale W/m^2 -> nW/m^2
     soft_norm = np.clip(soft_flux * 1e9, 0.0, None)
-    hard_norm = np.clip(hard_flux * 1e9, 0.0, None)
+    hard_norm = np.clip(hard_band_flux * 1e9, 0.0, None)
+
+    print(f"  ℹ Channel provenance: flux_long=0.1-0.8nm (SXR), "
+          f"flux_short=0.05-0.4nm (SOFT-BAND PROXY, not HXR). "
+          f"True HXR requires HEL1OS FITS archives.")
 
     df_pipe = pd.DataFrame({
         "timestamp": df_ts["timestamp"],
@@ -79,14 +92,41 @@ def run_live_evaluation():
         horizon_min=15,
         n_folds=4,
         window_min=30,
+        min_class_flux=1000.0,   # nW/m^2; matches df_pipe. The 1e-6 default
+                                 # (W/m^2) is inoperative on nW/m^2 input.
         use_lightgbm=True
     )
-    
-    report = pipeline.run(df_pipe)
+
+    # Labels MUST come from independent NOAA ground truth. Labelling from the
+    # pipeline's own CUSUM detector is circular and inflated TSS by ~2.2x
+    # (measured: +0.312 self-detected vs +0.140 NOAA truth on this window).
+    _t0 = df_ts["timestamp"].iloc[0]
+    _ev = df_events.copy()
+    _ev["peak_time"] = pd.to_datetime(_ev["timestamp"])
+    _ev = _ev[(_ev["peak_time"] >= _t0) &
+              (_ev["peak_time"] <= df_ts["timestamp"].iloc[-1])]
+    _tf = pd.to_numeric(_ev["peak_flux"], errors="coerce").fillna(0.0).to_numpy()
+    _tp = (_ev["peak_time"] - _t0).dt.total_seconds().to_numpy()
+    # peak_flux arrives in W/m^2 (C1.0 == 1e-6). df_pipe is in nW/m^2, and
+    # build_labels compares peak_fluxes against min_class_flux=1000.0 nW/m^2,
+    # so scale by 1e9 when handing the label flux over.
+    C1_WM2 = 1e-6
+    label_peaks = [(float(t), float(f) * 1e9)
+                   for t, f in zip(_tp, _tf) if f >= C1_WM2]
+    n_all_ev = len(_tp)
+    print(f"  ✓ NOAA events in window: {n_all_ev}; "
+          f">=C1.0 used as LABELS: {len(label_peaks)}")
+
+    report = pipeline.run(df_pipe, truth_peaks=label_peaks, label_peaks=label_peaks)
 
     print(f"  ✓ Processed Stream Samples:      {report.n_samples:,}")
     print(f"  ✓ Labelled Pre-Flare Windows:   {report.n_labelled:,} (Positives: {report.n_positives})")
-    print(f"  ✓ Detected Catalogue Flares:    {report.n_catalogue_peaks}")
+    print(f"  ✓ Self-detected peaks (features only): {report.n_catalogue_peaks}")
+    print(f"  ✓ Label Source:                 {report.label_source} ({report.n_label_events} events)")
+    if report.truth_check:
+        _tc = report.truth_check
+        print(f"  ✓ Detector recall vs NOAA:      {_tc['matched_within_300s']}/{_tc['truth_n']} "
+              f"within 300 s ({_tc['matched_within_300s']/max(_tc['truth_n'],1):.1%})")
     print(f"  ✓ Optimal Decision Threshold θ: {report.chosen_threshold}")
 
     print("\n  📊 Walk-Forward Cross-Validation Performance:")
@@ -101,9 +141,19 @@ def run_live_evaluation():
     # 4. Mandatory Baseline Comparison & Operating Curve
     print("\n[4/5] Baseline Benchmarking & Operating Points...")
     base_cmp = report.baseline_compare
-    print(f"    • Climatology Baseline TSS:   {base_cmp.get('climatology_tss', 0.0):.3f}")
-    print(f"    • Persistence Baseline TSS:   {base_cmp.get('persistence_tss', 0.0):.3f}")
-    print(f"    • Outperformed Both Baselines: {report.beats_baselines} ✅")
+    # baseline_compare is NESTED: {'model': {...}, 'climatology': {...}, ...}.
+    # The old flat keys ('climatology_tss') never existed, so both baseline TSS
+    # lines silently printed the 0.000 default regardless of the real values.
+    _m = base_cmp.get("model", {})
+    _c = base_cmp.get("climatology", {})
+    _p = base_cmp.get("persistence", {})
+    print(f"    • Model TSS @ chosen θ:        {_m.get('tss', float('nan')):.3f}")
+    print(f"    • Climatology Baseline TSS:   {_c.get('tss', float('nan')):.3f}  "
+          f"(0.000 is the identity for any constant forecast — not evidence of skill)")
+    print(f"    • Persistence Baseline TSS:   {_p.get('tss', float('nan')):.3f}")
+    print(f"    • OOF coverage fraction:      {base_cmp.get('oof_coverage_frac', float('nan'))}")
+    print(f"    • Outperformed Both Baselines: {report.beats_baselines} "
+          f"(meaningful only vs Brier/BSS, not vs climatology TSS)")
 
     if report.lt_far_table:
         print("\n  ⏱️ Operational Lead-Time vs False Alarm Rate (Top Operating Points):")
@@ -132,9 +182,15 @@ def run_live_evaluation():
     print(f"  • 15-Minute Precursor Flare Risk: {pred_dict['prob_15m'] * 100:.1f}%")
     print(f"  • 30-Minute Precursor Flare Risk: {pred_dict['prob_30m'] * 100:.1f}%")
     print(f"  • 60-Minute Precursor Flare Risk: {pred_dict['prob_60m'] * 100:.1f}%")
-    print(f"  • Predicted Flare Classification: {pred_dict['predicted_class']}")
-    print(f"  • Estimated Lead Time to Peak:    {pred_dict['estimated_lead_time_min']:.1f} minutes")
-    print(f"  • Multi-Band Attention Score:    {pred_dict['precursor_confidence']:.3f}")
+    print(f"  • Predicted Flare Classification: {pred_dict['predicted_class']} "
+          f"(basis: {pred_dict.get('class_basis', 'n/a')})")
+    _lead = pred_dict["estimated_lead_time_min"]
+    if _lead is None:
+        print("  • Estimated Lead Time to Peak:    n/a (below alert threshold)")
+    else:
+        print(f"  • Estimated Lead Time to Peak:    {_lead:.1f} minutes")
+    print(f"  • Multi-Band Attention Score:    {pred_dict['precursor_confidence']:.3f} "
+          f"(illustrative, not model attention)")
     print("=" * 75)
 
 

@@ -202,7 +202,8 @@ class MultiDetectorSpatialGraphLayer(nn.Module):
         Args:
             node_feats: (Batch * Time, Num_Nodes, Node_Dim)
         """
-        attn_out, _ = self.spatial_attn(node_feats, node_feats, node_feats)
+        attn_out, spatial_weights = self.spatial_attn(node_feats, node_feats, node_feats)
+        self.last_spatial_attn = spatial_weights.detach()
         x = self.norm(node_feats + attn_out)
         out = self.norm_ffn(x + self.ffn(x))
         return out
@@ -329,6 +330,7 @@ class SpatioTemporalGraphTransformer(nn.Module):
             "dsxr_dt_pred": dsxr_dt_pred,
             "alpha": torch.clamp(self.learned_alpha, min=0.01, max=1.0),
             "beta": torch.clamp(self.learned_beta, min=0.001, max=0.5),
+            "spatial_attn": getattr(self.spatial_graph, "last_spatial_attn", None),
         }
 
 

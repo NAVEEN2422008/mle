@@ -25,7 +25,15 @@ def fetch_goes_xrs_json(url: str = GOES_SWPC_URL) -> pd.DataFrame:
     Handles BOTH observed schemas:
       A) per-channel rows: [{time_tag, satellite, flux, energy: '1-8 A'|'0.5-4 A'}, ...]
       B) combined rows:    [{time_tag, flux_short, flux_long}, ...]
+
     Returns columns: timestamp, flux_long (1-8 A), flux_short (0.5-4 A).
+
+    IMPORTANT: BOTH channels are SOFT X-ray. 1 A = 0.1 nm, so the long channel
+    is 0.1-0.8 nm and the short channel is 0.05-0.4 nm. `flux_short` is a
+    *harder soft* band, NOT hard X-ray. GOES XRS carries no channel in the
+    8-150 keV band that the Neupert effect requires; that data comes from
+    HEL1OS on Aditya-L1. Do not pass `flux_short` anywhere as a genuine HXR
+    measurement.
     """
     try:
         raw = _http_get_json(url)

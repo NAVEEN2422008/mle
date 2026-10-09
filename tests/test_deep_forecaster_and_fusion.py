@@ -127,6 +127,43 @@ def test_pytorch_aditya_solar_transformer():
     assert loss.item() >= 0.0
 
 
+def test_spatiotemporal_graph_transformer():
+    """Verify SpatioTemporalGraphTransformer forward pass, attention extraction, and PINN regularizer."""
+    from src.forecast.deep_models import SpatioTemporalGraphTransformer, NeupertPhysicsLoss
+
+    model = SpatioTemporalGraphTransformer(num_nodes=5, in_features_per_node=2, d_model=32, nhead=2, num_temporal_layers=2)
+    dummy_graphs = torch.randn(2, 30, 5, 2)
+    out = model(dummy_graphs)
+
+    assert "logits_15m" in out
+    assert "logits_30m" in out
+    assert "logits_60m" in out
+    assert "spatial_attn" in out
+    assert out["logits_15m"].shape == (2,)
+    assert out["spatial_attn"].shape == (2 * 30, 5, 5)
+
+    pinn_loss_fn = NeupertPhysicsLoss()
+    sxr_flux = dummy_graphs[:, -1, 0, 0]
+    hxr_flux = dummy_graphs[:, -1, 2, 0]
+    loss_p = pinn_loss_fn(out["dsxr_dt_pred"], sxr_flux, hxr_flux, out["alpha"], out["beta"])
+    assert loss_p.item() >= 0.0
+    assert torch.isfinite(loss_p)
+
+
+def test_cnn_lstm_forecaster():
+    """Verify CNNLSTMSolarForecaster forward pass and temporal attention shapes."""
+    from src.forecast.deep_models import CNNLSTMSolarForecaster
+
+    model = CNNLSTMSolarForecaster(in_channels=8, conv_channels=32, lstm_hidden=32)
+    dummy_seq = torch.randn(2, 30, 8)
+    out = model(dummy_seq)
+
+    assert "logits_15m" in out
+    assert "attn_weights" in out
+    assert out["logits_15m"].shape == (2,)
+    assert out["attn_weights"].shape == (2, 30, 1)
+
+
 if __name__ == "__main__":
     print("Running deep forecaster & fusion tests...")
     test_inverse_variance_fusion()
@@ -139,7 +176,9 @@ if __name__ == "__main__":
     print("  [4/5] Neupert correlator physics: PASS")
     if HAS_TORCH:
         test_pytorch_aditya_solar_transformer()
-        print("  [5/5] PyTorch AdityaSolarTransformer & PINN Loss: PASS")
+        test_spatiotemporal_graph_transformer()
+        test_cnn_lstm_forecaster()
+        print("  [5/5] PyTorch Graph Transformer & CNN-LSTM: PASS")
     else:
         print("  [5/5] PyTorch not available, skipped torch-specific tests")
     print("ALL TESTS PASSED!")

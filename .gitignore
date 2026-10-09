@@ -44,6 +44,7 @@ Thumbs.db
 .idea/
 *.swp
 *~
+~$*
 
 # Scratch & Temporary Cache
 data/cached/
@@ -51,6 +52,11 @@ data/cached/
 data/raw/*.zip
 data/processed/*.parquet
 data/processed/*.csv.gz
+research_papers/*.pdf
+research_papers/extracted_text/
+scratch/
+paper_submission_package.zip
+.agents/
 
 # Runtime logs
 server.log

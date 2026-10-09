@@ -60,5 +60,36 @@ def test_dashboard_static_page(client):
     assert "Solar Flare Early Warning System" in res.text
 
 
+def test_api_model_load(client):
+    """Verify that /api/model/load correctly loads the real SpatioTemporalGraphTransformer checkpoint."""
+    res = client.get("/api/model/load")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["status"] == "loaded"
+    assert "checkpoint_path" in data
+    assert "learned_alpha" in data
+    assert "learned_beta" in data
+    assert data["architecture"] == "SpatioTemporalGraphTransformer (5-Node GNN + PINN)"
+
+
+def test_api_inference_custom_data(client):
+    """Verify that /api/inference produces multi-horizon flare forecasts on input telemetry."""
+    dummy_stream = [
+        {"timestamp": f"2024-10-03T12:{i:02d}:00Z", "soft": 100.0 + i * 2.0, "hard": 20.0 + i * 1.5}
+        for i in range(15)
+    ]
+    payload = {
+        "model_path": "models/spatiotemporal_graph_transformer.pt",
+        "data": dummy_stream
+    }
+    res = client.post("/api/inference", json=payload)
+    assert res.status_code == 200
+    data = res.json()
+    assert "predictions" in data
+    assert len(data["predictions"]) == 3
+    assert data["predictions"][0]["horizon_minutes"] == 15
+    assert 0.0 <= data["predictions"][0]["probability"] <= 1.0
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

@@ -46,6 +46,7 @@ logging.basicConfig(
 logger = logging.getLogger("flarecast")
 
 DASHBOARD_DIR = str(Path(__file__).resolve().parents[2] / "dashboard")
+PAPER_DIR = str(Path(__file__).resolve().parents[2] / "paper")
 REPLAY_SPEED = 60          # data-samples consumed per second of wall time
 
 
@@ -407,13 +408,17 @@ class LiveEngine(threading.Thread):
                 cls_info["state"] = "ELEVATED PRECURSOR"
                 cls_info["desc"] = "Precursor Thermal Heating Onset"
 
-            # Lead time calculation
+            # Lead time calculation. Below the C-class decision threshold there
+            # is no actionable lead time; report null rather than a fabricated
+            # 25 minutes, which reads as a real prediction but carries no signal.
+            lead_is_sentinel = False
             if p15 > 0.7:
                 lead_min = 6.5
             elif p15 > 0.4:
                 lead_min = 14.0
             else:
-                lead_min = 25.0
+                lead_min = None
+                lead_is_sentinel = True
 
             # Solar Threat Pulse Index (0 - 100)
             threat_pulse = int(min(100, max(5, (p15 * 50.0 + min(cur_soft / 200.0, 30.0) + min(max(0.0, dsxr_dt) * 4.0, 20.0)))))
@@ -439,6 +444,7 @@ class LiveEngine(threading.Thread):
                         "prob_30m": round(p30, 3),
                         "prob_60m": round(p60, 3),
                         "estimated_lead_time_min": lead_min,
+                        "lead_time_is_sentinel": lead_is_sentinel,
                     },
                     "pinn": {
                         "alpha": round(learned_alpha, 4),
@@ -463,6 +469,11 @@ class LiveEngine(threading.Thread):
                     "source": self.source_name,
                     "provenance": "FITS",
                     "speed": self.speed,
+                    # Real temporal history for the /api/inference endpoint.
+                    # Without this the endpoint had to synthesise 60 copies of a
+                    # single frame, which zeroes the temporal signal the
+                    # transformer is supposed to consume.
+                    "graph_history": [list(map(list, f)) for f in graph_buf],
                 }
             self.broadcaster.publish({"type": "sample", **self.latest})
 
@@ -705,10 +716,22 @@ async def infer(request: InferenceRequest):
     data = request.data
     if data is None:
         data = []
-    
-    ckpt_path = Path(__file__).resolve().parents[2] / model_path
-    if not ckpt_path.exists():
-        return {"error": f"Model checkpoint not found at {ckpt_path}", "available_models": ["models/spatiotemporal_graph_transformer.pt"]}
+
+    # Confine checkpoint loading to the repository's models/ directory.
+    # An absolute path or a ".." traversal would otherwise escape the repo
+    # (Path.__truediv__ silently discards the base when the RHS is absolute).
+    repo_root = Path(__file__).resolve().parents[2]
+    models_root = (repo_root / "models").resolve()
+    try:
+        ckpt_path = (repo_root / model_path).resolve()
+        ckpt_path.relative_to(models_root)
+    except (ValueError, OSError):
+        return {
+            "error": "Invalid model_path: must be a relative path inside models/",
+            "available_models": ["models/spatiotemporal_graph_transformer.pt"],
+        }
+    if not ckpt_path.is_file():
+        return {"error": "Model checkpoint not found", "available_models": ["models/spatiotemporal_graph_transformer.pt"]}
     
     try:
         import torch
@@ -743,8 +766,22 @@ async def infer(request: InferenceRequest):
             node_3 = [float(np.log1p(max(cur_hard * 0.30, 0.0))), float(cur_hard * 0.30 / (base_h * 0.45 + 1e-5))]
             node_4 = [float(neupert_prod), float(max(0.0, latest.get("dsxr_dt", 0.0)) / 100.0)]
             
-            # Create sequence of 60 frames (pad with first frame)
-            frames = [[node_0, node_1, node_2, node_3, node_4]] * 60
+            # Prefer the engine's REAL 60-frame graph history. Falling back to 60
+            # copies of one frame would present a temporally-constant input to a
+            # temporal transformer, which is not a valid inference.
+            hist = latest.get("graph_history") or []
+            if len(hist) >= 10:
+                frames = [list(map(list, f)) for f in hist][-60:]
+            else:
+                return {
+                    "error": (
+                        "Insufficient temporal history for inference "
+                        f"({len(hist)} frames; need >=10). The engine has not "
+                        "replayed enough of the archive yet."
+                    )
+                }
+            while len(frames) < 60:
+                frames.insert(0, frames[0])
             tensor_in = torch.tensor([frames], dtype=torch.float32)
         else:
             # Build from provided data
@@ -1106,6 +1143,9 @@ async def health_check():
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
+
+if Path(PAPER_DIR).exists():
+    app.mount("/paper", StaticFiles(directory=PAPER_DIR, html=True), name="paper_static")
 
 if Path(DASHBOARD_DIR).exists():
     app.mount("/dashboard", StaticFiles(directory=DASHBOARD_DIR, html=True), name="dashboard_static")

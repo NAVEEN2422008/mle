@@ -34,24 +34,37 @@ def make_walk_forward_splits(
     horizon_min: int = 15,
     window_min: int = 30,
 ) -> List[Tuple[np.ndarray, np.ndarray, float]]:
-    """Expanding-window walk-forward with embargo.
+    """Expanding-window walk-forward with a REAL embargo gap.
 
-    Returns list of (train_idx, test_idx, embargo_seconds).
+    The embargo is converted from seconds to samples using the observed median
+    cadence, then applied as an actual gap between the last training index and
+    the first test index. Returns list of (train_idx, test_idx, embargo_seconds).
     """
     ts = pd.to_datetime(timestamps).reset_index(drop=True)
     n = len(ts)
     embargo_s = (horizon_min + window_min) * 60.0
+
+    # Convert the embargo from wall-clock seconds to a sample count using the
+    # series' own median cadence (1-s SoLEXS vs 1-min GOES both work).
+    deltas = ts.diff().dt.total_seconds().dropna()
+    cadence_s = float(deltas.median()) if len(deltas) else 60.0
+    if not np.isfinite(cadence_s) or cadence_s <= 0:
+        cadence_s = 60.0
+    embargo_n = max(1, int(round(embargo_s / cadence_s)))
+
     folds = []
     block = n // (n_folds + 1)
     for k in range(1, n_folds + 1):
-        train_end = block * k
+        nominal_train_end = block * k
+        test_start = nominal_train_end + embargo_n
         test_end = min(block * (k + 1), n)
-        if test_end - train_end < 10:
+        train_end = test_start - embargo_n
+        if test_end - test_start < 10 or train_end < 10:
             continue
         folds.append(
             (
                 np.arange(0, train_end),
-                np.arange(train_end, test_end),
+                np.arange(test_start, test_end),
                 embargo_s,
             )
         )
@@ -133,10 +146,15 @@ def train_with_cv(
     y = y_raw[valid_pos]
 
     def restrict(idx: np.ndarray) -> np.ndarray:
-        """Map full-timeline indices to valid-subset positions."""
-        pos = np.searchsorted(valid_pos, idx)
-        pos = np.clip(pos, 0, len(valid_pos) - 1)
-        return np.unique(pos)
+        """Map full-timeline indices to valid-subset positions.
+
+        Only indices actually present in `valid_pos` are mapped. A masked (-1)
+        index must NOT be coerced to a neighbouring position, because that
+        neighbour can lie on the far side of a fold boundary and would leak a
+        test sample into the training set.
+        """
+        keep = np.isin(idx, valid_pos)
+        return np.searchsorted(valid_pos, idx[keep])
 
     model_factory = _make_model_factory(use_lightgbm)
 

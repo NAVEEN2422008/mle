@@ -23,7 +23,7 @@ from docx.shared import Inches, Pt, Cm, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_TABLE_ALIGNMENT
 
-PROJECT_ROOT = Path("C:/Users/Naveen S/OneDrive/Documents/mle/solar-flare-system")
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 PAPER_DIR = PROJECT_ROOT / "paper"
 FIGURES_DIR = PAPER_DIR / "figures"
 
@@ -85,65 +85,37 @@ def generate_html() -> tuple[str, str]:
   @page {{
     size: A4;
     margin: 18mm 15mm 18mm 15mm;
-    @top-right {{
-      content: "Aditya-L1 Neupert Effect & Deep Learning Flare Forecasting";
-      font-size: 8pt;
-      font-family: 'Times New Roman', serif;
-      color: #666;
-    }}
-    @bottom-center {{
-      content: "Page " counter(page) " of " counter(pages);
-      font-size: 8.5pt;
-      font-family: 'Times New Roman', serif;
-      color: #333;
-    }}
   }}
 
-  @page :first {{
-    @top-right {{
-      content: none;
-    }}
+  * {{
+    color: #000000 !important;
+    box-sizing: border-box;
   }}
 
   body {{
     font-family: 'Times New Roman', Times, serif;
     font-size: 9.6pt;
     line-height: 1.48;
-    color: #111;
+    color: #000000;
     margin: 0;
-    padding: 5px 10px;
-    background: #fff;
+    padding: 0;
+    background: #ffffff;
   }}
-
-  .journal-header {{
-    border-bottom: 2px solid #000;
-    padding-bottom: 6px;
-    margin-bottom: 14px;
-    display: flex;
-    justify-content: space-between;
-    font-size: 8.5pt;
-    color: #444;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }}
-
-  .journal-header .left {{ font-weight: bold; color: #002244; }}
-  .journal-header .right {{ text-align: right; }}
 
   h1.paper-title {{
     font-size: 16pt;
     font-weight: bold;
     text-align: center;
-    margin: 10px 0 6px 0;
+    margin: 12px 0 6px 0;
     line-height: 1.25;
-    color: #0b1a30;
+    color: #000000;
   }}
 
   p.subtitle {{
     font-size: 10.5pt;
     text-align: center;
-    color: #333;
-    margin: 0 0 14px 0;
+    color: #000000;
+    margin: 0 0 12px 0;
     font-style: italic;
   }}
 
@@ -152,39 +124,43 @@ def generate_html() -> tuple[str, str]:
     font-size: 9.5pt;
     font-weight: bold;
     margin-bottom: 3px;
+    color: #000000;
   }}
 
   .affiliations {{
     text-align: center;
     font-size: 8.5pt;
-    color: #555;
+    color: #000000;
     margin-bottom: 16px;
   }}
 
   .abstract-box {{
-    background: #fdfdfd;
-    border-top: 1.5px solid #000;
-    border-bottom: 1.5px solid #000;
-    padding: 12px 16px;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
     font-size: 8.8pt;
     line-height: 1.44;
     text-align: justify;
+    color: #000000;
   }}
 
   .abstract-title {{
     font-weight: bold;
     text-transform: uppercase;
     font-size: 9pt;
-    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+    color: #000000;
+    text-align: center;
+  }}
+
+  .abstract-box p {{
+    text-indent: 0;
     margin-bottom: 6px;
-    color: #002244;
+    color: #000000;
   }}
 
   .keywords {{
-    margin-top: 8px;
+    margin-top: 6px;
     font-size: 8.2pt;
-    color: #333;
+    color: #000000;
   }}
 
   .two-column {{
@@ -198,11 +174,11 @@ def generate_html() -> tuple[str, str]:
     font-weight: bold;
     text-transform: uppercase;
     letter-spacing: 0.35px;
-    border-bottom: 1px solid #888;
+    border-bottom: 1px solid #000000;
     padding-bottom: 2px;
     margin-top: 13px;
     margin-bottom: 5px;
-    color: #0b1a30;
+    color: #000000;
     break-after: avoid;
     break-inside: avoid;
     -webkit-column-break-inside: avoid;
@@ -213,7 +189,7 @@ def generate_html() -> tuple[str, str]:
     font-weight: bold;
     margin-top: 9px;
     margin-bottom: 3.5px;
-    color: #222;
+    color: #000000;
     break-after: avoid;
     break-inside: avoid;
     -webkit-column-break-inside: avoid;
@@ -230,12 +206,16 @@ def generate_html() -> tuple[str, str]:
   pre, code, .code-block {{
     break-inside: avoid;
     -webkit-column-break-inside: avoid;
+    color: #000000;
+    background: transparent !important;
+    border: none !important;
   }}
 
   p {{
     margin-top: 0;
     margin-bottom: 5.5px;
     text-indent: 1.25em;
+    color: #000000;
   }}
 
   p.no-indent {{
@@ -247,38 +227,42 @@ def generate_html() -> tuple[str, str]:
     margin: 7px 0;
     font-style: italic;
     font-size: 8.8pt;
-    background: #fafbfc;
-    padding: 5px 6px;
-    border-radius: 3px;
-    border-left: 2px solid #002244;
+    background: transparent;
+    border: none;
+    padding: 3px 0;
     text-indent: 0;
+    color: #000000;
   }}
 
   table.academic-table {{
     width: 100%;
     border-collapse: collapse;
-    margin: 12px 0;
+    margin: 10px 0;
     font-size: 7.7pt;
     line-height: 1.28;
     break-inside: avoid;
+    color: #000000;
   }}
 
   table.academic-table th, table.academic-table td {{
-    border-top: 1px solid #ddd;
-    border-bottom: 1px solid #ddd;
-    padding: 4.5px 5px;
+    border-top: 1px solid #000000;
+    border-bottom: 1px solid #000000;
+    padding: 4px 5px;
     text-align: center;
+    color: #000000;
+    background: transparent !important;
   }}
 
   table.academic-table th {{
-    border-top: 1.5px solid #000;
-    border-bottom: 1.5px solid #000;
+    border-top: 1.5px solid #000000;
+    border-bottom: 1.5px solid #000000;
     font-weight: bold;
-    background: #f4f6f8;
+    background: transparent !important;
+    color: #000000;
   }}
 
   table.academic-table tr:last-child td {{
-    border-bottom: 1.5px solid #000;
+    border-bottom: 1.5px solid #000000;
   }}
 
   .figure-container {{
@@ -296,13 +280,12 @@ def generate_html() -> tuple[str, str]:
   .figure-container img {{
     max-width: 100%;
     height: auto;
-    border: 1px solid #dcdcdc;
-    border-radius: 2px;
+    border: none;
   }}
 
   .figure-caption {{
     font-size: 7.9pt;
-    color: #333;
+    color: #000000;
     text-align: justify;
     margin-top: 5px;
     line-height: 1.32;
@@ -310,43 +293,34 @@ def generate_html() -> tuple[str, str]:
   }}
 
   .figure-caption strong {{
-    color: #0b1a30;
+    color: #000000;
   }}
 
   .references {{
     font-size: 7.5pt;
     line-height: 1.32;
+    color: #000000;
   }}
 
   .references p {{
     text-indent: -1.4em;
     margin-left: 1.4em;
     margin-bottom: 2.2px;
+    color: #000000;
   }}
 </style>
 </head>
 <body>
 
-<div class="journal-header">
-  <div class="left">The Astrophysical Journal / Solar Physics &bull; Flagship Research Article</div>
-  <div class="right">ISRO Aditya-L1 Telemetry Science &bull; Published October 2026</div>
-</div>
-
 <h1 class="paper-title">Physics-Informed Spatio-Temporal Graph Transformer for Multi-Instrument Solar Flare Forecasting</h1>
 <p class="subtitle">Validating the Neupert Effect Inductive Bias on Aditya-L1 Telemetry and Deep Multi-Horizon Benchmarks</p>
 
-<div class="authors">Naveen S and the Aditya-L1 Space Weather Research Consortium</div>
-<div class="affiliations">Space Weather and Machine Learning Laboratory &bull; URSC / ISRO, Bengaluru 560017, India</div>
+<div class="authors">Naveenkumar S<sup>*</sup></div>
+<div class="affiliations">Space Weather and Machine Learning Laboratory, Bengaluru 560017, India<br><sup>*</sup> Correspondence: naveenkumar.atur@gmail.com</div>
 
 <div class="abstract-box">
   <div class="abstract-title">Abstract</div>
-  We present a comprehensive, physics-informed deep learning framework for multi-instrument solar flare forecasting using authentic Level-1 telemetry from India's maiden solar observatory, Aditya-L1 (SoLEXS 2–22 keV soft X-rays and HEL1OS 10–150 keV hard X-rays), validated against independent NOAA SWPC ground-truth flare events.
-  <br><br>
-  <strong>Astrophysical & Instrumentation Physics:</strong> Four major X-class flares (X5.8, X8.7, X7.1, and X9.0) observed simultaneously above the SoLEXS thermal ceiling confirm the classical Neupert effect: soft X-ray irradiance closely tracks the time integral of hard X-ray emission (median Pearson correlation r = 0.811) rather than direct instantaneous flux (r = 0.215), with a median physical lead time of 2.9 min. We present first-principles derivations linking 1D hydrodynamic loop conservation equations to thick-target bremsstrahlung and chromospheric evaporation. Furthermore, we establish the microscopic detector physics of the Silicon Drift Detectors (SDD) and CdTe/CZT semiconductors, modeling hole-trapping charge deficits via the Hecht equation.
-  <br><br>
-  <strong>Physics-Informed Spatio-Temporal Graph Transformer:</strong> To resolve the severe calibration collapse suffered by standard machine learning models under extreme class imbalance (&lt;0.5% prevalence), we formulate solar forecasting as a 5-node dynamic spatio-temporal graph learning task. We embed the differential Neupert thermodynamic relation as a Physics-Informed Neural Network (PINN) loss with positive parameter clamping (||dSXR/dt - (alpha * HXR - beta * SXR)||^2). In an out-of-sample chronological holdout benchmark evaluated on the historic NOAA X9.0 flare (2024-10-03), the Neupert inductive bias halves the Brier score (0.0190 to 0.0098) and improves the Brier Skill Score by +1.282 (-1.655 to -0.373), strongly outperforming persistence (BSS = -5.547). Remarkably, the autonomously learned cooling parameter beta = 0.029 min^-1 corresponds to a relaxation timescale of tau_PINN = 34.5 min, which we prove mathematically matches the combined Spitzer conductive and CHIANTI radiative cooling timescales of X-class coronal loops (2L = 116 Mm, T = 20 MK).
-  <br><br>
-  <strong>Operational Decision Theory & Verification:</strong> We address the Bloomfield vs. Doswell rare-event verification dilemma, demonstrating why the True Skill Statistic (TSS) is deceptive when false alarms exceed 90%. We integrate Mondrian class-conditional conformal prediction sets (1 - epsilon coverage guarantees) and Richardson economic cost-loss curves, demonstrating up to 42% loss reduction for satellite operations. All models, prediction manifests, and 39 regression tests are verified and 100% reproducible.
+  <p style="text-indent: 0; margin-bottom: 6px;">We present a comprehensive, physics-informed deep learning framework for multi-instrument solar flare forecasting using authentic Level-1 telemetry from India's maiden solar observatory, Aditya-L1 (SoLEXS 2–22 keV soft X-rays and HEL1OS 10–150 keV hard X-rays), validated against independent NOAA SWPC ground-truth flare events. Four major X-class flares (X5.8, X8.7, X7.1, and X9.0) observed simultaneously above the SoLEXS thermal ceiling confirm the classical Neupert effect: soft X-ray irradiance closely tracks the time integral of hard X-ray emission (median Pearson correlation r = 0.808) rather than direct instantaneous flux (r = 0.181), with a median physical lead time of 2.8 min. We establish first-principles derivations linking 1D hydrodynamic loop conservation equations to thick-target bremsstrahlung and chromospheric evaporation, modeling hole-trapping charge deficits in the semiconductor detectors via the Hecht equation. To resolve the severe calibration collapse suffered by standard machine learning models under extreme class imbalance (&lt;0.5% prevalence), we formulate solar forecasting as a 5-node dynamic spatio-temporal graph learning task, embedding the differential Neupert thermodynamic relation as a Physics-Informed Neural Network (PINN) loss with positive parameter clamping (||dSXR/dt - (alpha * HXR - beta * SXR)||^2). Evaluated on the historic NOAA X9.0 superflare (2024-10-03), the Neupert inductive bias halves the Brier score (0.0190 to 0.0098) and improves the Brier Skill Score by +1.282 (-1.655 to -0.373), strongly outperforming persistence (BSS = -5.547), while the autonomously learned cooling parameter beta = 0.029 min^-1 corresponds to a relaxation timescale of tau_PINN = 34.5 min matching coronal loop cooling physics. Finally, we resolve the rare-event verification dilemma, integrating Mondrian class-conditional conformal prediction sets and Richardson economic cost-loss curves delivering up to 42% operational loss reduction for satellite constellations. All models, prediction manifests, and 39 regression tests are verified and 100% reproducible.</p>
   <div class="keywords"><strong>Keywords:</strong> Aditya-L1, SoLEXS, HEL1OS, Neupert effect, solar flare nowcasting, Physics-Informed Neural Networks, Graph Transformer, space weather, chromospheric evaporation, conformal prediction, economic cost-loss value</div>
 </div>
 
@@ -381,10 +355,10 @@ def build_docx(body_html: str) -> None:
     sub_run.font.color.rgb = RGBColor(80, 80, 80)
 
     auth_p = doc.add_paragraph()
-    auth_run = auth_p.add_run("Naveen S and the Aditya-L1 Space Weather Research Consortium\n")
+    auth_run = auth_p.add_run("Naveenkumar S\n")
     auth_run.font.size = Pt(10.5)
     auth_run.font.bold = True
-    auth_p.add_run("Space Weather and Machine Learning Laboratory, URSC / ISRO\nOctober 2026")
+    auth_p.add_run("Space Weather and Machine Learning Laboratory, Bengaluru 560017, India\nOctober 2026")
     auth_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
     doc.add_heading("Abstract", level=1)
@@ -395,8 +369,8 @@ def build_docx(body_html: str) -> None:
         "and HEL1OS 10–150 keV hard X-rays), validated against independent NOAA SWPC ground-truth flare events.\n\n"
         "Astrophysical & Instrumentation Physics: Four major X-class flares (X5.8, X8.7, X7.1, and X9.0) observed simultaneously "
         "above the SoLEXS thermal ceiling confirm the classical Neupert effect: soft X-ray irradiance closely tracks the time integral "
-        "of hard X-ray emission (median Pearson correlation r = 0.811) rather than direct instantaneous flux (r = 0.215), with a "
-        "median physical lead time of 2.9 min. We present first-principles derivations linking 1D hydrodynamic loop conservation "
+        "of hard X-ray emission (median Pearson correlation r = 0.808) rather than direct instantaneous flux (r = 0.181), with a "
+        "median physical lead time of 2.8 min. We present first-principles derivations linking 1D hydrodynamic loop conservation "
         "equations to thick-target bremsstrahlung and chromospheric evaporation. Furthermore, we establish the microscopic detector "
         "physics of the Silicon Drift Detectors (SDD) and CdTe/CZT semiconductors, modeling hole-trapping charge deficits via the Hecht equation.\n\n"
         "Physics-Informed Spatio-Temporal Graph Transformer: To resolve the severe calibration collapse suffered by standard machine "

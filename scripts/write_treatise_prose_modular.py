@@ -619,8 +619,8 @@ def generate_prose_module():
 
 <div class="code-block" style="background:#f8f9fa; border:1px solid #e2e8f0; border-radius:6px; padding:12px; font-family:monospace; font-size:8.5pt; margin:10px 0; overflow-x:auto;">
 # 1. Clone repository and set up environment<br>
-git clone https://github.com/isro-aditya-l1/solar-flare-neupert-treatise.git<br>
-cd solar-flare-neupert-treatise<br>
+git clone https://github.com/NAVEEN2422008/mle.git<br>
+cd mle/solar-flare-system<br>
 python -m venv .venv &amp;&amp; source .venv/bin/activate<br>
 pip install -r requirements.txt<br><br>
 # 2. Execute full automated test battery (57/57 tests)<br>

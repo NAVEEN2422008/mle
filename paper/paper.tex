@@ -53,10 +53,10 @@
 %===============================================================================
 \hypersetup{
     colorlinks=true,
-    linkcolor=blue!70!black,
-    citecolor=blue!70!black,
-    urlcolor=blue!70!black,
-    pdfauthor={Naveen S et al.},
+    linkcolor=black,
+    citecolor=black,
+    urlcolor=black,
+    pdfauthor={Naveenkumar S et al.},
     pdftitle={Physics-Informed Spatio-Temporal Graph Transformer for Multi-Instrument Solar Flare Forecasting},
     pdfsubject={Solar Physics / Space Weather / Machine Learning},
     pdfkeywords={Aditya-L1, SoLEXS, HEL1OS, Neupert effect, solar flare nowcasting, PINN, Graph Transformer, space weather}
@@ -111,9 +111,9 @@
 \newcommand{\deeppinnbss}{-0.373}
 \newcommand{\deepnopinnbss}{-1.655}
 % Correlation and timing parameters
-\newcommand{\rint}{0.811}
-\newcommand{\rdir}{0.215}
-\newcommand{\leadtime}{2.9}
+\newcommand{\rint}{0.808}
+\newcommand{\rdir}{0.181}
+\newcommand{\leadtime}{2.8}
 \newcommand{\npos}{4}
 \newcommand{\nsamples}{169505}
 \newcommand{\nhours}{3521}
@@ -128,9 +128,8 @@
     \normalsize Validating the Neupert Effect Inductive Bias on Aditya-L1 Telemetry and Deep Multi-Horizon Benchmarks
 }
 
-\author[1]{Naveen S}
-\author[1]{Research Team}
-\affil[1]{Space Weather and Machine Learning Laboratory}
+\author{Naveenkumar S\thanks{Correspondence: naveenkumar.atur@gmail.com}}
+\affil{Space Weather and Machine Learning Laboratory, Bengaluru 560017, India}
 
 \date{\today}
 \bibliographystyle{plainnat}
@@ -139,17 +138,13 @@
 % Document Body
 %===============================================================================
 \begin{document}
+\pagestyle{empty}
 
 \maketitle
+\thispagestyle{empty}
 
 \begin{abstract}
-\noindent We present a comprehensive, physics-informed deep learning framework for multi-instrument solar flare forecasting using authentic Level-1 telemetry from India's maiden solar observatory, Aditya-L1 (\solexs\ 2--22~keV soft X-rays and \helos\ 10--150~keV hard X-rays), validated against independent NOAA SWPC ground-truth flare events.
-
-\textbf{Astrophysical & Instrumentation Physics:} Four major X-class flares (X5.8, X8.7, X7.1, and X9.0) observed simultaneously above the \solexs\ thermal ceiling confirm the classical Neupert effect: soft X-ray irradiance closely tracks the time integral of hard X-ray emission (median Pearson correlation $r = \rint$) rather than direct instantaneous flux ($r = \rdir$), with a median physical lead time of $\leadtime$~min. We present first-principles derivations linking 1D hydrodynamic loop conservation equations to thick-target bremsstrahlung and chromospheric evaporation. Furthermore, we establish the microscopic detector physics of the Silicon Drift Detectors (SDD) and CdTe/CZT semiconductors, modeling hole-trapping charge deficits via the Hecht equation.
-
-\textbf{Physics-Informed Spatio-Temporal Graph Transformer:} To resolve the severe calibration collapse suffered by standard machine learning models under extreme class imbalance ($<0.5\%$ prevalence), we formulate solar forecasting as a 5-node dynamic spatio-temporal graph learning task. We embed the differential Neupert thermodynamic relation as a Physics-Informed Neural Network (PINN) loss with positive parameter clamping ($\mathcal{L}_{\mathrm{PINN}} = \|\frac{dSXR}{dt} - (\alpha \cdot HXR - \beta \cdot SXR)\|^2$). In an out-of-sample chronological holdout benchmark evaluated on the historic NOAA X9.0 flare (2024-10-03), the Neupert inductive bias halves the Brier score ($0.0190 \to 0.0098$) and improves the Brier Skill Score by $+1.282$ ($-1.655 \to -0.373$), strongly outperforming persistence ($BSS = -5.547$). Remarkably, the autonomously learned cooling parameter $\beta = 0.029\,\text{min}^{-1}$ corresponds to a relaxation timescale of $\tau_{\mathrm{PINN}} = 34.5\,\text{min}$, which we prove mathematically matches the combined Spitzer conductive and CHIANTI radiative cooling timescales of X-class coronal loops ($2L \approx 116\,\text{Mm}$, $T \approx 20\,\text{MK}$).
-
-\textbf{Operational Decision Theory & Verification:} We address the Bloomfield vs.\ Doswell rare-event verification dilemma, demonstrating why the True Skill Statistic ($TSS$) is deceptive when false alarms exceed 90\%. We integrate Mondrian class-conditional conformal prediction sets ($1-\epsilon$ coverage guarantees) and Richardson economic cost-loss curves ($V(C/L)$), demonstrating up to $42\%$ loss reduction for satellite operations. All models, prediction manifests, and 39 regression tests are verified and 100\% reproducible.
+\noindent We present a comprehensive, physics-informed deep learning framework for multi-instrument solar flare forecasting using authentic Level-1 telemetry from India's maiden solar observatory, Aditya-L1 (\solexs\ 2--22~keV soft X-rays and \helos\ 10--150~keV hard X-rays), validated against independent NOAA SWPC ground-truth flare events. Four major X-class flares (X5.8, X8.7, X7.1, and X9.0) observed simultaneously above the \solexs\ thermal ceiling confirm the classical Neupert effect: soft X-ray irradiance closely tracks the time integral of hard X-ray emission (median Pearson correlation $r = \rint$) rather than direct instantaneous flux ($r = \rdir$), with a median physical lead time of $\leadtime$~min. We present first-principles derivations linking 1D hydrodynamic loop conservation equations to thick-target bremsstrahlung and chromospheric evaporation. Furthermore, we establish the microscopic detector physics of the Silicon Drift Detectors (SDD) and CdTe/CZT semiconductors, modeling hole-trapping charge deficits via the Hecht equation. To resolve the severe calibration collapse suffered by standard machine learning models under extreme class imbalance ($<0.5\%$ prevalence), we formulate solar forecasting as a 5-node dynamic spatio-temporal graph learning task. We embed the differential Neupert thermodynamic relation as a Physics-Informed Neural Network (PINN) loss with positive parameter clamping ($\mathcal{L}_{\mathrm{PINN}} = \|\frac{dSXR}{dt} - (\alpha \cdot HXR - \beta \cdot SXR)\|^2$). In an out-of-sample chronological holdout benchmark evaluated on the historic NOAA X9.0 flare (2024-10-03), the Neupert inductive bias halves the Brier score ($0.0190 \to 0.0098$) and improves the Brier Skill Score by $+1.282$ ($-1.655 \to -0.373$), strongly outperforming persistence ($BSS = -5.547$). Remarkably, the autonomously learned cooling parameter $\beta = 0.029\,\text{min}^{-1}$ corresponds to a relaxation timescale of $\tau_{\mathrm{PINN}} = 34.5\,\text{min}$, which we prove mathematically matches the combined Spitzer conductive and CHIANTI radiative cooling timescales of X-class coronal loops ($2L \approx 116\,\text{Mm}$, $T \approx 20\,\text{MK}$). We address the Bloomfield vs.\ Doswell rare-event verification dilemma, demonstrating why the True Skill Statistic ($TSS$) is deceptive when false alarms exceed 90\%. We integrate Mondrian class-conditional conformal prediction sets ($1-\epsilon$ coverage guarantees) and Richardson economic cost-loss curves ($V(C/L)$), demonstrating up to $42\%$ loss reduction for satellite operations. All models, prediction manifests, and 39 regression tests are verified and 100\% reproducible.
 \end{abstract}
 
 \keywords{Aditya-L1, SoLEXS, HEL1OS, Neupert effect, solar flare nowcasting, Physics-Informed Neural Networks, Graph Transformer, space weather, chromospheric evaporation}
@@ -463,12 +458,12 @@ Quantitative cross-correlation results and optimal physical lead times are repor
 \toprule
 Flare & Date & $r_{\text{direct}}$ & $r_{\text{integral}}$ & Lead (s) & Verdict \\
 \midrule
-X5.8 & 2024-05-11 & 0.226 & \textbf{0.919} & 200 & INTEGRAL \\
-X8.7 & 2024-05-14 & 0.230 & \textbf{0.731} & 250 & INTEGRAL \\
-X7.1 & 2024-10-01 & 0.141 & \textbf{0.891} & 150 & INTEGRAL \\
-X9.0 & 2024-10-03 & 0.205 & \textbf{0.676} & 150 & INTEGRAL \\
+X5.8 & 2024-05-11 & 0.220 & \textbf{0.918} & 200 & INTEGRAL \\
+X8.7 & 2024-05-14 & 0.176 & \textbf{0.724} & 270 & INTEGRAL \\
+X7.1 & 2024-10-01 & 0.137 & \textbf{0.892} & 140 & INTEGRAL \\
+X9.0 & 2024-10-03 & 0.186 & \textbf{0.669} & 140 & INTEGRAL \\
 \midrule
-\textbf{Median} & & \textbf{0.215} & \textbf{0.811} & \textbf{175 (2.9m)} & \textbf{4/4 WINS} \\
+\textbf{Median} & & \textbf{0.181} & \textbf{0.808} & \textbf{170 (2.8m)} & \textbf{4/4 WINS} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -661,13 +656,34 @@ Recent foundation models, such as NASA/IBM's 366M-parameter **Surya** model \cit
 
 This study delivers an instrument-level validation of the Neupert effect on Aditya-L1 Level-1 telemetry, establishing that all 4 usable X-class flares obey chromospheric evaporation ($r = \rint$, lead $2.9\text{ min}$). We derived the 1D hydrodynamic equations linking electron beams to the differential Neupert relation, proved that the learned PINN parameter $\beta = 0.029\,\text{min}^{-1}$ matches physical coronal loop cooling ($\tau = 34.5\text{ min}$), and demonstrated that physics-informed graph transformers substantially improve space weather probabilistic calibration.
 
-All measurement defects are eliminated and covered by 39 regression tests. All trained weights, manifests, and scripts are 100\% reproducible.
+All measurement defects are eliminated and covered by 39 regression tests. All trained weights, manifests, models, and scripts are 100\% reproducible and openly accessible at \url{https://github.com/NAVEEN2422008/mle.git} (directory \texttt{solar-flare-system}).
 
 %===============================================================================
 % Acknowledgments
 %===============================================================================
 \section*{Acknowledgments}
-\noindent The authors express sincere gratitude to the Indian Space Research Organisation (ISRO) and the Indian Space Science Data Centre (ISSDC) for providing Level-1 telemetry from Aditya-L1 via the PRADAN data repository. We acknowledge the dedicated payload engineering teams of SoLEXS and HEL1OS at URSC and PRL, as well as NOAA SWPC for GOES reference archives. In compliance with IEEE author guidelines regarding generative AI, the authors note that large language models were utilized solely for stylistic polishing and copyediting. All theoretical formulations, physical models, experimental code, and scientific interpretations were developed and verified solely by the human authors, who assume full responsibility for this work.
+\noindent The authors express sincere gratitude to the Indian Space Research Organisation (ISRO) and the Indian Space Science Data Centre (ISSDC) for providing Level-1 telemetry from Aditya-L1 via the PRADAN data repository. We acknowledge the dedicated payload engineering teams of SoLEXS and HEL1OS at URSC and PRL, as well as NOAA SWPC for GOES reference archives.
+
+%===============================================================================
+% Declarations
+%===============================================================================
+\section*{Declarations}
+\noindent \textbf{Competing Interests:} The authors declare that they have no known competing financial interests or personal relationships that could have appeared to influence the work reported in this paper.
+
+\vspace{0.4em}
+\noindent \textbf{Data Availability:} All Level-1 Aditya-L1 SoLEXS and HEL1OS telemetry datasets supporting the findings of this study are publicly accessible through the ISRO ISSDC PRADAN portal at \url{https://pradan.issdc.gov.in/al1/}. Independent ground-truth flare records are openly provided by the NOAA Space Weather Prediction Center (SWPC).
+
+\vspace{0.4em}
+\noindent \textbf{Code and Model Availability:} All source code, trained neural network weights, evaluation manifests, and the complete 39-test verification suite are openly accessible under open-source licensing at \url{https://github.com/NAVEEN2422008/mle.git} (directory \texttt{solar-flare-system}).
+
+\vspace{0.4em}
+\noindent \textbf{Author Contributions:} Naveenkumar S conceived the study, formulated the theoretical physics models and PINN architectures, implemented the data ingestion and machine learning pipelines, conducted all empirical experiments, and drafted the manuscript.
+
+\vspace{0.4em}
+\noindent \textbf{Funding:} This research received no specific grant from funding agencies in the public, commercial, or not-for-profit sectors.
+
+\vspace{0.4em}
+\noindent \textbf{Declaration on Generative AI:} In compliance with IEEE author guidelines regarding generative AI, the authors declare that large language models were utilized solely for stylistic polishing and copyediting. All theoretical formulations, physical models, experimental code, and scientific interpretations were developed and verified exclusively by the authors, who assume full responsibility for this work.
 
 %===============================================================================
 % References

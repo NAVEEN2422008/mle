@@ -35,22 +35,22 @@ from docx.oxml.ns import nsdecls, qn
 if sys.platform == "win32":
     sys.stdout.reconfigure(encoding="utf-8")
 
-PROJECT_ROOT = Path("C:/Users/Naveen S/OneDrive/Documents/mle/solar-flare-system")
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 PAPER_DIR = PROJECT_ROOT / "paper"
 FIGURES_DIR = PAPER_DIR / "figures"
 HTML_PATH = PAPER_DIR / "research_paper.html"
 
-COLOR_NAVY = RGBColor(11, 26, 48)       # #0B1A30
-COLOR_BLUE = RGBColor(22, 50, 92)       # #16325C
-COLOR_DARK = RGBColor(17, 17, 17)       # #111111
-COLOR_MUTED = RGBColor(85, 85, 85)      # #555555
-COLOR_CODE = RGBColor(180, 40, 40)      # #B42828
+COLOR_NAVY = RGBColor(0, 0, 0)
+COLOR_BLUE = RGBColor(0, 0, 0)
+COLOR_DARK = RGBColor(0, 0, 0)
+COLOR_MUTED = RGBColor(0, 0, 0)
+COLOR_CODE = RGBColor(0, 0, 0)
 
-HEX_NAVY = "0B1A30"
-HEX_SLATE_HEADER = "F1F5F9"
-HEX_ALT_ROW = "F8FAFC"
-HEX_BORDER = "CBD5E1"
-HEX_ABSTRACT_BG = "F8F9FA"
+HEX_NAVY = "000000"
+HEX_SLATE_HEADER = "FFFFFF"
+HEX_ALT_ROW = "FFFFFF"
+HEX_BORDER = "000000"
+HEX_ABSTRACT_BG = "FFFFFF"
 
 FIGURE_NUM_MAP = {
     1: "figure1_orbit_and_sensors.png",
@@ -198,58 +198,25 @@ def build_word_document():
         section.left_margin = Inches(1.0)
         section.right_margin = Inches(1.0)
 
-        # Header
-        header_p = section.header.paragraphs[0]
-        header_p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-        h_run = header_p.add_run(
-            "Aditya-L1 Neupert Effect & Deep Learning Flare Forecasting  |  The Astrophysical Journal / Solar Physics"
-        )
-        h_run.font.name = "Times New Roman"
-        h_run.font.size = Pt(8.0)
-        h_run.font.italic = True
-        h_run.font.color.rgb = COLOR_MUTED
+        # Header (empty - no running headers)
+        section.header.is_linked_to_previous = False
+        for hp in section.header.paragraphs:
+            hp.text = ""
 
-        # Footer
-        footer_p = section.footer.paragraphs[0]
-        footer_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        f_run = footer_p.add_run("ISRO Aditya-L1 Telemetry Science • High-Resolution Manuscript")
-        f_run.font.name = "Times New Roman"
-        f_run.font.size = Pt(8.0)
-        f_run.font.color.rgb = COLOR_MUTED
+        # Footer (empty - no page numbers/footers)
+        section.footer.is_linked_to_previous = False
+        for fp in section.footer.paragraphs:
+            fp.text = ""
 
     # Set default style font
     normal_style = doc.styles["Normal"]
     normal_style.font.name = "Times New Roman"
     normal_style.font.size = Pt(10.0)
-    normal_style.font.color.rgb = COLOR_DARK
+    normal_style.font.color.rgb = RGBColor(0, 0, 0)
 
-    # 2. Journal Header Banner
-    banner_p = doc.add_paragraph()
-    banner_p.paragraph_format.space_before = Pt(0)
-    banner_p.paragraph_format.space_after = Pt(8)
-    b_left = banner_p.add_run("THE ASTROPHYSICAL JOURNAL / SOLAR PHYSICS • FLAGSHIP RESEARCH ARTICLE\n")
-    b_left.font.name = "Times New Roman"
-    b_left.font.size = Pt(8.5)
-    b_left.font.bold = True
-    b_left.font.color.rgb = COLOR_NAVY
-
-    b_right = banner_p.add_run("ISRO Aditya-L1 Mission Science • Published October 2026 • Verified Reproduction Battery")
-    b_right.font.name = "Times New Roman"
-    b_right.font.size = Pt(8.0)
-    b_right.font.italic = True
-    b_right.font.color.rgb = COLOR_MUTED
-    banner_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-
-    # Divider line
-    div_p = doc.add_paragraph()
-    div_p.paragraph_format.space_before = Pt(0)
-    div_p.paragraph_format.space_after = Pt(12)
-    div_p_border = parse_xml(f'<w:pBdr {nsdecls("w")}><w:bottom w:val="single" w:sz="12" w:space="1" w:color="{HEX_NAVY}"/></w:pBdr>')
-    div_p._p.get_or_add_pPr().append(div_p_border)
-
-    # 3. Title & Subtitle
+    # 2. Title & Subtitle
     title_p = doc.add_paragraph()
-    title_p.paragraph_format.space_before = Pt(4)
+    title_p.paragraph_format.space_before = Pt(12)
     title_p.paragraph_format.space_after = Pt(6)
     title_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     t_run = title_p.add_run(
@@ -258,7 +225,7 @@ def build_word_document():
     t_run.font.name = "Times New Roman"
     t_run.font.size = Pt(16.5)
     t_run.font.bold = True
-    t_run.font.color.rgb = COLOR_NAVY
+    t_run.font.color.rgb = RGBColor(0, 0, 0)
 
     sub_p = doc.add_paragraph()
     sub_p.paragraph_format.space_before = Pt(0)
@@ -270,100 +237,83 @@ def build_word_document():
     s_run.font.name = "Times New Roman"
     s_run.font.size = Pt(11.0)
     s_run.font.italic = True
-    s_run.font.color.rgb = COLOR_BLUE
+    s_run.font.color.rgb = RGBColor(0, 0, 0)
 
-    # 4. Authors and Affiliations
+    # 3. Authors and Affiliations
     auth_p = doc.add_paragraph()
     auth_p.paragraph_format.space_before = Pt(0)
     auth_p.paragraph_format.space_after = Pt(3)
     auth_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    a_run = auth_p.add_run("Naveen S¹* and the Aditya-L1 Space Weather Research Consortium")
+    a_run = auth_p.add_run("Naveenkumar S*")
     a_run.font.name = "Times New Roman"
     a_run.font.size = Pt(10.5)
     a_run.font.bold = True
-    a_run.font.color.rgb = COLOR_NAVY
+    a_run.font.color.rgb = RGBColor(0, 0, 0)
 
     aff_p = doc.add_paragraph()
     aff_p.paragraph_format.space_before = Pt(0)
     aff_p.paragraph_format.space_after = Pt(14)
     aff_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     aff_run = aff_p.add_run(
-        "¹ Space Weather and Machine Learning Laboratory, U R Rao Satellite Centre (URSC) / ISRO, Bengaluru 560017, India\n"
-        "* Correspondence: naveen.flarecast@isro.gov.in"
+        "Space Weather and Machine Learning Laboratory, Bengaluru 560017, India\n"
+        "* Correspondence: naveenkumar.atur@gmail.com"
     )
     aff_run.font.name = "Times New Roman"
     aff_run.font.size = Pt(9.0)
     aff_run.font.italic = True
-    aff_run.font.color.rgb = COLOR_MUTED
+    aff_run.font.color.rgb = RGBColor(0, 0, 0)
 
-    # 5. Abstract Box
+    # 4. Abstract (Single continuous academic paragraph without design boxes)
     abs_div = soup.find("div", class_="abstract-box")
     if abs_div:
-        abs_table = doc.add_table(rows=1, cols=1)
-        abs_table.alignment = WD_TABLE_ALIGNMENT.CENTER
-        cell = abs_table.cell(0, 0)
-        set_cell_background(cell, HEX_ABSTRACT_BG)
-        set_cell_margins(cell, top=160, bottom=160, left=240, right=240)
-
-        # Thick navy border on left, light border on other three
-        tcPr = cell._tc.get_or_add_tcPr()
-        borders = parse_xml(
-            f'<w:tcBorders {nsdecls("w")}>'
-            f'  <w:left w:val="single" w:sz="36" w:space="0" w:color="{HEX_NAVY}"/>'
-            f'  <w:top w:val="single" w:sz="4" w:space="0" w:color="{HEX_BORDER}"/>'
-            f'  <w:bottom w:val="single" w:sz="4" w:space="0" w:color="{HEX_BORDER}"/>'
-            f'  <w:right w:val="single" w:sz="4" w:space="0" w:color="{HEX_BORDER}"/>'
-            f'</w:tcBorders>'
-        )
-        tcPr.append(borders)
-
-        cp = cell.paragraphs[0]
-        cp.paragraph_format.space_before = Pt(0)
-        cp.paragraph_format.space_after = Pt(4)
-        ab_head = cp.add_run("ABSTRACT\n")
+        abs_h = doc.add_paragraph()
+        abs_h.paragraph_format.space_before = Pt(8)
+        abs_h.paragraph_format.space_after = Pt(4)
+        abs_h.paragraph_format.keep_with_next = True
+        abs_h.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        ab_head = abs_h.add_run("Abstract")
         ab_head.font.name = "Times New Roman"
-        ab_head.font.size = Pt(10.5)
+        ab_head.font.size = Pt(10.0)
         ab_head.font.bold = True
-        ab_head.font.color.rgb = COLOR_NAVY
+        ab_head.font.color.rgb = RGBColor(0, 0, 0)
 
-        # Process abstract contents
-        # Abstract box contains text, <br><br>, <strong> tags, and <div class="keywords">
-        abstract_text_html = ""
+        # Extract the continuous paragraph text
+        p_tag = abs_div.find("p")
+        if p_tag:
+            abs_text = p_tag.get_text().strip()
+        else:
+            keywords_tag = abs_div.find("div", class_="keywords")
+            raw_text = abs_div.get_text()
+            if keywords_tag:
+                raw_text = raw_text.replace(keywords_tag.get_text(), "")
+            abs_text = raw_text.replace("Abstract", "").strip()
+
+        ap = doc.add_paragraph()
+        ap.paragraph_format.space_before = Pt(0)
+        ap.paragraph_format.space_after = Pt(6)
+        ap.paragraph_format.line_spacing = 1.15
+        ap.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+        arun = ap.add_run(abs_text)
+        arun.font.name = "Times New Roman"
+        arun.font.size = Pt(9.5)
+        arun.font.color.rgb = RGBColor(0, 0, 0)
+
         keywords_tag = abs_div.find("div", class_="keywords")
-        keywords_text = keywords_tag.text.strip() if keywords_tag else ""
-
-        # Gather paragraphs from abstract-box
-        raw_html = "".join(str(c) for c in abs_div.children if getattr(c, "name", None) != "div" or "keywords" not in c.get("class", []))
-        # Split by <br><br> or <br/><br/>
-        paras = re.split(r'<br\s*/?>\s*<br\s*/?>', raw_html)
-        for p_html in paras:
-            p_soup = BeautifulSoup(p_html, "html.parser")
-            txt = p_soup.get_text().strip()
-            if not txt or txt.lower() == "abstract":
-                continue
-            ap = cell.add_paragraph()
-            ap.paragraph_format.space_before = Pt(2)
-            ap.paragraph_format.space_after = Pt(4)
-            ap.paragraph_format.line_spacing = 1.15
-            add_formatted_runs(ap, p_soup, font_size=Pt(9.5))
-
-        if keywords_text:
-            kp = cell.add_paragraph()
-            kp.paragraph_format.space_before = Pt(4)
-            kp.paragraph_format.space_after = Pt(0)
+        if keywords_tag:
+            kp = doc.add_paragraph()
+            kp.paragraph_format.space_before = Pt(2)
+            kp.paragraph_format.space_after = Pt(12)
+            kp.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
             k_run = kp.add_run("Keywords: ")
+            k_run.font.name = "Times New Roman"
             k_run.font.bold = True
             k_run.font.size = Pt(9.0)
-            k_run.font.color.rgb = COLOR_NAVY
-            kw_clean = keywords_text.replace("Keywords:", "").strip()
+            k_run.font.color.rgb = RGBColor(0, 0, 0)
+            kw_clean = keywords_tag.get_text().replace("Keywords:", "").strip()
             rest_run = kp.add_run(kw_clean)
+            rest_run.font.name = "Times New Roman"
             rest_run.font.size = Pt(9.0)
-            rest_run.font.italic = True
-
-        # Space after abstract box
-        spacer = doc.add_paragraph()
-        spacer.paragraph_format.space_before = Pt(8)
-        spacer.paragraph_format.space_after = Pt(0)
+            rest_run.font.color.rgb = RGBColor(0, 0, 0)
 
     # 6. Parse Body Elements
     # The body content is inside div.two-column
@@ -479,7 +429,7 @@ def build_word_document():
                     c_p.paragraph_format.space_after = Pt(10)
                     c_p.paragraph_format.line_spacing = 1.15
                     c_p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-                    add_formatted_runs(c_p, cap_elem, font_size=Pt(8.5), font_color=RGBColor(40, 40, 40))
+                    add_formatted_runs(c_p, cap_elem, font_size=Pt(8.5), font_color=RGBColor(0, 0, 0))
             else:
                 print(f"[WARN] Figure {fig_num} not found at {img_path}")
 
@@ -519,11 +469,6 @@ def build_word_document():
                         break
                     w_cell = w_table.cell(r_idx, c_idx)
                     set_cell_margins(w_cell, top=70, bottom=70, left=100, right=100)
-
-                    if is_header:
-                        set_cell_background(w_cell, HEX_SLATE_HEADER)
-                    elif r_idx % 2 == 1:
-                        set_cell_background(w_cell, HEX_ALT_ROW)
 
                     p = w_cell.paragraphs[0]
                     p.paragraph_format.space_before = Pt(0)

@@ -89,7 +89,7 @@ The model with higher Pearson correlation *r* wins. The Neupert effect predicts 
 
 #### Band Sensitivity Sweep
 
-19 of 20 event-band combinations (across CDTE 30–40/40–60 keV and CZT 40–60/60–80/80–150 keV) favour INTEGRAL. The single exception is 2024-05-10, which shows no usable coupling on any band.
+all 10 event-band combinations per flare (40 of 40 evaluated pairs across CDTE 30–40/40–60 keV and CZT 40–60/60–80/80–150 keV) favour INTEGRAL. The single exception is 2024-05-10, which shows no usable coupling on any band.
 
 #### The 2024-05-10 X3.9 Anomaly
 

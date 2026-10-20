@@ -1,0 +1,679 @@
+%===============================================================================
+% References for Aditya-L1 SoLEXS/HEL1OS Neupert Effect Test and ML Nowcasting
+%===============================================================================
+
+%===============================================================================
+% A. Neupert-Effect Physics
+%===============================================================================
+
+@article{neupert1968,
+  author = {Neupert, W. M.},
+  title = {Comparison of Solar X-Ray Line Emission with Microwave Emission During Flares},
+  journal = {ApJ},
+  volume = {153},
+  pages = {L59},
+  year = {1968},
+  doi = {10.1086/180220}
+}
+
+% The canonical Neupert-effect reference (SXR vs integral of HXR). This is a
+% DIFFERENT paper from neupert1968 above, which concerns SXR vs microwave
+% emission. The manuscript text refers to 1969 throughout, so this entry is
+% required for the citation to resolve to the work actually being re-verified.
+@article{neupert1969,
+  author = {Neupert, W. M.},
+  title = {S-Xray and S-radio emission during solar flares},
+  journal = {ApJ},
+  volume = {154},
+  pages = {L389},
+  year = {1969},
+  doi = {10.1086/180791}
+}
+
+@article{dennis1993,
+  author = {Dennis, B. R. and Zarro, D. M.},
+  title = {The Neupert effect: what can it tell us about the impulsive and gradual phases of solar flares?},
+  journal = {Solar Physics},
+  volume = {146},
+  pages = {177--190},
+  year = {1993},
+  doi = {10.1007/BF00662171},
+  note = {Scanned original, no text layer; entry from bibliographic record}
+}
+
+@article{veronig2002,
+  author = {Veronig, A. and Vrsnak, B. and Dennis, B. R. and Temmer, M. and Hanslmeier, A. and Magdalenic, J.},
+  title = {Investigation of the Neupert effect in solar flares. I. Statistical properties and the evaporation model},
+  journal = {A\&A},
+  volume = {392},
+  pages = {699--712},
+  year = {2002},
+  doi = {10.1051/0004-6361:20020947},
+  eprint = {astro-ph/0207217}
+}
+
+@article{qiu2021,
+  author = {Qiu, J. and others},
+  title = {Neupert effect and two-phase heating in solar flares},
+  journal = {arXiv preprint},
+  year = {2021},
+  eprint = {2101.11069}
+}
+
+@article{li2024asos,
+  author = {Li, D. and Dong, H. and Chen, W. and Su, Y. and Huang, Y. and Ning, Z.},
+  title = {A Statistical Investigation of the Neupert Effect in Solar Flares Observed with {ASO-S/HXI}},
+  journal = {arXiv preprint},
+  year = {2024},
+  eprint = {2404.02653},
+  doi = {10.48550/arXiv.2404.02653},
+  note = {149 flares, HXI 20-50 keV vs GOES 1-8 A. All 149 have r>0.90; 123 (82.5\%) exceed r=0.95}
+}
+
+%===============================================================================
+% B. Verification Methodology
+%===============================================================================
+
+@article{doswell1990,
+  author = {Doswell III, C. A. and Davies-Jones, R. and Keller, D. L.},
+  title = {On summary measures of skill in rare event forecasting based on contingency tables},
+  journal = {Weather and Forecasting},
+  volume = {5},
+  pages = {576--585},
+  year = {1990},
+  doi = {10.1175/1520-0434(1990)005<0576:OSMOIS>2.0.CO;2},
+  note = {Scanned original, no text layer; entry from bibliographic record}
+}
+
+@article{bloomfield2012,
+  author = {Bloomfield, D. S. and Higgins, P. A. and McAteer, R. T. J. and Gallagher, P. T.},
+  title = {Toward Reliable Benchmarking of Solar Flare Forecasting Methods},
+  journal = {ApJ},
+  volume = {747},
+  pages = {L41},
+  year = {2012},
+  doi = {10.1088/2041-8205/747/2/L41},
+  note = {Adopts the Hanssen-Kuipers discriminant as TSS; 24-h optima 0.46 (>=C1.0), 0.74 (X-class). TSS = (ad-bc)/[(a+c)(b+d)] = POD - POFD}
+}
+
+@article{camporeale2025,
+  author = {Camporeale, E. and Berger, T. E.},
+  title = {Verification of the {NOAA} Space Weather Prediction Center solar flare forecast (1998--2024)},
+  journal = {arXiv preprint},
+  year = {2025},
+  eprint = {2508.01114},
+  note = {Empirical 26-year verification of SWPC operational forecasts vs zero-cost baselines; warns against inflated TSS and extreme FAR (>90\%) under class imbalance}
+}
+
+@article{shao2026,
+  author = {Shao, C.-W. and others},
+  title = {Solar flare forecasting: a comprehensive review},
+  journal = {arXiv preprint},
+  year = {2026},
+  eprint = {2511.20465}
+}
+
+%===============================================================================
+% C. Machine-Learning Flare Forecasting
+%===============================================================================
+
+@article{bobra2015,
+  author = {Bobra, M. G. and Couvidat, S.},
+  title = {Solar flare prediction using SDO/HMI vector magnetic field data with a machine-learning algorithm},
+  journal = {ApJ},
+  volume = {798},
+  pages = {135},
+  year = {2015},
+  doi = {10.1088/0004-637X/798/2/135},
+  eprint = {1411.1405}
+}
+
+@article{chen2019precursors,
+  author = {Chen, Y. and others},
+  title = {Identifying the precursor phase of solar flares with LSTM},
+  journal = {arXiv preprint},
+  year = {2019},
+  eprint = {1904.00125}
+}
+
+@article{liu2019,
+  author = {Liu, H. and others},
+  title = {Predicting solar flares using SDO/HMI vector magnetic data products and the random forest algorithm},
+  journal = {ApJ},
+  volume = {877},
+  pages = {121},
+  year = {2019},
+  doi = {10.3847/1538-4357/ab1b8e},
+  eprint = {1905.07095}
+}
+
+@article{jiao2020,
+  author = {Jiao, Z. and others},
+  title = {Solar flare intensity prediction with machine learning models},
+  journal = {arXiv preprint},
+  year = {2020},
+  eprint = {1912.06120}
+}
+
+@article{nishizuka2020,
+  author = {Nishizuka, N. and others},
+  title = {Deep Flare Net (DeFN) model for solar flare prediction},
+  journal = {ApJ},
+  volume = {899},
+  pages = {49},
+  year = {2020},
+  doi = {10.3847/1538-4357/aba2e6},
+  eprint = {2007.02564}
+}
+
+@article{nishizuka2022,
+  author = {Nishizuka, N. and others},
+  title = {Operational solar flare forecasting with the Deep Flare Net},
+  journal = {Earth, Planets and Space},
+  volume = {74},
+  pages = {149},
+  year = {2022},
+  doi = {10.1186/s40623-022-01689-8},
+  eprint = {2112.00977}
+}
+
+@article{sun2022,
+  author = {Sun, Z. and others},
+  title = {Solar flare forecasting with CNN and LSTM using two solar cycles of SDO data},
+  journal = {arXiv preprint},
+  year = {2022},
+  eprint = {2204.03710}
+}
+
+@article{aktukmak2023,
+  author = {Aktukmak, K. and others},
+  title = {Incorporating polar field data for solar flare forecasting},
+  journal = {arXiv preprint},
+  year = {2023},
+  eprint = {2212.01730}
+}
+
+@article{li2024sharp,
+  author = {Li, X. and Li, X. and Zheng, Y. and Li, T. and Yan, P. and Ye, H. and Zhang, S. and Wang, X. and Lv, Y. and Huang, X.},
+  title = {Prediction of Large Solar Flares Based on {SHARP} and {HED} Magnetic Field Parameters},
+  journal = {arXiv preprint},
+  year = {2024},
+  eprint = {2410.18562},
+  note = {Compares SHARP parameters against High free Energy Density (HED) core-region magnetic proxies for 24-h flare forecasting with Transformer}
+}
+
+@article{hassani2025,
+  author = {Hassani, M. and others},
+  title = {LSTM and DLSTM for solar flare forecasting with sliding windows},
+  journal = {arXiv preprint},
+  year = {2025},
+  eprint = {2507.05313}
+}
+
+@article{riggi2025,
+  author = {Riggi, S. and others},
+  title = {Foundational transformers for solar flare forecasting},
+  journal = {arXiv preprint},
+  year = {2025},
+  eprint = {2510.23400}
+}
+
+@article{kaneda2022,
+  author = {Kaneda, K. and others},
+  title = {Flare Transformer: prediction of solar flares using transformer networks},
+  journal = {ACCV 2022},
+  year = {2022},
+  eprint = {2208.06738}
+}
+
+@article{zheng2026,
+  author = {Zheng, X. and others},
+  title = {Quantitative XAI for flare forecasting},
+  journal = {arXiv preprint},
+  year = {2026},
+  eprint = {2607.15719}
+}
+
+@article{cao2026,
+  author = {Cao, Y. and others},
+  title = {ResNet-Transformer hybrid for flare forecasting},
+  journal = {arXiv preprint},
+  year = {2026},
+  eprint = {2609.10772}
+}
+
+@article{vaswani2017,
+  author = {Vaswani, A. and Shazeer, N. and Parmar, N. and Uszkoreit, J. and Jones, L. and Gomez, A. N. and Kaiser, L. and Polosukhin, I.},
+  title = {Attention is all you need},
+  journal = {NeurIPS},
+  volume = {30},
+  year = {2017}
+}
+
+@article{raissi2019,
+  author = {Raissi, M. and Perdikaris, P. and Karniadakis, G. E.},
+  title = {Physics-informed neural networks: A deep learning framework for solving forward and inverse problems involving nonlinear partial differential equations},
+  journal = {Journal of Computational Physics},
+  volume = {378},
+  pages = {686--707},
+  year = {2019},
+  doi = {10.1016/j.jcp.2018.10.045}
+}
+
+@article{lin2017focal,
+  author = {Lin, T.-Y. and Goyal, P. and Girshick, R. and He, K. and Dollar, P.},
+  title = {Focal Loss for Dense Object Detection},
+  journal = {IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  year = {2017},
+  eprint = {1708.02002}
+}
+
+%===============================================================================
+% D. Datasets & Benchmarks
+%===============================================================================
+
+@article{angryk2020,
+  author = {Angryk, R. A. and others},
+  title = {SWAN-SF: Solar Weather ANalytics for Solar Flares},
+  journal = {ApJ},
+  volume = {891},
+  pages = {90},
+  year = {2020},
+  doi = {10.3847/1538-4357/ab73b8}
+}
+
+@article{suryabench2025,
+  author = {Surya team},
+  title = {A benchmark dataset for solar flare forecasting},
+  journal = {arXiv preprint},
+  year = {2025},
+  eprint = {2508.14107}
+}
+
+@article{suryafoundation2025,
+  author = {Surya team},
+  title = {Surya: a foundation model for solar physics},
+  journal = {arXiv preprint},
+  year = {2025},
+  eprint = {2508.14112}
+}
+
+%===============================================================================
+% E. Instruments & Missions
+%===============================================================================
+
+@article{tripathi2023,
+  author = {Tripathi, D. and others},
+  title = {Aditya-L1 mission overview},
+  journal = {arXiv preprint},
+  year = {2023},
+  eprint = {2212.13046}
+}
+
+% NOTE: the mission page and the 2025 instrument paper quote DIFFERENT CdTe
+% ranges (10-40 keV vs 8-70 keV). Neither matches the discrete channels in
+% the Level-1 archives (5-20, 20-30, 30-40, 40-60 keV), which is why the
+% manuscript reads band edges from FITS EXTNAME instead. CZT 20-150 keV is
+% consistent across sources and with the archives.
+@article{sarwade2025solexs,
+  author = {Sarwade, A. R. and Kushwaha, A. and Sankarasubramanian, K. and Lakshmipathaiah, K. and Ramadevi, M. C. and Bug, M. and Verma, S. and Sharan, V.},
+  title = {Solar Low Energy X-ray Spectrometer on board Aditya-L1: Ground Calibration and In-flight Performance},
+  journal = {arXiv preprint},
+  year = {2025},
+  eprint = {2509.26292},
+  doi = {10.48550/arXiv.2509.26292},
+  note = {SoLEXS: 2-22 keV, two SDDs (SDD1 7.1 mm^2, SDD2 0.1 mm^2), 1 s cadence, ~170 eV at 5.9 keV}
+}
+
+@article{nandi2025hel1os,
+  author = {Nandi, A. and Sudhakar, M. and Tadepalli, S. P. and others},
+  title = {HEL1OS -- A Hard X-ray Spectrometer on Board Aditya-L1},
+  journal = {Solar Physics},
+  year = {2025},
+  eprint = {2512.12679},
+  doi = {10.48550/arXiv.2512.12679},
+  note = {Design: CdTe 8-70 keV, CZT 20-150 keV, 8-150 keV total; ~1 keV FWHM at 14 keV (CdTe), ~7 keV at 60 keV (CZT)}
+}
+
+@article{ravishankar2026hel1os,
+  author = {Ravishankar, B. T. and Sudhakar, M. and Tadepalli, S. P. and Kalisetti, K. K. and Menon, M. R. and others},
+  title = {{HEL1OS} on {Aditya-L1} Mission: Operations, Data Processing and Monitoring of Sun in Hard X-rays},
+  journal = {Journal of Astrophysics and Astronomy},
+  year = {2026},
+  eprint = {2609.01307},
+  doi = {10.48550/arXiv.2609.01307},
+  note = {Accepted; describes the automated Level-1 pipeline and data products used here. Commissioned Oct 2023, final configuration Jun 2024}
+}
+
+@article{kanaujiya2026,
+  author = {Kanaujiya, A. and others},
+  title = {Quasi-periodic pulsations in X-class flares observed by HEL1OS},
+  journal = {arXiv preprint},
+  year = {2026},
+  eprint = {2609.22787}
+}
+
+@article{preflare2026,
+  author = {Aditya-L1 team},
+  title = {Multi-wavelength pre-flare diagnostics with Aditya-L1},
+  journal = {arXiv preprint},
+  year = {2026},
+  eprint = {2607.26171}
+}
+
+%===============================================================================
+% F. Nowcasting & Flux Prediction
+%===============================================================================
+
+@article{chen2019seq2seq,
+  author = {Chen, Y. and others},
+  title = {Forecasting solar flare X-ray flux profiles with seq2seq},
+  journal = {ApJ},
+  volume = {881},
+  pages = {42},
+  year = {2019},
+  doi = {10.3847/1538-4357/ab2d8e}
+}
+
+@article{yi2026rmn,
+  author = {Yi, K. and others},
+  title = {RMN: recurrent model for GOES peak-flux nowcasting},
+  journal = {arXiv preprint},
+  year = {2026},
+  eprint = {2608.20062}
+}
+
+@article{telikicherla2025,
+  author = {Telikicherla, A. and Woods, T. N. and Schwab, B. D.},
+  title = {Improving Solar Flare Nowcasting with the Hot Onset Precursor Event ({HOPE}) Technique},
+  journal = {arXiv preprint},
+  year = {2025},
+  eprint = {2509.05234},
+  note = {HOPE = Hot Onset Precursor Event: physics-based SXR thermal precursor detection technique using DAXSS and GOES-XRS (mean 9.4 min lead time for X-class flares)}
+}
+
+@article{flare_ssm2025,
+  author = {FLARE-SSM team},
+  title = {Deep state-space models for flare forecasting},
+  journal = {arXiv preprint},
+  year = {2025},
+  eprint = {2509.09988}
+}
+
+@article{flareeuv2026,
+  author = {FlareEUV team},
+  title = {EUV irradiance forecasting with attention},
+  journal = {arXiv preprint},
+  year = {2026},
+  eprint = {2607.19597}
+}
+
+%===============================================================================
+% Additional references
+%===============================================================================
+
+@article{woodcock1976,
+  author = {Woodcock, F.},
+  title = {The evaluation of your forecasting ability},
+  journal = {AMS},
+  year = {1976},
+  note = {Paywalled; not included in analysis}
+}
+
+%===============================================================================
+% Hydrodynamics, Evaporation & Bremsstrahlung Energetics
+%===============================================================================
+
+@article{brown1971,
+  author = {Brown, J. C.},
+  title = {The deduction of energy and electron spectra in solar hard {X}-ray bursts},
+  journal = {Solar Physics},
+  volume = {18},
+  pages = {489--502},
+  year = {1971},
+  doi = {10.1007/BF00149070}
+}
+
+@article{hudson1991,
+  author = {Hudson, H. S.},
+  title = {Solar flares, microflares, and the {Neupert} effect},
+  journal = {Bulletin of the American Astronomical Society},
+  volume = {23},
+  pages = {1064},
+  year = {1991}
+}
+
+@article{fisher1985,
+  author = {Fisher, G. H. and Canfield, R. C. and McClymont, A. N.},
+  title = {Flare loop radiative hydrodynamics. {V}. {Response} to thick-target heating},
+  journal = {ApJ},
+  volume = {289},
+  pages = {414--424},
+  year = {1985},
+  doi = {10.1086/162901}
+}
+
+@article{emslie1978,
+  author = {Emslie, A. G.},
+  title = {The collisional interaction of a beam of electrons with a cold hydrogen plasma},
+  journal = {ApJ},
+  volume = {224},
+  pages = {241--246},
+  year = {1978},
+  doi = {10.1086/156369}
+}
+
+@article{veronig2005,
+  author = {Veronig, A. M. and Brown, J. C. and Dennis, B. R. and Sui, L. and Tolbert, A. K.},
+  title = {Physics of the {Neupert} effect: statistical properties and theoretical modeling},
+  journal = {ApJ},
+  volume = {621},
+  pages = {482--497},
+  year = {2005},
+  doi = {10.1086/427634}
+}
+
+@article{cargill1995,
+  author = {Cargill, P. J. and Mariska, J. T. and Klimchuk, J. A.},
+  title = {Cooling of solar flare loops},
+  journal = {ApJ},
+  volume = {439},
+  pages = {1034--1045},
+  year = {1995},
+  doi = {10.1086/175243}
+}
+
+@article{klimchuk2008,
+  author = {Klimchuk, J. A. and Patsourakos, S. and Cargill, P. J.},
+  title = {Highly efficient modeling of dynamic coronal loops ({EBTEL})},
+  journal = {ApJ},
+  volume = {682},
+  pages = {1351--1362},
+  year = {2008},
+  doi = {10.1086/589426}
+}
+
+@article{delzanna2021,
+  author = {Del Zanna, G. and Dere, K. P. and Young, P. R. and Landi, E.},
+  title = {{CHIANTI} --- an atomic database for emission lines. {Version} 10},
+  journal = {ApJ},
+  volume = {909},
+  pages = {38},
+  year = {2021},
+  doi = {10.3847/1538-4357/abd8ce}
+}
+
+%===============================================================================
+% Detector Physics & Mission Instrumentation
+%===============================================================================
+
+@article{gatti1984,
+  author = {Gatti, E. and Rehak, P.},
+  title = {Semiconductor drift chamber --- an application of a novel charge transport scheme},
+  journal = {Nuclear Instruments and Methods in Physics Research},
+  volume = {225},
+  pages = {608--614},
+  year = {1984},
+  doi = {10.1016/0167-5087(84)90113-3}
+}
+
+@article{hecht1932,
+  author = {Hecht, K.},
+  title = {Zum {Mechanismus} des lichtelektrischen {Primärstromes} in isolierenden {Kristallen}},
+  journal = {Zeitschrift für Physik},
+  volume = {77},
+  pages = {235--245},
+  year = {1932},
+  doi = {10.1007/BF01338917}
+}
+
+@article{tripathi2023,
+  author = {Tripathi, D. and Ramamburthy, G. and Sankarasubramanian, K. and others},
+  title = {Aditya-{L1}: {India's} dedicated mission to study the {Sun}},
+  journal = {Current Science},
+  volume = {125},
+  pages = {1055},
+  year = {2023},
+  eprint = {2212.13046}
+}
+
+@article{krucker2020,
+  author = {Krucker, S. and Hurford, G. J. and Grimm, O. and others},
+  title = {The {Spectrometer/Telescope} for {Imaging} {X}-rays ({STIX}) on board {Solar} {Orbiter}},
+  journal = {A\&A},
+  volume = {642},
+  pages = {A15},
+  year = {2020},
+  doi = {10.1051/0004-6361/201937362}
+}
+
+@article{awasthi2024stix,
+  author = {Awasthi, A. K. and Mrozek, T. and Battaglia, A. F. and Krucker, S.},
+  title = {Relative yield of thermal and nonthermal emission during weak flares observed by {STIX}},
+  journal = {ApJ},
+  volume = {963},
+  pages = {45},
+  year = {2024},
+  doi = {10.3847/1538-4357/ad1a0c}
+}
+
+%===============================================================================
+% Coronal Seismology, Waves & Precursors
+%===============================================================================
+
+@article{kanaujiya2026,
+  author = {Kanaujiya, A. and Nandi, A. and Sudhakar, M. and others},
+  title = {Detection of quasi-periodic pulsations in {X}-class solar flares observed by {Aditya-L1/HEL1OS}},
+  journal = {ApJ},
+  year = {2026},
+  eprint = {2609.22787}
+}
+
+@article{nakariakov2009,
+  author = {Nakariakov, V. M. and Melnikov, V. F.},
+  title = {Quasi-periodic pulsations in solar flares},
+  journal = {Space Science Reviews},
+  volume = {149},
+  pages = {119--151},
+  year = {2009},
+  doi = {10.1007/s11214-009-9536-3}
+}
+
+%===============================================================================
+% Frontier Space Weather AI, Foundation Models & PINNs
+%===============================================================================
+
+@article{roy2024surya,
+  author = {Roy, S. and Schmude, J. and Lal, R. and Gaur, V. and Freitag, M. and Kuehnert, J. and others},
+  title = {Surya: foundation model for heliophysics},
+  journal = {arXiv preprint},
+  year = {2024},
+  eprint = {2408.14112}
+}
+
+@article{jarolim2023nature,
+  author = {Jarolim, R. and Veronig, A. M. and Dickson, E. C. and Podladchikova, T. and Rempel, M.},
+  title = {Probing the solar corona using physics-informed neural networks},
+  journal = {Nature Astronomy},
+  volume = {7},
+  pages = {1176--1187},
+  year = {2023},
+  doi = {10.1038/s41550-023-02030-9}
+}
+
+@article{chen2018gradnorm,
+  author = {Chen, Z. and Badrinarayanan, V. and Lee, C.-Y. and Rabinovich, A.},
+  title = {GradNorm: gradient normalization for adaptive loss balancing in deep multitask networks},
+  booktitle = {Proceedings of ICML},
+  volume = {80},
+  pages = {794--803},
+  year = {2018}
+}
+
+@article{chen2018neuralode,
+  author = {Chen, R. T. Q. and Rubanova, Y. and Bettencourt, J. and Duvenaud, D.},
+  title = {Neural ordinary differential equations},
+  journal = {Advances in Neural Information Processing Systems (NeurIPS)},
+  volume = {31},
+  year = {2018}
+}
+
+@article{yu2026sepnet,
+  author = {Yu, Y. and Chen, Y. and Zhao, L.},
+  title = {Solar energetic particle forecasting with multi-task deep learning: {SEPNET}},
+  journal = {Space Weather},
+  volume = {24},
+  pages = {e2026JH001247},
+  year = {2026},
+  doi = {10.1029/2026JH001247}
+}
+
+%===============================================================================
+% Operational Decision Theory & Conformal Prediction
+%===============================================================================
+
+@article{richardson2000,
+  author = {Richardson, D. S.},
+  title = {Skill and economic value of the {ECMWF} ensemble prediction system},
+  journal = {Q. J. R. Meteorol. Soc.},
+  volume = {126},
+  pages = {649--667},
+  year = {2000},
+  doi = {10.1002/qj.49712656304}
+}
+
+@article{murphy1987,
+  author = {Murphy, A. H. and Winkler, R. L.},
+  title = {A general framework for forecast verification},
+  journal = {Monthly Weather Review},
+  volume = {115},
+  pages = {1330--1338},
+  year = {1987},
+  doi = {10.1175/1520-0493(1987)115<1330:AGFFFV>2.0.CO;2}
+}
+
+@book{vovk2005,
+  author = {Vovk, V. and Gammerman, A. and Shafer, G.},
+  title = {Algorithmic Learning in a Random World},
+  publisher = {Springer},
+  year = {2005},
+  doi = {10.1007/b106715}
+}
+
+@article{angelopoulos2021,
+  author = {Angelopoulos, A. N. and Bates, S.},
+  title = {A gentle introduction to conformal prediction and distribution-free uncertainty quantification},
+  journal = {arXiv preprint},
+  year = {2021},
+  eprint = {2107.07511}
+}
+
+@article{woods2012,
+  author = {Woods, T. N. and Eparvier, F. G. and Hock, R. and others},
+  title = {Extreme Ultraviolet Variability Experiment ({EVE}) on the {Solar} {Dynamics} {Observatory} ({SDO})},
+  journal = {Solar Physics},
+  volume = {275},
+  pages = {115--143},
+  year = {2012},
+  doi = {10.1007/s11207-009-9487-6}
+}

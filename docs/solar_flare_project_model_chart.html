@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Solar Flare Nowcasting - Project Model Chart</title>
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  body {
+    background-color: #f0f3f6;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+  .poster-container {
+    width: 1400px;
+    background: #ffffff;
+    border: 2px solid #b0bec5;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  }
+  /* Top Banner */
+  .title-banner {
+    background: linear-gradient(135deg, #154360, #1b4f72);
+    color: #ffffff;
+    text-align: center;
+    padding: 14px 20px;
+    border-radius: 8px;
+    margin-bottom: 14px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+  .title-banner h1 {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .title-banner p {
+    font-size: 13.5px;
+    font-weight: 400;
+    color: #d4e6f1;
+    letter-spacing: 0.3px;
+  }
+
+  /* Upper Layout */
+  .upper-grid {
+    display: grid;
+    grid-template-columns: 460px 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+
+  /* Left Cards */
+  .left-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .card {
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 11.5px;
+    line-height: 1.45;
+  }
+  .card-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  /* Problem Statement */
+  .card-problem {
+    background-color: #fdedec;
+    border: 1.5px solid #f5b7b1;
+    color: #641e16;
+  }
+  .card-problem .card-title {
+    color: #922b21;
+  }
+
+  /* Solution Overview */
+  .card-solution {
+    background-color: #eafaf1;
+    border: 1.5px solid #a9dfbf;
+    color: #145a32;
+  }
+  .card-solution .card-title {
+    color: #1e8449;
+  }
+
+  /* Key Features */
+  .card-features {
+    background-color: #f4ecf7;
+    border: 1.5px solid #d2b4de;
+    color: #4a235a;
+  }
+  .card-features .card-title {
+    color: #6c3483;
+  }
+  .card-features ul {
+    list-style-type: disc;
+    margin-left: 18px;
+    margin-top: 4px;
+  }
+  .card-features li {
+    margin-bottom: 4px;
+  }
+
+  /* Architecture Diagram Card */
+  .card-architecture {
+    background-color: #ebf5fb;
+    border: 1.5px solid #aed6f1;
+    border-radius: 8px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+  }
+  .card-architecture .card-title {
+    color: #1b4f72;
+    margin-bottom: 10px;
+  }
+  .arch-canvas {
+    background: #ffffff;
+    border: 1px solid #d4e6f1;
+    border-radius: 6px;
+    flex-grow: 1;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .arch-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+  .arch-box {
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 11px;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .arch-box strong {
+    display: block;
+    font-size: 11.5px;
+    margin-bottom: 2px;
+  }
+  .box-input {
+    background: #e8f8f5;
+    border: 1.5px solid #a3e4d7;
+    color: #0e6251;
+    flex: 1;
+  }
+  .box-qc {
+    background: #fef9e7;
+    border: 1.5px solid #f9e79f;
+    color: #7d6608;
+    flex: 1;
+  }
+  .box-model {
+    background: #e8eaf6;
+    border: 1.5px solid #9fa8da;
+    color: #1a237e;
+    flex: 1.4;
+  }
+  .box-pinn {
+    background: #fce4ec;
+    border: 1.5px solid #f48fb1;
+    color: #880e4f;
+    flex: 1.2;
+  }
+  .box-decision {
+    background: #ede7f6;
+    border: 1.5px solid #b39ddb;
+    color: #4a148c;
+    flex: 1;
+  }
+  .box-ui {
+    background: #e0f2f1;
+    border: 1.5px solid #80cbc4;
+    color: #004d40;
+    flex: 1;
+  }
+  .arch-arrow {
+    color: #5d6d7e;
+    font-size: 16px;
+    font-weight: bold;
+  }
+
+  /* Flowchart / Result Section */
+  .flowchart-card {
+    background-color: #ebf5fb;
+    border: 1.5px solid #aed6f1;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+  }
+  .flowchart-card .card-title {
+    color: #1b4f72;
+    margin-bottom: 10px;
+  }
+  .flowchart-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  .flow-col {
+    background: #ffffff;
+    border: 1.5px solid #d4e6f1;
+    border-radius: 6px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+  }
+  .flow-col-header {
+    font-size: 13px;
+    font-weight: 700;
+    color: #154360;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #ebf5fb;
+    text-align: center;
+  }
+  .flow-step-box {
+    border-radius: 6px;
+    padding: 7px 8px;
+    font-size: 10.5px;
+    line-height: 1.35;
+    text-align: center;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  }
+  .step-pill {
+    background: #d4efdf;
+    border: 1.5px solid #52be80;
+    color: #196f3d;
+    font-weight: 700;
+    border-radius: 20px;
+    padding: 4px 10px;
+    display: inline-block;
+    margin: 0 auto 4px auto;
+  }
+  .step-sub1 { background: #e8f4f8; border: 1px solid #aed6f1; color: #1f618d; }
+  .step-sub2 { background: #fef5e7; border: 1px solid #f5cba7; color: #af601a; }
+  .step-sub3 { background: #eaf2f8; border: 1px solid #a9cce3; color: #2471a3; }
+  .step-sub4 { background: #f5eef8; border: 1px solid #d7bde2; color: #6c3483; }
+  .step-done {
+    background: #d4efdf;
+    border: 1.5px solid #27ae60;
+    color: #145a32;
+    font-weight: 700;
+    border-radius: 20px;
+    padding: 4px 10px;
+    display: inline-block;
+    margin: 4px auto 0 auto;
+  }
+
+  /* Bottom Result Bar */
+  .result-banner {
+    background: linear-gradient(135deg, #e8f4f8, #f4ecf7);
+    border: 1.5px solid #aed6f1;
+    border-radius: 8px;
+    padding: 10px 16px;
+    text-align: center;
+    color: #1b4f72;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .result-banner span {
+    color: #154360;
+    font-weight: 800;
+    margin-right: 8px;
+    font-size: 13px;
+  }
+  .result-metrics {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin-top: 4px;
+    font-size: 12px;
+  }
+  .metric-item {
+    color: #0b5345;
+  }
+  .metric-item strong {
+    color: #117864;
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+
+<div class="poster-container">
+
+  <!-- Header Banner -->
+  <div class="title-banner">
+    <h1>Physics-Informed Graph Transformer for Solar Flare Early Warning & Nowcasting</h1>
+    <p>Validating the Neupert Effect Inductive Bias on Aditya-L1 Telemetry and Deep Multi-Horizon Benchmarks</p>
+  </div>
+
+  <!-- Upper Grid: Left Problem/Solution/Features + Right Architecture Diagram -->
+  <div class="upper-grid">
+    
+    <!-- Left Column -->
+    <div class="left-cards">
+      
+      <!-- Problem Statement -->
+      <div class="card card-problem">
+        <div class="card-title">⚠️ Problem Statement</div>
+        <p>
+          Catastrophic solar flares and radiation storms threaten satellite constellations, avionics, power grids, and orbital communications. However, severe rare-event class imbalance (&lt;0.5% flare occurrence) causes conventional machine learning and unconstrained deep neural networks to suffer catastrophic probability calibration collapse. Models either generate excessive false alarms (FAR &gt; 90%) to artificially boost recall or fail to identify rapid impulsive superflares, causing operational warning failure.
+        </p>
+      </div>
+
+      <!-- Solution Overview -->
+      <div class="card card-solution">
+        <div class="card-title">💡 Solution Overview</div>
+        <p>
+          We build an end-to-end physics-informed nowcasting architecture coupling authentic Level-1 telemetry from India's maiden solar observatory, <strong>Aditya-L1 (SoLEXS & HEL1OS)</strong>, with NOAA GOES ground truth. By modeling 5 multi-spectral X-ray passbands via a dynamic Spatio-Temporal Graph Transformer embedded with the differential <strong>Neupert effect</strong> inductive bias (||dF<sub>SXR</sub>/dt - (&alpha;I<sub>HXR</sub> - &beta;F<sub>SXR</sub>)||^2), the model achieves state-of-the-art calibration, finite-sample conformal prediction bounds, and actionable decision-theoretic value.
+        </p>
+      </div>
+
+      <!-- Key Features -->
+      <div class="card card-features">
+        <div class="card-title">✨ Key Features</div>
+        <ul>
+          <li><strong>Dual Aditya-L1 Ingestion:</strong> Synchronized SoLEXS (2–22 keV) and HEL1OS (10–150 keV) FITS telemetry with F5.1–F5.7 automated quality gates.</li>
+          <li><strong>Empirical Neupert Verification:</strong> First multi-spectral proof on Aditya-L1 (integral r = 0.808 vs direct 0.181, median lead time 2.8 min / 170 s).</li>
+          <li><strong>Physics Inductive Bias:</strong> Clamped thermodynamic PINN loss regularizes latent states against coronal loop energy conservation laws.</li>
+          <li><strong>50% Brier Error Reduction:</strong> Halves Brier score (0.0190 to 0.0098) and gains +1.282 BSS over black-box baselines on held-out X9.0 flare.</li>
+          <li><strong>Conformal Safety Sets:</strong> Mondrian class-conditional sets guarantee 1 - &epsilon; coverage under extreme class imbalance.</li>
+          <li><strong>Operational Impact:</strong> Richardson cost-loss modeling delivers up to 42% avoidable damage reduction for satellite operators.</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- Right Column: Architecture Diagram -->
+    <div class="card card-architecture">
+      <div class="card-title">📐 Architecture Diagram</div>
+      <div class="arch-canvas">
+        
+        <!-- Row 1: Spacecraft Data Streams -->
+        <div class="arch-row">
+          <div class="arch-box box-input">
+            <strong>Aditya-L1 Telemetry</strong>
+            SoLEXS (SDD, 2–22 keV)<br>HEL1OS (CZT/CdTe, 10–150 keV)
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box box-input">
+            <strong>NOAA GOES Reference</strong>
+            GOES-16/18 XRS 0.5–4.0 &Aring;, 1–8 &Aring;<br>Continuous 1-s Cadence
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box box-qc">
+            <strong>Quality Assurance (F5.1–F5.7)</strong>
+            GTI Intersection & Alignment<br>Zero-inflation & Circular Lag Mask
+          </div>
+        </div>
+
+        <div style="text-align: center; color: #5d6d7e; font-weight: bold; font-size: 14px;">↓</div>
+
+        <!-- Row 2: Graph Transformer Core -->
+        <div class="arch-row">
+          <div class="arch-box box-model">
+            <strong>5-Node Dynamic Graph Transformer</strong>
+            Node 0: SoLEXS Low (1.2–2.4 &Aring;) &bull; Node 1: SoLEXS High (0.6–1.2 &Aring;)<br>
+            Node 2: CdTe Low (30–40 keV) &bull; Node 3: CdTe High (40–60 keV) &bull; Node 4: CZT (60–150 keV)<br>
+            <em>Spatial Cross-Attention &bull; Causal Temporal Self-Attention (60-min window)</em>
+          </div>
+        </div>
+
+        <div style="text-align: center; color: #5d6d7e; font-weight: bold; font-size: 14px;">↓ (Multi-Task Optimization)</div>
+
+        <!-- Row 3: Dual Heads -->
+        <div class="arch-row">
+          <div class="arch-box box-model">
+            <strong>Forecasting Classifier Head</strong>
+            Multi-Horizon Probabilities<br>15-min &bull; 30-min &bull; 60-min Horiz.
+          </div>
+          <div class="arch-arrow">⟷</div>
+          <div class="arch-box box-pinn">
+            <strong>Thermodynamic PINN Head</strong>
+            Coronal Loop Cooling Equation<br>||dF<sub>SXR</sub>/dt - (&alpha;I<sub>HXR</sub> - &beta;F<sub>SXR</sub>)||^2
+          </div>
+        </div>
+
+        <div style="text-align: center; color: #5d6d7e; font-weight: bold; font-size: 14px;">↓</div>
+
+        <!-- Row 4: Decision & Operations -->
+        <div class="arch-row">
+          <div class="arch-box box-decision">
+            <strong>Mondrian Conformal Engine</strong>
+            1 - &epsilon; Finite Sample Guarantee<br>Uncertainty Sets {0}, {1}, {0, 1}
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box box-decision">
+            <strong>Richardson Cost-Loss Optimizer</strong>
+            Avoids Alarm Fatigue (FAR &lt; 90%)<br>Delivers 42% Loss Reduction
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box box-ui">
+            <strong>FastAPI & Mission Cockpit</strong>
+            60 FPS SSE Live Stream<br>262.4 ms Total Inference Latency
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Lower Section: Result / Flowchart (4 Horizontal Stages) -->
+  <div class="flowchart-card">
+    <div class="card-title">🔄 Result / Flowchart: End-to-End Operational Workflow</div>
+    <div class="flowchart-grid">
+      
+      <!-- Column 1 -->
+      <div class="flow-col">
+        <div class="flow-col-header">1. Telemetry Ingestion</div>
+        <div class="step-pill">Start</div>
+        <div class="flow-step-box step-sub1">
+          <strong>Raw Ingestion</strong><br>
+          Fetch L1 FITS from ISSDC PRADAN & NOAA SWPC archives
+        </div>
+        <div class="flow-step-box step-sub1">
+          <strong>Quality Gates F5.1–F5.7</strong><br>
+          Screen HXR &ge; 22 keV, isolate GTIs, subtract nonzero median baseline
+        </div>
+        <div class="flow-step-box step-sub1">
+          <strong>Alignment Check</strong><br>
+          1-s sync across SoLEXS, HEL1OS, and GOES-16 channels
+        </div>
+      </div>
+
+      <!-- Column 2 -->
+      <div class="flow-col">
+        <div class="flow-col-header">2. Graph Construction</div>
+        <div class="flow-step-box step-sub2">
+          <strong>5-Node Topology</strong><br>
+          Assign energy bands to nodes; initialize spatial feature vectors
+        </div>
+        <div class="flow-step-box step-sub2">
+          <strong>Spatial Attention</strong><br>
+          Learn dynamic inter-band energy coupling across soft & hard X-rays
+        </div>
+        <div class="flow-step-box step-sub2">
+          <strong>Temporal Embedding</strong><br>
+          Encode causal 60-min history via multi-head masked self-attention
+        </div>
+      </div>
+
+      <!-- Column 3 -->
+      <div class="flow-col">
+        <div class="flow-col-header">3. Physics-Informed Learning</div>
+        <div class="flow-step-box step-sub3">
+          <strong>Neupert Inductive Bias</strong><br>
+          Compute latent derivative dF<sub>SXR</sub>/dt against &alpha;I<sub>HXR</sub> - &beta;F<sub>SXR</sub>
+        </div>
+        <div class="flow-step-box step-sub3">
+          <strong>Positive Clamping</strong><br>
+          Clamp &alpha; &ge; 0.01, &beta; &ge; 0.001; enforce hydrodynamic loop physics
+        </div>
+        <div class="flow-step-box step-sub3">
+          <strong>Thermodynamic Match</strong><br>
+          Converges to &beta; = 0.029 min<sup>-1</sup> (&tau; = 34.5 min) matching Spitzer-CHIANTI cooling
+        </div>
+      </div>
+
+      <!-- Column 4 -->
+      <div class="flow-col">
+        <div class="flow-col-header">4. Alert & Satellite Action</div>
+        <div class="flow-step-box step-sub4">
+          <strong>Calibrated Nowcast</strong><br>
+          Evaluate 15, 30, 60-min flare onset probabilities on unseen telemetry
+        </div>
+        <div class="flow-step-box step-sub4">
+          <strong>Conformal Set Dispatch</strong><br>
+          Output rigorous safety sets; flag epistemic uncertainty to operators
+        </div>
+        <div class="flow-step-box step-sub4">
+          <strong>Preemptive Mitigation</strong><br>
+          Trigger automated satellite safe-mode commands within 262.4 ms latency
+        </div>
+        <div class="step-done">Mission Protected</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Bottom Result Summary Banner -->
+  <div class="result-banner">
+    <span>KEY MISSION OUTCOMES:</span>
+    <div class="result-metrics">
+      <div class="metric-item"><strong>2.8 min (+170 s)</strong> Physical Lead Time</div>
+      <div>|</div>
+      <div class="metric-item"><strong>50% Lower Brier Score</strong> (0.0190 → 0.0098)</div>
+      <div>|</div>
+      <div class="metric-item"><strong>+1.282 BSS Gain</strong> over Unconstrained ST-GT</div>
+      <div>|</div>
+      <div class="metric-item"><strong>42% Operational Loss Reduction</strong> for Satellites</div>
+      <div>|</div>
+      <div class="metric-item"><strong>39/39 Passing Tests</strong> (100% Reproducible)</div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

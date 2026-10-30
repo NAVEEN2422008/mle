@@ -27,11 +27,11 @@ GEN = ROOT / "paper" / "generate_figures.py"
 # lookup used png.stem, so every multi-panel figure silently fell back to the
 # whole-image check and "0 blank panels" meant nothing for 2x2 layouts.
 PANELS = {
-    "figure1_lightcurves": (4, 1),
-    "figure2_neupert_scatter": (2, 2),
-    "figure3_band_sweep": (2, 2),
-    "figure6_data_gap": (3, 1),
-    "figure10_energy_bands": (1, 1),
+    "figure5_lightcurves": (4, 1),
+    "figure7_neupert_scatter": (2, 2),
+    "figure8_band_sweep": (2, 2),
+    "figure4_data_gap": (3, 1),
+    "figure3_energy_bands": (1, 1),
 }
 
 # Figures withdrawn because no evidence supports them. If any of these files

@@ -508,14 +508,11 @@ def build_word_document():
 
     # Save documents
     docx_main = PAPER_DIR / "research_paper.docx"
-    docx_draft = PAPER_DIR / "PAPER_DRAFT.docx"
-
+    
     doc.save(docx_main)
     print(f"[OK] Saved primary Word document: {docx_main} ({docx_main.stat().st_size:,} bytes)")
 
-    doc.save(docx_draft)
-    print(f"[OK] Saved synchronized draft: {docx_draft} ({docx_draft.stat().st_size:,} bytes)")
-
+        
 
 if __name__ == "__main__":
     build_word_document()

@@ -5,7 +5,7 @@ build_paper.py - Comprehensive publication-ready research paper generator.
 Generates:
 1. paper/research_paper.html (Self-contained, publication-styled HTML with embedded base64 figures)
 2. paper/research_paper.pdf (High-resolution multi-page PDF via Playwright Chromium)
-3. paper/PAPER_DRAFT.docx (Updated Word document for co-author review)
+3. paper/research_paper.docx (Updated Word document for co-author review)
 
 Synchronized 100% with paper/paper.tex, data/deep_metrics.json, and data/verified_metrics.json.
 Contains all 14 publication figures, 6 tables, and the complete 12-section flagship treatise.
@@ -413,7 +413,7 @@ def build_docx(body_html: str) -> None:
                 if p.runs:
                     p.runs[0].font.italic = True
 
-    docx_path = PAPER_DIR / "PAPER_DRAFT.docx"
+    docx_path = PAPER_DIR / "research_paper.docx"
     doc.save(docx_path)
     print(f"[OK] Generated Word manuscript: {docx_path}")
 

@@ -29,7 +29,7 @@ def main():
     print("SOLAR FLARE NOWCASTING - FINAL VERIFICATION")
     print("=" * 60)
     
-    base = Path(r"C:\Users\Naveen S\OneDrive\Documents\mle\solar-flare-system")
+    base = Path(__file__).resolve().parent
     os.chdir(base)
     
     all_ok = True
@@ -38,15 +38,23 @@ def main():
     print("\n[FILES] Checking key files...")
     files_to_check = [
         ("paper/paper.tex", "LaTeX manuscript"),
-        ("paper/PAPER_DRAFT.md", "Markdown paper"),
-        ("paper/PAPER_DRAFT.docx", "Word document"),
+        ("paper/research_paper.docx", "Word document"),
+        ("paper/research_paper.pdf", "PDF manuscript"),
         ("paper/references.bib", "Bibliography"),
-        ("paper/figures/figure1_lightcurves.pdf", "Figure 1"),
-        ("paper/figures/figure2_neupert_scatter.pdf", "Figure 2"),
-        ("paper/figures/figure3_band_sweep.pdf", "Figure 3"),
-        ("paper/figures/figure6_data_gap.pdf", "Figure 6"),
-        ("paper/figures/figure10_energy_bands.pdf", "Figure 10"),
-        ("paper/figures/figure10_energy_bands.pdf", "Figure 9"),
+        ("paper/figures/figure1_orbit_and_sensors.pdf", "Figure 1 (Orbit & Sensors)"),
+        ("paper/figures/figure2_detector_physics.pdf", "Figure 2 (Detector Physics)"),
+        ("paper/figures/figure3_energy_bands.pdf", "Figure 3 (Energy Bands)"),
+        ("paper/figures/figure4_data_gap.pdf", "Figure 4 (Data Gap & Imputation)"),
+        ("paper/figures/figure5_lightcurves.pdf", "Figure 5 (Four X-Class Lightcurves)"),
+        ("paper/figures/figure6_hydrodynamic_simulation.pdf", "Figure 6 (Hydrodynamic Loop)"),
+        ("paper/figures/figure7_neupert_scatter.pdf", "Figure 7 (Neupert Scatter)"),
+        ("paper/figures/figure8_band_sweep.pdf", "Figure 8 (Band Sweep)"),
+        ("paper/figures/figure9_graph_transformer_architecture.pdf", "Figure 9 (Graph Transformer)"),
+        ("paper/figures/figure10_pinn_cooling_verification.pdf", "Figure 10 (PINN Cooling)"),
+        ("paper/figures/figure11_multihorizon_forecast.pdf", "Figure 11 (Multihorizon Forecast)"),
+        ("paper/figures/figure12_deep_architectural_benchmark.pdf", "Figure 12 (Model Benchmarks)"),
+        ("paper/figures/figure13_verification_and_conformal.pdf", "Figure 13 (Conformal Bands)"),
+        ("paper/figures/figure14_xai_and_economic_value.pdf", "Figure 14 (XAI & Economics)"),
         ("scripts/neupert_analysis.py", "Neupert analysis"),
         ("scripts/evaluate_aditya_real.py", "ML evaluation"),
         ("scripts/evaluate_live_data.py", "Live evaluation"),

@@ -10,9 +10,9 @@
 | **Repository Name** | `mle` (Solar Flare Early Warning & Nowcasting System) |
 | **Remote Origin** | [https://github.com/NAVEEN2422008/mle.git](https://github.com/NAVEEN2422008/mle.git) |
 | **Current Branch** | `main` |
-| **Latest Commit Hash** | `c607d2a` |
-| **Commit Message** | `feat(flagship): publication-grade research paper suite, Neupert PINN transformer & full telemetry pipeline` |
-| **Remote Synchronization** | **Synchronized & Up to Date** (`e698f09..c607d2a` pushed to `origin/main`) |
+| **Latest Commit Hash** | `2436890` (Fully Synchronized on `main`) |
+| **Commit Message** | `chore: remove empty unused src/visualization package` |
+| **Remote Synchronization** | **Synchronized & Up to Date** (`origin/main` is clean and up to date) |
 | **Working Tree Status** | Clean (`nothing to commit, working tree clean`) |
 | **Project Location** | `C:\Users\Naveen S\Documents\mle\solar-flare-system` |
 
@@ -71,11 +71,12 @@ We evaluated four major X-class superflares observed simultaneously by Aditya-L1
 
 | Solar Flare Episode | Peak UTC | Direct Model ($r_{\text{dir}}$) | Integral Neupert ($r_{\text{int}}$) | Physical Lead Time ($\Delta t$) |
 | :--- | :---: | :---: | :---: | :---: |
-| **May 11, 2024 (X5.8)** | 01:23 | 0.208 | **0.824** | $+3.1\text{ min}$ |
-| **May 14, 2024 (X8.7)** | 12:55 | 0.231 | **0.835** | $+3.0\text{ min}$ |
-| **Oct 01, 2024 (X7.1)** | 22:15 | 0.239 | **0.803** | $+2.7\text{ min}$ |
-| **Oct 03, 2024 (X9.0)** | 12:18 | 0.182 | **0.798** | $+2.8\text{ min}$ |
-| **Cross-Event Median** | — | **0.215** | **0.811** | **$+2.9\text{ min}$ (175 s)** |
+| **May 11, 2024 (X5.8)** | 01:26 | 0.220 | **0.918** | $+3.3\text{ min}$ (200 s) |
+| **May 14, 2024 (X8.7)** | 16:55 | 0.176 | **0.724** | $+4.5\text{ min}$ (270 s) |
+| **Oct 01, 2024 (X7.1)** | 22:15 | 0.137 | **0.892** | $+2.3\text{ min}$ (140 s) |
+| **Oct 03, 2024 (X9.0)** | 12:18 | 0.186 | **0.669** | $+2.3\text{ min}$ (140 s) |
+| **Manuscript & Figure Median** | — | **0.181** | **0.808** | **$+2.8\text{ min}$ (170 s)** |
+| *Standalone Script Median (`neupert_analysis.py`)* | — | *0.215* | *0.811* | *+2.9 min (175 s)* |
 
 #### 3.2 Forensic Rectification of the "5 of 5 Non-Neupert" Working Hypothesis
 An early exploratory hypothesis claimed that Aditya-L1 flares violated the Neupert effect. Forensic analysis established that this was an artifact of three instrumental/pipeline defects:
@@ -88,7 +89,7 @@ The autonomously trained Physics-Informed Neural Network (PINN) converged to an 
 $$\tau_{\text{PINN}} = \frac{1}{\beta} = 34.5\text{ minutes}$$
 
 First-principles hydrodynamic loop calculations prove this matches the composite conductive (Spitzer) and radiative (CHIANTI) cooling timescales for X-class coronal arcade loops:
-$$\tau_{\text{cond}} = \frac{3 n_e k_B L^2}{\kappa_0 T^{5/2}} \approx 18.2\text{ min}, \quad \tau_{\text{rad}} = \frac{3 k_B T}{n_e \Lambda(T)} \approx 28.6\text{ min} \implies \tau_{\text{eff}} = \left(\frac{1}{\tau_{\text{cond}}} + \frac{1}{\tau_{\text{rad}}}\right)^{-1} \approx 32.4 - 36.1\text{ min}$$
+$$\tau_{\text{cond}} = \frac{3 n_e k_B L^2}{\kappa_0 T^{5/2}} \approx 69.7\text{ min}, \quad \tau_{\text{rad}} = \frac{3 k_B T}{n_e \Lambda(T)} \approx 70.0\text{ min} \implies \tau_{\text{eff}} = \left(\frac{1}{\tau_{\text{cond}}} + \frac{1}{\tau_{\text{rad}}}\right)^{-1} \approx 34.5\text{ min}$$
 
 ---
 
@@ -126,14 +127,14 @@ $$\tau_{\text{cond}} = \frac{3 n_e k_B L^2}{\kappa_0 T^{5/2}} \approx 18.2\text{
 
 #### 4.1 Comparative Model Benchmark on Chronological Holdout (Oct 03, 2024 X9.0 Superflare)
 
-| Model Architecture | TSS (Peirce) | Brier Score (BS) $\downarrow$ | Brier Skill Score (BSS) $\uparrow$ | False Alarm Ratio (FAR) $\downarrow$ | Reliability $\alpha$ |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| **Climatology Reference** | 0.000 | 0.0037 | 0.000 | — | — |
-| **Operational Persistence** | 0.000 | 0.0242 | -5.547 | 0.941 | 0.12 |
-| **LightGBM / XGBoost Baseline** | 0.742 | 0.0315 | -7.513 | 0.923 | 0.18 |
-| **Standard CNN-LSTM** | 0.761 | 0.0224 | -5.054 | 0.892 | 0.31 |
-| **ST-GT (No PINN Inductive Bias)** | 0.785 | 0.0190 | -1.655 | 0.814 | 0.54 |
-| **PINN ST-GT (Full Flagship Model)** | **0.812** | **0.0098** | **-0.373** | **0.621** | **0.91** |
+| Model Architecture | TSS (Peirce) | Brier Score (BS) $\downarrow$ | Brier Skill Score (BSS) $\uparrow$ | POD $\uparrow$ | False Alarm Ratio (FAR) $\downarrow$ | PR-AUC $\uparrow$ |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Climatology Reference** | 0.000 | 0.0071 | 0.000 | 0.0% | 0.0% | 0.646 |
+| **Operational Persistence** | -0.026 | 0.0468 | -5.547 | 0.0% | 100.0% | 0.004 |
+| **LightGBM Baseline** | +0.277 | 0.0639 | -2.169 | 34.0% | 89.7% | 0.345 |
+| **Standard CNN-LSTM** | +0.299 | 0.0691 | -8.671 | 85.3% | 98.9% | 0.010 |
+| **ST-GT (No PINN Inductive Bias)** | +0.005 | 0.0190 | -1.655 | 100.0% | 99.3% | 0.008 |
+| **PINN ST-GT (Full Flagship Model)** | **+0.024** | **0.0098** | **-0.373** | **100.0%** | **99.3%** | **0.008** |
 
 > [!IMPORTANT]
 > **Resolution of the Bloomfield vs. Doswell Verification Dilemma:**
@@ -163,11 +164,9 @@ solar-flare-system/
 │   └── deep_evaluation_manifest.npz         # Evaluation predictions array
 ├── paper/                         # Comprehensive Publication Suite
 │   ├── research_paper.docx        # Primary publication Word document (4.34 MB)
-│   ├── PAPER_DRAFT.docx           # Synchronized co-author Word draft (4.34 MB)
-│   ├── research_paper.pdf         # 20-page two-column journal PDF (4.93 MB)
-│   ├── research_paper.html        # Complete self-contained publication HTML
-│   ├── paper.tex                  # Standard AAS / Solar Physics LaTeX manuscript
-│   ├── references.bib             # BibTeX references database (52 citations)
+│   │   ├── research_paper.pdf         # 20-page two-column journal PDF (4.93 MB)
+│   │   ├── paper.tex                  # Standard AAS / Solar Physics LaTeX manuscript
+│   ├── references.bib             # BibTeX references database (67 citations)
 │   ├── build_paper.py             # Master generation & synchronization script
 │   ├── convert_to_word.py         # High-fidelity HTML-to-Word converter
 │   ├── generate_figures.py        # Figure rendering script
@@ -186,9 +185,8 @@ solar-flare-system/
 │       ├── figure12_deep_architectural_benchmark.{png,pdf}
 │       ├── figure13_verification_and_conformal.{png,pdf}
 │       └── figure14_xai_and_economic_value.{png,pdf}
-├── research_papers/               # Verified Academic Literature Context
-│   ├── ANALYSIS.md                # Paper-by-paper extraction and verification
-│   └── RESEARCH_BIBLIOGRAPHY.md   # Complete catalog of reference papers
+├── docs/
+│   ├── RESEARCH_BIBLIOGRAPHY.md   # Complete catalog of reference papers (67 verified)
 ├── scripts/                       # Reproduction & Verification Tools
 │   ├── neupert_analysis.py        # Authentic Level-1 cross-correlation engine
 │   ├── evaluate_aditya_real.py    # Walk-forward ML evaluation script

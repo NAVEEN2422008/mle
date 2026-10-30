@@ -4,7 +4,7 @@
 [![NOAA SWPC](https://img.shields.io/badge/Satellite-NOAA%20GOES--16%2F18-blue.svg)](https://www.swpc.noaa.gov/)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green.svg)](https://fastapi.tiangolo.com/)
-[![Tests](https://img.shields.io/badge/Tests-53%2F53%20Passing-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/Tests-39%2F39%20Passing-brightgreen.svg)]()
 [![License](https://img.shields.io/badge/License-MIT-purple.svg)]()
 
 ---
@@ -45,7 +45,7 @@ The **Aditya-L1 Solar Flare Nowcasting System** is a reproducible space science 
  │ 📄 PHASE 6: Publication-Ready Peer-Reviewed Manuscript Suite           │
  │    • Formatted for ApJ / Solar Physics / Space Weather Submissions     │
  │    • Multi-Page PDF (paper/research_paper.pdf) with Embedded Figures   │
- │    • Fully Audited BibTeX (16 Verified Citations, 0 Deceptive Claims)  │
+ │    • Fully Audited BibTeX (67 Verified Citations, 0 Deceptive Claims)  │
  └────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -80,7 +80,7 @@ pip install -r requirements.txt
 
 ### 2. Run Automated Verification & Test Suite
 ```bash
-# Run all 53 automated unit and QC tests
+# Run all 39 automated regression and QC tests
 pytest tests/ -v
 
 # Run the master project verification pipeline

@@ -19,7 +19,7 @@ The **Aditya-L1 Solar Flare Nowcasting System** is a reproducible space science 
  │ 🛰️ PHASE 1: Multi-Satellite Ingestion & Synchronization               │
  │    • Aditya-L1 (SoLEXS & HEL1OS Level-1) + NOAA Ground Truth          │
  │    • Good Time Interval (GTI) Intersections & 1-s Cadence Alignment    │
- │    • 169,505 Telemetry Minutes across 4 Major X-Class Flares           │
+ │    • 169,505 Seconds (47.1 h), 4 X-Class Flares                        │
  ├────────────────────────────────────────────────────────────────────────┤
  │ 🔬 PHASE 2: Physics Neupert Effect Verification                        │
  │    • SXR ~ ∫(HXR) dt Coupling Regression with Optimal Lag Search       │
